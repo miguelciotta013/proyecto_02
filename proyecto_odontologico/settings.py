@@ -139,7 +139,3 @@ try:
     from .settings_local import *
 except ImportError:
     pass
-try:
-    from .settings_local_brian import *
-except ImportError:
-    pass

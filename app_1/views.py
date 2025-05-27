@@ -2,8 +2,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from app_1.models import *
 from .forms import ProductForm
 # Create your views here.
+
 def index(request):
-    return render(request, "index.html")
+    return render(request, "odontogramas/index.html")
 
 def odontogramas(request):
     odontograma = Odontogramas.objects.select_related("id_paciente").all()

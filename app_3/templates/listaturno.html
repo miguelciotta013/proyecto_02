@@ -8,9 +8,15 @@
     <link rel="stylesheet" href="{% static 'miestilo.css' %}">
 </head>
 <body>
+    <nav class="navegador">
+        <a href="http://127.0.0.1:8000/">Inicio</a>
+        <a href="/odontogramas/">Odontogramas</a>
+        <a href="/app_3/listar_turnos/">Turnos</a>
+    </nav>
+ 
     <h1>Listar turnos</h1>
     <div style="text-align: center;">
-        <h2><a href="{% url 'registrar_turno' %}">Registrar turno</a></h2>
+        <h2><a class="accion" href="{% url 'registrar_turno' %}">Registrar turno</a></h2>
     </div>
     <table border="1">
         <thead>
@@ -32,13 +38,14 @@
                 <td>{{ turno.id_paciente }}</td>
                 <td>{{ turno.estado_turno }}</td>
                 <td>
-                    <a href="{% url 'editar_turno' turno.id_turnos %}">Editar</a> |
-                    <a href="{% url 'eliminar_turno' turno.id_turnos %}">Eliminar</a>
+                    <a class="accion" href="{% url 'editar_turno' turno.id_turnos %}">Editar</a> |
+                    <a class="accion" href="{% url 'eliminar_turno' turno.id_turnos %}">Eliminar</a>
                 </td>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
 </body>
 </html>
