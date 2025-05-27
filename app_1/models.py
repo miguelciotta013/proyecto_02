@@ -161,7 +161,7 @@ class PacienteXOs(models.Model):
 
 
 class Pacientes(models.Model):
-    id_pacientes = models.BigAutoField(primary_key=True)
+    id_paciente = models.BigAutoField(primary_key=True)
     dni = models.IntegerField()
     apellido = models.CharField(max_length=45)
     nombre = models.CharField(max_length=45)
