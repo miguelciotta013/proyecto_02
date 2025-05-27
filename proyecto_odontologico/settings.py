@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app_1',
     'app_3',
+    'app_2',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ TEMPLATES = [
         'DIRS': [
             BASE_DIR / 'app_1' / 'templates',
             BASE_DIR / 'app_3' / 'templates',
+            BASE_DIR / 'app_2' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -137,9 +139,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 try:
     from .settings_local import *
-except ImportError:
-    pass
-try:
-    from .settings_local_brian import *
 except ImportError:
     pass
