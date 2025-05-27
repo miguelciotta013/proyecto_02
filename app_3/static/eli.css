@@ -1,0 +1,44 @@
+body {
+    background: linear-gradient(120deg, #e0e7ff 0%, #f7f8fa 100%);
+    background-size: 200% 200%;
+    animation: gradientMove 8s ease-in-out infinite;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    position: relative;
+}
+
+@keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 10%;
+    left: 5%;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, #bbdefb 60%, transparent 100%);
+    opacity: 0.35;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(2px);
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    bottom: 8%;
+    right: 7%;
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, #f8bbd0 60%, transparent 100%);
+    opacity: 0.28;
+    z-index: 0;
+    pointer-events: none;
+    filter: blur(2px);
+}

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'app_1',
+    'app_3',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,10 @@ ROOT_URLCONF = 'proyecto_odontologico.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'app_1' / 'templates'], #agregado de ruta
+        'DIRS': [
+            BASE_DIR / 'app_1' / 'templates',
+            BASE_DIR / 'app_3' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -121,6 +125,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+STATICFILES_DIRS = [
+    BASE_DIR / "app_3" / "static",
+]
+
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -128,5 +137,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 try:
     from .settings_local import *
+except ImportError:
+    pass
+try:
+    from .settings_local_brian import *
 except ImportError:
     pass
