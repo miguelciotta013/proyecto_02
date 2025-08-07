@@ -37,8 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app_1',
-    'app_3',
+    'turnos',
+    'home',
+    'pacientes',
+    'ficha_medica',
+    'caja',
 ]
 
 MIDDLEWARE = [
@@ -57,8 +60,12 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'app_1' / 'templates',
-            BASE_DIR / 'app_3' / 'templates',
+            BASE_DIR / 'turnos' / 'templates',
+            BASE_DIR / 'home' / 'templates',
+            BASE_DIR / 'pacientes' / 'templates',
+            BASE_DIR / 'ficha_medica' / 'templates',
+            BASE_DIR / 'caja' / 'templates',
+           
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -126,7 +133,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATICFILES_DIRS = [
-    BASE_DIR / "app_3" / "static",
+    BASE_DIR / "static",
 ]
 
 

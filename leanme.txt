@@ -1,0 +1,2 @@
+la migracion y el inspectdb ya estan hechas
+los modelos que vamos a ocupar para trabajar estan en la carpeta "home" en models.py
