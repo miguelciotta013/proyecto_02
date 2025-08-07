@@ -24,5 +24,4 @@ urlpatterns = [
     path("pacientes/", include("pacientes.urls")),
     path("ficha_medica/", include("ficha_medica.urls")),
     path("caja/", include("caja.urls")),
-    
 ]
