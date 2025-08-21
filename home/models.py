@@ -77,49 +77,51 @@ class AuthUserUserPermissions(models.Model):
         unique_together = (('user', 'permission'),)
 
 
-class Cajas(models.Model):
-    id_caja = models.BigAutoField(primary_key=True)
-    id_usuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='id_usuario')
+class Caja(models.Model):
+    id_caja = models.AutoField(primary_key=True)
+    id_usuario = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='id_usuario')
     fecha_apertura = models.DateField()
     hora_apertura = models.TimeField()
-    monto_apertura = models.IntegerField()
     fecha_cierre = models.DateField(blank=True, null=True)
     hora_cierre = models.TimeField(blank=True, null=True)
+    estado_cierre = models.CharField(max_length=7)
+    monto_apertura = models.IntegerField()
     monto_cierre = models.IntegerField(blank=True, null=True)
-    estado_caja = models.CharField(max_length=7)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'cajas'
+        db_table = 'caja'
+
+
+class DetalleServicio(models.Model):
+    id_detalle_servicio = models.AutoField(primary_key=True)
+    id_servicio = models.ForeignKey('ServiciosParticulares', models.DO_NOTHING, db_column='id_servicio')
+    nro_diente = models.IntegerField(blank=True, null=True)
+    tratamiento = models.CharField(max_length=50)
+    importe = models.IntegerField()
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'detalle_servicio'
 
 
 class DetalleTratamiento(models.Model):
-    id_detalle = models.BigAutoField(primary_key=True)
-    id_diente = models.ForeignKey('DientesOdontograma', models.DO_NOTHING, db_column='id_diente')
-    id_tratamiento_cobrado = models.ForeignKey('TratamientosCobrados', models.DO_NOTHING, db_column='id_tratamiento_cobrado')
-    codigo = models.BigIntegerField(blank=True, null=True)
-    fecha_realizacion = models.DateField(blank=True, null=True)
-    conformidad_paciente = models.CharField(max_length=50, blank=True, null=True)
-    importe = models.IntegerField(blank=True, null=True)
+    id_detalle_tratamiento = models.AutoField(primary_key=True)
+    id_tratamiento = models.ForeignKey('Tratamiento', models.DO_NOTHING, db_column='id_tratamiento')
+    nro_diente = models.IntegerField(blank=True, null=True)
+    cara_diente = models.CharField(max_length=13, blank=True, null=True)
+    codigo = models.IntegerField(blank=True, null=True)
+    importe = models.IntegerField()
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'detalle_tratamiento'
-
-
-class DientesOdontograma(models.Model):
-    id_diente = models.BigAutoField(primary_key=True)
-    id_odontograma = models.ForeignKey('Odontogramas', models.DO_NOTHING, db_column='id_odontograma')
-    nomenclatura_diente = models.IntegerField()
-    cara_superior = models.CharField(max_length=50, blank=True, null=True)
-    cara_inferior = models.CharField(max_length=50, blank=True, null=True)
-    cara_izquierda = models.CharField(max_length=50, blank=True, null=True)
-    cara_derecha = models.CharField(max_length=50, blank=True, null=True)
-    cara_centro = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'dientes_odontograma'
 
 
 class DjangoAdminLog(models.Model):
@@ -168,94 +170,42 @@ class DjangoSession(models.Model):
 
 
 class FichaMedica(models.Model):
-    id_ficha_medica = models.BigAutoField(primary_key=True)
+    id_ficha_medica = models.AutoField(primary_key=True)
     id_paciente = models.ForeignKey('Pacientes', models.DO_NOTHING, db_column='id_paciente')
-    id_usuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='id_usuario')
+    id_usuario = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='id_usuario')
     fecha_creacion = models.DateField()
     observaciones = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'ficha_medica'
 
 
-class FichasPatologicas(models.Model):
-    id_ficha_patologica = models.BigAutoField(primary_key=True)
-    id_ficha_medica = models.OneToOneField(FichaMedica, models.DO_NOTHING, db_column='id_ficha_medica', blank=True, null=True)
-    alergias = models.IntegerField(blank=True, null=True)
-    anemia = models.IntegerField(blank=True, null=True)
-    artritis = models.IntegerField(blank=True, null=True)
-    asma = models.IntegerField(blank=True, null=True)
-    desnutricion = models.IntegerField(blank=True, null=True)
-    diabetes = models.IntegerField(blank=True, null=True)
-    epilepsia = models.IntegerField(blank=True, null=True)
-    embarazo_sospecha = models.IntegerField(blank=True, null=True)
-    fiebre_reumatica = models.IntegerField(blank=True, null=True)
-    glaucoma = models.IntegerField(blank=True, null=True)
-    hemorragias = models.IntegerField(blank=True, null=True)
-    hepatitis = models.IntegerField(blank=True, null=True)
-    herpes = models.IntegerField(blank=True, null=True)
-    hipertension = models.IntegerField(blank=True, null=True)
-    hipotencion = models.IntegerField(blank=True, null=True)
-    jaquecas = models.IntegerField(blank=True, null=True)
-    lesiones_cabeza = models.IntegerField(blank=True, null=True)
-    problemas_hepaticos = models.IntegerField(blank=True, null=True)
-    problemas_mentales = models.IntegerField(blank=True, null=True)
-    problemas_cardiacos = models.IntegerField(blank=True, null=True)
-    problemas_renales = models.IntegerField(blank=True, null=True)
-    problemas_tiroides = models.IntegerField(blank=True, null=True)
-    problemas_respiratorios = models.IntegerField(blank=True, null=True)
-    sinusitis = models.IntegerField(blank=True, null=True)
-    tuberculosis = models.IntegerField(blank=True, null=True)
-    tumores = models.IntegerField(blank=True, null=True)
-    ulceras = models.IntegerField(blank=True, null=True)
-    venereas = models.IntegerField(blank=True, null=True)
-    vih = models.IntegerField(blank=True, null=True)
-    portador_protesis = models.IntegerField(blank=True, null=True)
-    problema_periodontal = models.IntegerField(blank=True, null=True)
-    ortodoncia = models.IntegerField(blank=True, null=True)
-    mala_oclusion = models.IntegerField(blank=True, null=True)
-    lesion_mucosa = models.IntegerField(blank=True, null=True)
-    toma_medicacion = models.IntegerField(blank=True, null=True)
-    otras = models.CharField(max_length=50, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'fichas_patologicas'
-
-
-class ObrasSociales(models.Model):
-    id_obra_social = models.BigAutoField(primary_key=True)
+class ObraSocial(models.Model):
+    id_obra_social = models.AutoField(primary_key=True)
     nombre_os = models.CharField(max_length=50)
-    codigo_os = models.BigIntegerField()
+    codigo_os = models.BigIntegerField(unique=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'obras_sociales'
-
-
-class Odontogramas(models.Model):
-    id_odontograma = models.BigAutoField(primary_key=True)
-    id_ficha_medica = models.OneToOneField(FichaMedica, models.DO_NOTHING, db_column='id_ficha_medica', blank=True, null=True)
-    cantidad_dientes = models.IntegerField()
-    observaciones = models.CharField(max_length=100, blank=True, null=True)
-    protesis_removible = models.CharField(max_length=2, blank=True, null=True)
-    protesis_fija = models.CharField(max_length=2, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'odontogramas'
+        db_table = 'obra_social'
 
 
 class Pacientes(models.Model):
-    id_paciente = models.BigAutoField(primary_key=True)
-    dni_paciente = models.IntegerField(blank=True, null=True)
-    nombre = models.CharField(max_length=50)
+    id_paciente = models.AutoField(primary_key=True)
+    dni_paciente = models.IntegerField(unique=True)
+    fecha_nacimiento = models.DateField()
     apellido = models.CharField(max_length=50)
-    fecha_nacimiento = models.DateField(blank=True, null=True)
-    domicilio = models.CharField(max_length=100, blank=True, null=True)
+    nombre = models.CharField(max_length=50)
+    domicilio = models.CharField(max_length=50, blank=True, null=True)
     localidad = models.CharField(max_length=50, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -265,71 +215,57 @@ class Pacientes(models.Model):
 class PacientesXOs(models.Model):
     pk = models.CompositePrimaryKey('id_paciente', 'id_obra_social')
     id_paciente = models.ForeignKey(Pacientes, models.DO_NOTHING, db_column='id_paciente')
-    id_obra_social = models.ForeignKey(ObrasSociales, models.DO_NOTHING, db_column='id_obra_social')
-    nombre_titular = models.CharField(max_length=50, blank=True, null=True)
-    parentezco_titular = models.CharField(max_length=50, blank=True, null=True)
-    credencial = models.CharField(max_length=50, blank=True, null=True)
+    id_obra_social = models.ForeignKey(ObraSocial, models.DO_NOTHING, db_column='id_obra_social')
+    nombre_titular = models.CharField(max_length=50)
+    parentezco = models.CharField(max_length=50)
+    credencial = models.BigIntegerField()
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'pacientes_x_os'
 
 
-class Roles(models.Model):
-    id_rol = models.BigAutoField(primary_key=True)
-    nombre_rol = models.CharField(max_length=50)
-
-    class Meta:
-        managed = False
-        db_table = 'roles'
-
-
-class TratamientosCobrados(models.Model):
-    id_tratamiento_cobrado = models.BigAutoField(primary_key=True)
-    id_ficha_medica = models.OneToOneField(FichaMedica, models.DO_NOTHING, db_column='id_ficha_medica', blank=True, null=True)
-    id_caja = models.ForeignKey(Cajas, models.DO_NOTHING, db_column='id_caja')
-    total_tratamiento = models.IntegerField()
-    metodo_pago = models.CharField(max_length=13)
+class ServiciosParticulares(models.Model):
+    id_servicio = models.AutoField(primary_key=True)
+    id_caja = models.ForeignKey(Caja, models.DO_NOTHING, db_column='id_caja')
+    id_paciente = models.ForeignKey(Pacientes, models.DO_NOTHING, db_column='id_paciente')
+    fecha_realizacion = models.DateField()
+    total = models.IntegerField()
     estado_pago = models.CharField(max_length=9)
+    metodo_pago = models.CharField(max_length=13)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
-        db_table = 'tratamientos_cobrados'
+        db_table = 'servicios_particulares'
+
+
+class Tratamiento(models.Model):
+    id_tratamiento = models.AutoField(primary_key=True)
+    nombre_tratamiento = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True, null=True)
+    precio_base = models.IntegerField(blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'tratamiento'
 
 
 class Turnos(models.Model):
-    id_turno = models.BigAutoField(primary_key=True)
+    id_turno = models.AutoField(primary_key=True)
     id_paciente = models.ForeignKey(Pacientes, models.DO_NOTHING, db_column='id_paciente')
     fecha_turno = models.DateField()
     hora_turno = models.TimeField()
-    asunto = models.CharField(max_length=30, blank=True, null=True)
-    comentario_turno = models.CharField(max_length=80, blank=True, null=True)
+    asunto = models.CharField(max_length=50, blank=True, null=True)
+    comentario_turno = models.CharField(max_length=60, blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
         db_table = 'turnos'
-
-
-class Usuarios(models.Model):
-    id_usuario = models.BigAutoField(primary_key=True)
-    nombre_usuario = models.CharField(max_length=50)
-    apellido_usuario = models.CharField(max_length=50)
-    correo_electronico = models.CharField(max_length=100)
-    contrasena = models.CharField(max_length=100)
-    fecha_alta = models.DateField()
-    fecha_baja = models.DateField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'usuarios'
-
-
-class UsuariosXRoles(models.Model):
-    pk = models.CompositePrimaryKey('id_usuario', 'id_rol')
-    id_usuario = models.ForeignKey(Usuarios, models.DO_NOTHING, db_column='id_usuario')
-    id_rol = models.ForeignKey(Roles, models.DO_NOTHING, db_column='id_rol')
-    matricula_profesional = models.IntegerField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'usuarios_x_roles'
