@@ -65,7 +65,7 @@ TEMPLATES = [
             BASE_DIR / 'pacientes' / 'templates',
             BASE_DIR / 'ficha_medica' / 'templates',
             BASE_DIR / 'caja' / 'templates',
-           
+
         ],
         'APP_DIRS': True,
         'OPTIONS': {
