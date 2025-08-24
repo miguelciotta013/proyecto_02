@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cajas{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'caja/styles.css' %}">
+    <script>
+        // Función genérica para AJAX POST
+        async function ajaxPost(url, data) {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                body: JSON.stringify(data)
+            });
+            const json = await res.json();
+            alert(json.mensaje);
+            if(res.ok) location.reload();
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <nav class="menu">
+            <a href="{% url 'abrir_caja' %}">Abrir Caja</a>
+            <a href="{% url 'cerrar_caja' %}">Cerrar Caja</a>
+            <a href="{% url 'cobrar_servicio' %}">Cobrar Servicio</a>
+            <a href="{% url 'caja_home' %}">Ver Cajas</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>

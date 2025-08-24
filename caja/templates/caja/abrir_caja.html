@@ -1,0 +1,22 @@
+{% extends 'caja/base_caja.html' %}
+{% block title %}Abrir Caja{% endblock %}
+{% block content %}
+<h1>Abrir Caja</h1>
+<div class="form-container">
+    <input type="date" id="fecha">
+    <input type="time" id="hora">
+    <input type="number" id="monto" placeholder="Monto Inicial">
+    <input type="text" id="responsable" placeholder="Responsable">
+    <button onclick="abrirCaja()">Abrir Caja</button>
+</div>
+
+<script>
+    function abrirCaja() {
+        const fecha = document.getElementById('fecha').value;
+        const hora = document.getElementById('hora').value;
+        const monto = document.getElementById('monto').value;
+        const responsable = document.getElementById('responsable').value;
+        ajaxPost("{% url 'abrir_caja_ajax' %}", {fecha, hora, monto, responsable});
+    }
+</script>
+{% endblock %}
