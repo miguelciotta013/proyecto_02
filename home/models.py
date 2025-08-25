@@ -95,6 +95,34 @@ class Caja(models.Model):
         db_table = 'caja'
 
 
+class Consultas(models.Model):
+    id_consulta = models.BigAutoField(primary_key=True)
+    fecha_consulta = models.DateField()
+    total_consulta = models.IntegerField()
+    observaciones = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'consultas'
+
+
+class DetalleConsulta(models.Model):
+    id_detalle_consulta = models.AutoField(primary_key=True)  # Nueva PK individual
+    id_consulta = models.ForeignKey(Consultas, models.DO_NOTHING, db_column='id_consulta')
+    id_ficha_medica = models.ForeignKey('FichaMedica', models.DO_NOTHING, db_column='id_ficha_medica')
+    nro_diente = models.IntegerField(blank=True, null=True)
+    cara_diente = models.CharField(max_length=13, blank=True, null=True)
+    codigo = models.IntegerField(blank=True, null=True)
+    importe = models.IntegerField()
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'detalle_consulta'
+        unique_together = (('id_consulta', 'id_ficha_medica'),)
+
 class DetalleServicio(models.Model):
     id_detalle_servicio = models.AutoField(primary_key=True)
     id_servicio = models.ForeignKey('ServiciosParticulares', models.DO_NOTHING, db_column='id_servicio')
@@ -107,21 +135,6 @@ class DetalleServicio(models.Model):
     class Meta:
         managed = False
         db_table = 'detalle_servicio'
-
-
-class DetalleTratamiento(models.Model):
-    id_detalle_tratamiento = models.AutoField(primary_key=True)
-    id_tratamiento = models.ForeignKey('Tratamiento', models.DO_NOTHING, db_column='id_tratamiento')
-    nro_diente = models.IntegerField(blank=True, null=True)
-    cara_diente = models.CharField(max_length=13, blank=True, null=True)
-    codigo = models.IntegerField(blank=True, null=True)
-    importe = models.IntegerField()
-    created_at = models.DateTimeField(blank=True, null=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'detalle_tratamiento'
 
 
 class DjangoAdminLog(models.Model):
@@ -213,7 +226,7 @@ class Pacientes(models.Model):
 
 
 class PacientesXOs(models.Model):
-    pk = models.CompositePrimaryKey('id_paciente', 'id_obra_social')
+    id_paciente_os = models.AutoField(primary_key=True)  # Nueva PK individual
     id_paciente = models.ForeignKey(Pacientes, models.DO_NOTHING, db_column='id_paciente')
     id_obra_social = models.ForeignKey(ObraSocial, models.DO_NOTHING, db_column='id_obra_social')
     nombre_titular = models.CharField(max_length=50)
@@ -225,6 +238,7 @@ class PacientesXOs(models.Model):
     class Meta:
         managed = False
         db_table = 'pacientes_x_os'
+        unique_together = (('id_paciente', 'id_obra_social'),)
 
 
 class ServiciosParticulares(models.Model):
@@ -241,19 +255,6 @@ class ServiciosParticulares(models.Model):
     class Meta:
         managed = False
         db_table = 'servicios_particulares'
-
-
-class Tratamiento(models.Model):
-    id_tratamiento = models.AutoField(primary_key=True)
-    nombre_tratamiento = models.CharField(max_length=100)
-    descripcion = models.TextField(blank=True, null=True)
-    precio_base = models.IntegerField(blank=True, null=True)
-    created_at = models.DateTimeField(blank=True, null=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'tratamiento'
 
 
 class Turnos(models.Model):
