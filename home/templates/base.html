@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'home/style.css' %}">
+    <title>{% block title %}Sistema Odontologico GyF{% endblock %}</title>
+</head>
+<body>
+  <header><h1>Sistema Odontologico GyF</h1></header>
+    
+    <nav>
+           <a id="nav-home" class="navhome"href="http://127.0.0.1:8000/"> Home</a>     
+            <a class="navhome" href="http://127.0.0.1:8000/turnos/"> Turnos</a>   
+            <a class="navhome" href="http://127.0.0.1:8000/pacientes/">Pacientes</a>  
+            <a class="navhome" href="http://127.0.0.1:8000/ficha_medica/lista_pacientes/">Ficha medica</a>  
+            <a class="navhome" href="http://127.0.0.1:8000/caja/">Caja</a>  
+    </nav>
+    <main>
+        {% block content%}
+            <!-- aqui van las funcionalidades de las demas apps-->
+        {% endblock %}
+    </main>
+
+    <footer> <a class="foot" href=""> manual de usuario </a> </footer>
+
+    
+</body>
+</html>

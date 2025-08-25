@@ -1,21 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>
-        home (calendario)
-    </h1>
-    <nav>
-        <a href="http://127.0.0.1:8000/"> Home</a>
-        <a href="http://127.0.0.1:8000/turnos/"> Turnos</a>
-        <a href="http://127.0.0.1:8000/pacientes/">Pacientes</a>
+{% extends "base.html" %}
 
-        <a href="http://127.0.0.1:8000/ficha_medica/Lista_pacientes/">ficha medica</a>
-        <a href="http://127.0.0.1:8000/caja/">caja</a>
-    </nav>
-</body>
-</html>
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Esto es el home</h1>
+
+{% endblock %}
