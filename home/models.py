@@ -257,7 +257,7 @@ class Pacientes(models.Model):
     localidad = models.CharField(max_length=50, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     def __str__(self):
-        return f"{self.nombre} {self.apellido} - DNI: {self.dni_paciente or 'Sin DNI'}"
+        return f"{self.nombre} {self.apellido}  "
 
     class Meta:
         managed = False
