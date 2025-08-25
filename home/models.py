@@ -204,13 +204,8 @@ class Pacientes(models.Model):
     domicilio = models.CharField(max_length=50, blank=True, null=True)
     localidad = models.CharField(max_length=50, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
-<<<<<<< HEAD
     def __str__(self):
         return f"{self.nombre} {self.apellido}  "
-=======
-    created_at = models.DateTimeField(blank=True, null=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
->>>>>>> 2c65912ca339491170783650d55c94db544aa425
 
     class Meta:
         managed = False
