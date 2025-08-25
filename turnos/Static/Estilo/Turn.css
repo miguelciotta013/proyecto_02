@@ -1,0 +1,107 @@
+/* Contenedor principal */
+.container.py-4 {
+    background: #ffffff; /* Fondo blanco clínico */
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+}
+
+/* Tarjetas */
+.card {
+    background: #e6f0f6;
+    border-radius: 12px;
+    color: #333;
+}
+
+/* Encabezados de tarjetas */
+.card-header {
+    background: #00b4d8; 
+    color: #fff;
+    font-weight: 600;
+}
+
+/* Formularios */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+input, select, textarea {
+    padding: 0.6rem;
+    border: 1px solid #a3c9d9;
+    border-radius: 6px;
+    background: #f2f9fc;
+    color: #333;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #00b4d8;
+    outline: none;
+}
+
+/* Botones */
+button, .btn {
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-primary {
+    background-color: #00b4d8;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background-color: #0077b6;
+}
+
+.btn-warning {
+    background-color: #ffb703;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background-color: #e09b00;
+}
+
+.btn-danger {
+    background-color: #d62828;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #a71d2a;
+}
+
+/* Tablas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    background: #ffffff;
+    color: #333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 0.9rem;
+    text-align: left;
+    border-bottom: 1px solid #cde4f0;
+}
+
+th {
+    background: #00b4d8;
+    color: #fff;
+    font-weight: 600;
+}
+
+tr:nth-child(even) {
+    background: #e6f0f6;
+}
+
+tr:hover {
+    background: #d0e6f2;
+}
