@@ -1,13 +1,4 @@
-<<<<<<< HEAD
-from django.urls import path
-from caja import views
 
-
-
-urlpatterns = [
-    path('', views.vista_cajas, name='vista_cajas'),
-]
-=======
 from django.urls import path
 from . import views
 
@@ -20,4 +11,4 @@ urlpatterns = [
     path('cobrar/', views.cobrar_servicio, name='cobrar_servicio'),
     path('cobrar/ajax/', views.cobrar_servicio_ajax, name='cobrar_servicio_ajax'),
 ]
->>>>>>> 2c65912ca339491170783650d55c94db544aa425
+

@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-from django.shortcuts import render
 
-# Create your views here.
-def vista_cajas(request):
-    # Aquí iría la lógica de tu vista
-    return render(request, "vista_cajas.html")
-=======
 # caja/views.py
 from django.shortcuts import render
 from django.http import JsonResponse
@@ -122,4 +115,4 @@ def cobrar_servicio_ajax(request):
         return JsonResponse({'mensaje': 'Servicio cobrado correctamente'})
 
     return JsonResponse({'mensaje': 'Método no permitido'}, status=405)
->>>>>>> 2c65912ca339491170783650d55c94db544aa425
+
