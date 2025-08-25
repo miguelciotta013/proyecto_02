@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Médica</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+</head>
+<body>
+    <h1>Ficha Médica de {{ paciente.nombre }} {{ paciente.apellido }}</h1>
+    <p><strong>DNI:</strong> {{ paciente.dni }}</p>
+    <p><strong>Fecha de nacimiento:</strong> {{ paciente.fecha_nacimiento }}</p>
+    <p><strong>Teléfono:</strong> {{ paciente.telefono }}</p>
+    <p><strong>Email:</strong> {{ paciente.email }}</p>
+    <!-- Aquí puedes agregar más campos médicos -->
+    <a href="{% url 'paciente:lista' %}">Volver a la lista</a>
+</body>
+</html>

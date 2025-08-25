@@ -1,0 +1,23 @@
+{% extends 'caja/base_caja.html' %}
+{% block title %}Cobrar Servicio{% endblock %}
+{% block content %}
+<h1>Cobrar Servicio</h1>
+<div class="form-container">
+    <input type="text" id="paciente" placeholder="Nombre del Paciente">
+    <input type="text" id="servicio" placeholder="Servicio">
+    <input type="number" id="monto" placeholder="Monto">
+    <input type="text" id="pago" placeholder="Método de Pago">
+    <button onclick="cobrarServicio()">Cobrar</button>
+</div>
+
+<script>
+function cobrarServicio() {
+    const paciente = document.getElementById('paciente').value;
+    const servicio = document.getElementById('servicio').value;
+    const monto = document.getElementById('monto').value;
+    const pago = document.getElementById('pago').value;
+
+    ajaxPost("{% url 'cobrar_servicio_ajax' %}", {paciente, servicio, monto, pago});
+}
+</script>
+{% endblock %}

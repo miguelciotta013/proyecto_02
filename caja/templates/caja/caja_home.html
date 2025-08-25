@@ -1,0 +1,35 @@
+{% extends 'caja/base_caja.html' %}
+{% block title %}Listado de Cajas{% endblock %}
+{% block content %}
+<h1>Listado de Cajas</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Fecha Apertura</th>
+            <th>Hora Apertura</th>
+            <th>Monto Inicial</th>
+            <th>Hora Cierre</th>
+            <th>Monto Final</th>
+            <th>Estado</th>
+            <th>Responsable</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for caja in cajas %}
+        <tr>
+            <td>{{ caja.fecha_apertura }}</td>
+            <td>{{ caja.hora_apertura }}</td>
+            <td>${{ caja.monto_inicial }}</td>
+            <td>{{ caja.hora_cierre|default:"-" }}</td>
+            <td>${{ caja.monto_final|default:"-" }}</td>
+            <td>{{ caja.estado }}</td>
+            <td>{{ caja.responsable }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No hay cajas registradas</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
