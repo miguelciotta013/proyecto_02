@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'home/style.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    
+    <!-- ✅ Font Awesome 6 Este lo tuve que poner porque sino no me cargan los botones si les pasa algo raro en su app me avisan -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
     <title>{% block title %}Sistema Odontologico GyF{% endblock %}</title>
 </head>
 <body>
@@ -21,6 +25,9 @@
     <main>
         {% block content%}
             <!-- aqui van las funcionalidades de las demas apps-->
+        {% endblock %}
+        {% block extra_js %}
+        <script src="{% static 'Javascript/Logica.js' %}"></script>
         {% endblock %}
     </main>
 
