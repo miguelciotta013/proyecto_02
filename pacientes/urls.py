@@ -10,3 +10,4 @@ urlpatterns = [
     path('ficha/<int:id>/', views.ficha_medica, name='ficha'),  # Ficha médica
     path('odontograma/<int:id>/', views.odontograma, name='odontograma'),  # Odontograma
 ]
+
