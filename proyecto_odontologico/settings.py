@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/caja/"
 
 # Application definition
 
@@ -37,10 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app_1',
-    'app_3',
-    'app_2',
-]
+
+    'turnos',
+    'home',
+    'pacientes',
+    'ficha_medica',
+    'caja',
+    'login',
+    
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -58,9 +64,15 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            BASE_DIR / 'app_1' / 'templates',
-            BASE_DIR / 'app_3' / 'templates',
-            BASE_DIR / 'app_2' / 'templates',
+
+            BASE_DIR / "templates",
+            BASE_DIR / 'turnos' / 'templates',
+            BASE_DIR / 'home' / 'templates',
+            BASE_DIR / 'pacientes' / 'templates',
+            BASE_DIR / 'ficha_medica' / 'templates',
+            BASE_DIR / 'caja' / 'templates',
+            BASE_DIR / 'login' / 'templates',
+           
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -124,13 +136,15 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]  # si tienes carpeta 'static' en el proyecto
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/' 
 
 STATICFILES_DIRS = [
-    BASE_DIR / "app_3" / "static",
+    BASE_DIR / "static",
 ]
-
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
