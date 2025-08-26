@@ -68,7 +68,96 @@ APARTADO DE PACIENTES
 APARTADO DE TURNOS
 ====================================================================================================================
 */
+/* ==== ESTILOS GENERALES PARA APP TURNOS ==== */
+.turnos-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #f9fafb;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
+/* ==== TITULOS ==== */
+.turnos-container h3 {
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #0d3b66;
+}
+
+.turnos-container .text-danger {
+    color: #c53030 !important;
+}
+
+/* ==== BOTONES ==== */
+.turnos-container .btn {
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.turnos-container .btn-success {
+    background-color: #198754;
+    border: none;
+}
+
+.turnos-container .btn-success:hover {
+    background-color: #146c43;
+}
+
+.turnos-container .btn-secondary {
+    background-color: #6c757d;
+    border: none;
+}
+
+.turnos-container .btn-secondary:hover {
+    background-color: #565e64;
+}
+
+.turnos-container .btn-danger {
+    background-color: #dc3545;
+    border: none;
+}
+
+.turnos-container .btn-danger:hover {
+    background-color: #bb2d3b;
+}
+
+/* ==== TABLAS ==== */
+#tablaTurnos {
+    font-size: 0.95rem;
+}
+
+#tablaTurnos thead {
+    background-color: #0d3b66;
+    color: #fff;
+}
+
+#tablaTurnos tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* ==== ALERTAS ==== */
+.turnos-container .alert {
+    border-radius: 8px;
+    font-size: 0.9rem;
+    padding: 10px 14px;
+}
+
+/* ==== MODALES ==== */
+.modal-content {
+    border-radius: 12px;
+}
+
+.modal-header.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.modal-footer .btn {
+    min-width: 100px;
+}
 
 
 
