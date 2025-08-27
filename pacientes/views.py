@@ -1,10 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from .models import Paciente
+from home.models import Pacientes
 from .forms import PacienteForm
 
 # Lista todos los pacientes
 def lista_pacientes(request):
-    pacientes = Paciente.objects.all()
+    pacientes = Pacientes.objects.all()
     return render(request, 'lista.html',)
 
 # Agregar un nuevo paciente
@@ -20,7 +20,7 @@ def agregar_paciente(request):
 
 # Modificar un paciente existente
 def modificar_paciente(request, id):
-    paciente = get_object_or_404(Paciente, id=id)
+    paciente = get_object_or_404(Pacientes, id=id)
     if request.method == 'POST':
         form = PacienteForm(request.POST, instance=paciente)
         if form.is_valid():
@@ -32,10 +32,10 @@ def modificar_paciente(request, id):
 
 # Ficha médica del paciente
 def ficha_medica(request, id):
-    paciente = get_object_or_404(Paciente, id=id)
+    paciente = get_object_or_404(Pacientes, id=id)
     return render(request, 'ficha.html',)
 
 # Odontograma del paciente
 def odontograma(request, id):
-    paciente = get_object_or_404(Paciente, id=id)
+    paciente = get_object_or_404(Pacientes, id=id)
     return render(request, 'odontograma.html', {'paciente': paciente})

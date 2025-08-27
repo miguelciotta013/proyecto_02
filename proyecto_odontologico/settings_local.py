@@ -2,9 +2,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
 
-        'NAME':'odontologia',
+        'NAME':'consultorio_gf',
         'USER':'root',
-        'PASSWORD':'9999',
+        'PASSWORD':'13Mi26Ci13tt',
         'HOST':'localhost',
         'PORT':'3306',
     }

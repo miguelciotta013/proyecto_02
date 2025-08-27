@@ -1,4 +1,4 @@
-{% extends 'caja/base_caja.html' %}
+{% extends 'base.html' %}
 {% block title %}Listado de Cajas{% endblock %}
 {% block content %}
 <h1>Listado de Cajas</h1>
@@ -15,7 +15,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for caja in cajas %}
+        {% for c in caja %}
         <tr>
             <td>{{ caja.fecha_apertura }}</td>
             <td>{{ caja.hora_apertura }}</td>

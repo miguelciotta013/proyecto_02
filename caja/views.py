@@ -3,7 +3,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Caja, Servicio
+from home.models import Caja, DetalleServicio
 from datetime import datetime
 import json
 
@@ -71,11 +71,6 @@ def cerrar_caja_ajax(request):
 # ----------------------------
 # Cobrar servicio
 # ----------------------------
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Servicio
-import json
 
 # Vista HTML
 def cobrar_servicio(request):
@@ -105,7 +100,7 @@ def cobrar_servicio_ajax(request):
             return JsonResponse({'mensaje': 'El monto debe ser un número'}, status=400)
 
         # Crear el registro
-        Servicio.objects.create(
+        DetalleServicio.objects.create(
             paciente=paciente,
             servicio=servicio,
             monto=monto,

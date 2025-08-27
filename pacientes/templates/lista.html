@@ -1,13 +1,10 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Lista de Pacientes</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
-</head>
-<body>
-    <h1>Lista de Pacientes</h1>
+
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+   <h1>Lista de Pacientes</h1>
     <a href="{% url 'paciente:agregar' %}">Agregar Paciente</a>
     <table>
         <tr>
@@ -31,5 +28,5 @@
         <tr><td colspan="4">No hay pacientes</td></tr>
         {% endfor %}
     </table>
-</body>
-</html>
+{% endblock %}
+
