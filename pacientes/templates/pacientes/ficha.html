@@ -1,0 +1,5 @@
+<h1>Ficha Médica de {{ paciente.nombre }} {{ paciente.apellido }}</h1>
+<p>DNI: {{ paciente.dni }}</p>
+<p>Teléfono: {{ paciente.telefono }}</p>
+<p>Dirección: {{ paciente.direccion }}</p>
+<a href="{% url 'pacientes:lista' %}">Volver</a>

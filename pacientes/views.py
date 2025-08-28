@@ -1,41 +1,49 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from .models import Paciente
 from .forms import PacienteForm
 
-# Lista todos los pacientes
+
+# ✅ LISTAR PACIENTES
 def lista_pacientes(request):
     pacientes = Paciente.objects.all()
-    return render(request, 'lista.html',)
+    return render(request, "pacientes/lista.html", {"pacientes": pacientes})
 
-# Agregar un nuevo paciente
+
+# ✅ AGREGAR PACIENTE
 def agregar_paciente(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = PacienteForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('paciente:lista')
+            return redirect("pacientes:lista")
     else:
         form = PacienteForm()
-    return render(request, 'agregar.html', {'form': form})
+    return render(request, "pacientes/agregar.html", {"form": form})
 
-# Modificar un paciente existente
+
+# ✅ MODIFICAR PACIENTE
 def modificar_paciente(request, id):
     paciente = get_object_or_404(Paciente, id=id)
-    if request.method == 'POST':
+    if request.method == "POST":
         form = PacienteForm(request.POST, instance=paciente)
         if form.is_valid():
             form.save()
-            return redirect('paciente:lista')
+            return redirect("pacientes:lista")
     else:
         form = PacienteForm(instance=paciente)
-    return render(request, 'modificar.html', {'form': form, 'paciente': paciente})
+    return render(request, "pacientes/modificar.html", {"form": form})
 
-# Ficha médica del paciente
+
+# ✅ FICHA MÉDICA (provisorio)
 def ficha_medica(request, id):
     paciente = get_object_or_404(Paciente, id=id)
-    return render(request, 'ficha.html',)
+    # Más adelante podés enlazar con un modelo de FichaMedica
+    return render(request, "pacientes/ficha.html", {"paciente": paciente})
 
-# Odontograma del paciente
+
+# ✅ ODONTOGRAMA (provisorio)
 def odontograma(request, id):
     paciente = get_object_or_404(Paciente, id=id)
-    return render(request, 'odontograma.html', {'paciente': paciente})
+    # Más adelante podés enlazar con tu modelo/HTML de odontograma
+    return render(request, "pacientes/odontograma.html", {"paciente": paciente})

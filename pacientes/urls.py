@@ -1,7 +1,8 @@
 from django.urls import path
 from . import views  # Importa views de la app actual
 
-app_name = "paciente"
+app_name = "pacientes"
+
 
 urlpatterns = [
     path('', views.lista_pacientes, name='lista'),  # Vista principal de pacientes
