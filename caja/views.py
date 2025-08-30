@@ -71,11 +71,7 @@ def cerrar_caja_ajax(request):
 # ----------------------------
 # Cobrar servicio
 # ----------------------------
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Servicio
-import json
+
 
 # Vista HTML
 def cobrar_servicio(request):

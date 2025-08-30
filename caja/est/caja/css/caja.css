@@ -1,0 +1,91 @@
+/* ==============================
+   TABLA DE CAJAS Y MENÚ
+   ============================== */
+
+/* Contenedor de tabla */
+.tabla-cajas {
+    width: 90%;
+    margin: 30px auto;
+    border-collapse: collapse;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Cabecera */
+.tabla-cajas thead {
+    background-color: #004080;
+    color: white;
+}
+
+.tabla-cajas thead tr {
+    text-align: left;
+}
+
+.tabla-cajas thead th, .tabla-cajas thead td {
+    padding: 12px 15px;
+}
+
+/* Filas del cuerpo */
+.tabla-cajas tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.3s;
+}
+
+.tabla-cajas tbody tr:hover {
+    background-color: #e6f0ff;
+}
+
+.tabla-cajas tbody td {
+    padding: 12px 15px;
+}
+
+/* Botón de acción */
+.btn-accion {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background-color: #0066cc;
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-accion:hover {
+    background-color: #004080;
+}
+
+/* Mensaje cuando no hay cajas */
+.tabla-cajas tbody tr td[colspan] {
+    text-align: center;
+    font-style: italic;
+    color: #666;
+}
+
+/* Menú de navegación dentro de la tabla */
+.tabla-cajas thead ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.tabla-cajas thead ul li a {
+    text-decoration: none;
+    color: #004080;
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    background-color: #e6f0ff;
+}
+
+.tabla-cajas thead ul li a:hover {
+    background-color: #004080;
+    color: white;
+}

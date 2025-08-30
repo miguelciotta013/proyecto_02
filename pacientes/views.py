@@ -4,6 +4,17 @@ from .models import Paciente
 from .forms import PacienteForm
 
 
+
+from django.shortcuts import redirect, get_object_or_404
+from .models import Paciente
+
+def eliminar_paciente(request, paciente_id):
+    paciente = get_object_or_404(Paciente, id=paciente_id)
+    paciente.delete()
+    return redirect('pacientes:lista')
+
+
+
 # ✅ LISTAR PACIENTES
 def lista_pacientes(request):
     pacientes = Paciente.objects.all()

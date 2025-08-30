@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cajas{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'caja/caja.css' %}">
-
     <script>
-        // Función genérica para AJAX POST
         async function ajaxPost(url, data) {
             const res = await fetch(url, {
                 method: "POST",
-                headers: {'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}'},
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
                 body: JSON.stringify(data)
             });
             const json = await res.json();
@@ -23,15 +23,18 @@
 </head>
 <body>
     <header>
-        <nav class="menu">
-            <a href="{% url 'abrir_caja' %}">Abrir Caja</a>
-            <a href="{% url 'cerrar_caja' %}">Cerrar Caja</a>
-            <a href="{% url 'cobrar_servicio' %}">Cobrar Servicio</a>
-            <a href="{% url 'caja_home' %}">Ver Cajas</a>
+        
+        <nav class="menu" id="menu-caja">
+            <ul>
+                <li><a href="{% url 'caja:abrir_caja' %}" id="link-abrir-caja">Abrir Caja</a></li>
+                <li><a href="{% url 'caja:cerrar_caja' %}" id="link-cerrar-caja">Cerrar Caja</a></li>
+                <li><a href="{% url 'caja:cobrar_servicio' %}" id="link-cobrar-servicio">Cobrar Servicio</a></li>
+                <li><a href="{% url 'caja:caja_home' %}" id="link-ver-cajas">Ver Cajas</a></li>
+            </ul>
         </nav>
     </header>
 
-    <main>
+    <main id="main-caja">
         {% block content %}
         {% endblock %}
     </main>

@@ -93,4 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ordenarTurnos();
 
 });
+// caja
+document.getElementById('hora_cierre')
+document.getElementById('monto_final')
+document.getElementById('responsable')
 
