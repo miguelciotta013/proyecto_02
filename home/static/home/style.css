@@ -67,96 +67,219 @@ APARTADO DE PACIENTES
 ====================================================================================================================
 APARTADO DE TURNOS
 ====================================================================================================================
-*/
-/* ==== ESTILOS GENERALES PARA APP TURNOS ==== */
+/* ========================================
+    CONTENEDOR PRINCIPAL
+    ======================================== */
 .turnos-container {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 20px;
-    background-color: #f9fafb;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.1);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     max-width: 1000px;
+     margin: 40px auto;
+     padding: 25px;
+     background: linear-gradient(135deg, #ffffff, #f8fafc);
+     border-radius: 18px;
+     box-shadow: 0 10px 28px rgba(0,0,0,0.09);
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     transition: all 0.3s ease-in-out;
 }
 
-/* ==== TITULOS ==== */
+/* ========================================
+    FONDO GENERAL CON IMAGEN
+    ======================================== */
+body {
+     background: url('fondo.jpg') no-repeat center center fixed;
+     background-size: cover;
+}
+
+/* ========================================
+    CARD
+    ======================================== */
+.turnos-container .card {
+     border-radius: 18px;
+     overflow: hidden;
+     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.turnos-container .card-header {
+     font-weight: 600;
+     font-size: 1.1rem;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     padding: 12px 20px;
+     border-bottom: none;
+     border-radius: 18px 18px 0 0;
+}
+
+.turnos-container .card-body {
+     padding: 15px 20px;
+}
+
+/* ========================================
+    TITULOS
+    ======================================== */
+.turnos-container h5,
 .turnos-container h3 {
-    font-weight: 600;
-    margin-bottom: 15px;
-    color: #0d3b66;
+     margin: 0;
+     color: #0d3b66;
+     letter-spacing: 0.5px;
 }
 
-.turnos-container .text-danger {
-    color: #c53030 !important;
-}
-
-/* ==== BOTONES ==== */
+/* ========================================
+    BOTONES
+    ======================================== */
 .turnos-container .btn {
-    border-radius: 8px;
-    padding: 6px 14px;
-    font-size: 0.95rem;
-    transition: all 0.2s ease-in-out;
+     border-radius: 12px;
+     padding: 9px 18px;
+     font-size: 0.95rem;
+     font-weight: 500;
+     transition: all 0.25s ease-in-out;
+     box-shadow: 0 4px 10px rgba(0,0,0,0.06);
 }
 
 .turnos-container .btn-success {
-    background-color: #198754;
-    border: none;
+     background: linear-gradient(135deg, #198754, #157347);
+     border: none;
+     color: #fff;
 }
-
 .turnos-container .btn-success:hover {
-    background-color: #146c43;
+     background: linear-gradient(135deg, #146c43, #115c39);
+     transform: translateY(-2px);
 }
 
-.turnos-container .btn-secondary {
-    background-color: #6c757d;
-    border: none;
+.turnos-container .btn-warning {
+     background: linear-gradient(135deg, #ffc107, #e0a800);
+     border: none;
+     color: #212529;
 }
-
-.turnos-container .btn-secondary:hover {
-    background-color: #565e64;
+.turnos-container .btn-warning:hover {
+     background: linear-gradient(135deg, #e0a800, #c69500);
+     transform: translateY(-2px);
 }
 
 .turnos-container .btn-danger {
-    background-color: #dc3545;
-    border: none;
+     background: linear-gradient(135deg, #dc3545, #bb2d3b);
+     border: none;
+     color: #fff;
 }
-
 .turnos-container .btn-danger:hover {
-    background-color: #bb2d3b;
+     background: linear-gradient(135deg, #b02a37, #96232e);
+     transform: translateY(-2px);
 }
 
-/* ==== TABLAS ==== */
+/* ========================================
+    TABLA RESPONSIVE
+    ======================================== */
+.table-responsive {
+     overflow-x: auto;
+     border-radius: 12px;
+     box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+}
+
 #tablaTurnos {
-    font-size: 0.95rem;
+     font-size: 0.95rem;
+     border-collapse: separate;
+     border-spacing: 0;
+     width: 100%;
+     border-radius: 12px;
+     overflow: hidden;
+     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+     transition: all 0.3s ease;
 }
 
 #tablaTurnos thead {
-    background-color: #0d3b66;
-    color: #fff;
+     background: linear-gradient(135deg, #0d3b66, #144a8b);
+     color: #fff;
+     font-weight: 600;
+     letter-spacing: 0.4px;
 }
 
+#tablaTurnos th, #tablaTurnos td {
+     padding: 14px 16px;
+     text-align: center;
+     vertical-align: middle;
+}
+
+#tablaTurnos tbody tr {
+     transition: background 0.25s ease-in-out;
+     cursor: pointer;
+}
 #tablaTurnos tbody tr:hover {
-    background-color: #f1f5f9;
+     background-color: #eef4fa;
 }
 
-/* ==== ALERTAS ==== */
+/* Colores de filas por prioridad */
+#tablaTurnos tbody tr.prioridad-alta { background-color: #f8d7da; }
+#tablaTurnos tbody tr.prioridad-media { background-color: #fff3cd; }
+#tablaTurnos tbody tr.prioridad-baja { background-color: #d1e7dd; }
+
+/* ========================================
+    ALERTAS
+    ======================================== */
+#alertContainer {
+     position: fixed;
+     top: 90px;
+     right: 25px;
+     z-index: 1100;
+     max-width: 360px;
+}
+
 .turnos-container .alert {
-    border-radius: 8px;
-    font-size: 0.9rem;
-    padding: 10px 14px;
+     border-radius: 12px;
+     font-size: 0.93rem;
+     padding: 14px 18px;
+     font-weight: 500;
+     box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+     animation: fadeIn 0.6s ease-in-out;
 }
 
-/* ==== MODALES ==== */
+.turnos-container .alert-success { background: #d1f7d1; color: #0f5132; border-left: 6px solid #198754; }
+.turnos-container .alert-warning { background: #fff3cd; color: #664d03; border-left: 6px solid #ffc107; }
+.turnos-container .alert-danger  { background: #f8d7da; color: #842029; border-left: 6px solid #dc3545; }
+
+/* ========================================
+    MODALES
+    ======================================== */
 .modal-content {
-    border-radius: 12px;
+     border-radius: 18px;
+     border: none;
+     box-shadow: 0 10px 28px rgba(0,0,0,0.15);
 }
 
+.modal-header {
+     border-bottom: none;
+     font-weight: 600;
+}
 .modal-header.bg-danger {
-    background-color: #dc3545 !important;
+     background: linear-gradient(135deg, #dc3545, #a71d2a) !important;
+     color: #fff;
+     border-radius: 18px 18px 0 0;
 }
 
-.modal-footer .btn {
-    min-width: 100px;
+.modal-footer {
+     border-top: none;
+}
+.modal-footer .btn { min-width: 110px; }
+
+/* ========================================
+    ANIMACIONES
+    ======================================== */
+@keyframes fadeIn {
+     from { opacity: 0; transform: translateY(-10px); }
+     to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================
+    MEDIA QUERIES
+    ======================================== */
+@media (max-width: 768px) {
+     #tablaTurnos { font-size: 0.87rem; }
+     .turnos-container h3 { font-size: 1.2rem; }
+     .btn { font-size: 0.85rem; padding: 7px 14px; }
+}
+
+@media (max-width: 576px) {
+     .turnos-container { padding: 15px; }
+     #tablaTurnos { font-size: 0.8rem; min-width: 500px; }
+     .card-header { flex-direction: column; gap: 8px; align-items: flex-start; }
 }
 
 
