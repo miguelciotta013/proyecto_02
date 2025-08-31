@@ -1,27 +1,30 @@
-{% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Lista de Pacientes{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
 
 {% block content %}
-    <h1>Lista de Pacientes</h1>
-
-    <a href="{% url 'pacientes:agregar' %}" class="btn btn-primary">➕ Agregar Paciente</a>
-
-    <ul>
+   <h1>Lista de Pacientes</h1>
+    <a href="">Agregar Paciente</a>
+    <table>
+        <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>DNI</th>
+            <th>Acciones</th>
+        </tr>
         {% for paciente in pacientes %}
-            <li>
-                {{ paciente.nombre }} {{ paciente.apellido }}
-                | <a href="{% url 'pacientes:modificar' paciente.id %}">✏️ Editar</a>
-                | <a href="{% url 'pacientes:ficha' paciente.id %}">📄 Ficha</a>
-                | <a href="{% url 'pacientes:odontograma' paciente.id %}">🦷 Odontograma</a>
-                | <a href="{% url 'pacientes:eliminar' paciente.id %}" 
-                     onclick="return confirm('⚠️ ¿Seguro que quieres eliminar a {{ paciente.nombre }} {{ paciente.apellido }}? Esta acción no se puede deshacer.');">
-                     🗑️ Eliminar
-                  </a>
-            </li>
+        <tr>
+            <td>{{ paciente.nombre }}</td>
+            <td>{{ paciente.apellido }}</td>
+            <td>{{ paciente.dni }}</td>
+            <td>
+                
+            </td>
+        </tr>
         {% empty %}
-            <li>No hay pacientes registrados.</li>
+        <tr><td colspan="4">No hay pacientes</td></tr>
         {% endfor %}
-    </ul>
+    </table>
 {% endblock %}
+

@@ -1,46 +1,9 @@
 {% extends 'base.html' %}
 {% block title %}Listado de Cajas{% endblock %}
-{% load static %}
 {% block content %}
-<h1>Listado de Cajas</h1>
+    <h1>Listado de Cajas</h1>
 
 
 
-<table class="tabla-cajas">
-    <thead>
-        <tr>
-            <ul>
-                <li><a href="{% url 'caja:abrir_caja' %}">Abrir Caja</a></li>
-                <li><a href="{% url 'caja:cerrar_caja' %}">Cerrar Caja</a></li>
-                <li><a href="{% url 'caja:cobrar_servicio' %}">Cobrar Servicio</a></li>
-                <li><a href="{% url 'caja:caja_home' %}">Ver Cajas</a></li>
-            </ul>
-            
-        </tr>
-    </thead>
-    <tbody>
-        {% for caja in cajas %}
-        <tr>
-            <td>{{ caja.fecha_apertura }}</td>
-            <td>{{ caja.hora_apertura }}</td>
-            <td>${{ caja.monto_inicial }}</td>
-            <td>{{ caja.hora_cierre|default:"-" }}</td>
-            <td>${{ caja.monto_final|default:"-" }}</td>
-            <td>{{ caja.estado }}</td>
-            <td>{{ caja.responsable }}</td>
-            <td>
-                {% if caja.estado == "Abierta" %}
-                    <a href="{% url 'caja:cerrar_caja' %}" class="btn-accion">🔒 Cerrar</a>
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="8">No hay cajas registradas</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+
 {% endblock %}
