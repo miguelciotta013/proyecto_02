@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ paciente.nombre }} {{ paciente.apellido }} - Información{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Botón volver -->
+            <div class="mb-3">
+                <a href="{% url 'pacientes:lista' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a Lista
+                </a>
+            </div>
+
+            <!-- Mensajes de estado -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Card principal con información del paciente -->
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user"></i> 
+                            {{ paciente.nombre }} {{ paciente.apellido }}
+                        </h4>
+                        <div>
+                            <!-- Botones de acción del paciente -->
+                            <a href="{% url 'pacientes:editar_paciente' paciente.id_paciente %}" 
+                               class="btn btn-warning btn-sm me-2">
+                                <i class="fas fa-edit"></i> Editar Paciente
+                            </a>
+                            <a href="{% url 'pacientes:eliminar_paciente' paciente.id_paciente %}" 
+                               class="btn btn-danger btn-sm"
+                               onclick="return confirm('¿Está seguro de eliminar este paciente?')">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Información personal -->
+                        <div class="col-md-6">
+                            <h5 class="text-secondary mb-3">
+                                <i class="fas fa-id-card"></i> Información Personal
+                            </h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>DNI:</strong></td>
+                                    <td>{{ paciente.dni_paciente }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Nacimiento:</strong></td>
+                                    <td>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Domicilio:</strong></td>
+                                    <td>
+                                        {% if paciente.domicilio %}
+                                            {{ paciente.domicilio }}
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Localidad:</strong></td>
+                                    <td>
+                                        {% if paciente.localidad %}
+                                            {{ paciente.localidad }}
+                                        {% else %}
+                                            <span class="text-muted">No especificada</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Teléfono:</strong></td>
+                                    <td>
+                                        {% if paciente.telefono %}
+                                            {{ paciente.telefono }}
+                                        {% else %}
+                                            <span class="text-muted">No especificado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Obras sociales -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="text-secondary mb-0">
+                                    <i class="fas fa-heart"></i> Obras Sociales
+                                </h5>
+                                <a href="{% url 'pacientes:agregar_obra' paciente.id_paciente %}" 
+                                   class="btn btn-success btn-sm">
+                                    <i class="fas fa-plus"></i> Agregar Obra Social
+                                </a>
+                            </div>
+
+                            {% if obras_sociales %}
+                                {% for paciente_obra in obras_sociales %}
+                                    <div class="card mb-3 border-start border-5 border-info">
+                                        <div class="card-body py-3">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="card-title text-info mb-1">
+                                                        {{ paciente_obra.id_obra_social.nombre_os }}
+                                                    </h6>
+                                                    <p class="card-text mb-1">
+                                                        <small><strong>Código:</strong> {{ paciente_obra.id_obra_social.codigo_os }}</small>
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <small><strong>Titular:</strong> {{ paciente_obra.nombre_titular }}</small>
+                                                    </p>
+                                                    <p class="card-text mb-1">
+                                                        <small><strong>Parentezco:</strong> {{ paciente_obra.parentezco }}</small>
+                                                    </p>
+                                                    <p class="card-text mb-0">
+                                                        <small><strong>Credencial:</strong> {{ paciente_obra.credencial }}</small>
+                                                    </p>
+                                                </div>
+                                                <div class="btn-group-vertical" role="group">
+                                                    <a href="{% url 'pacientes:editar_obra' paciente.id_paciente paciente_obra.id_paciente_os %}" 
+                                                       class="btn btn-outline-warning btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'pacientes:eliminar_obra_social' paciente.id_paciente paciente_obra.id_paciente_os %}" 
+                                                       class="btn btn-outline-danger btn-sm"
+                                                       onclick="return confirm('¿Eliminar esta obra social del paciente?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-heart fa-2x text-muted mb-3"></i>
+                                    <p class="text-muted">Este paciente no tiene obras sociales asociadas.</p>
+                                    <a href="{% url 'pacientes:agregar_obra' paciente.id_paciente %}" 
+                                       class="btn btn-outline-success">
+                                        <i class="fas fa-plus"></i> Agregar Primera Obra Social
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
