@@ -5,7 +5,7 @@
 
 {% block content %}
    <h1>Lista de Pacientes</h1>
-    <a href="{% url 'paciente:agregar' %}">Agregar Paciente</a>
+    <a href="">Agregar Paciente</a>
     <table>
         <tr>
             <th>Nombre</th>
@@ -19,9 +19,7 @@
             <td>{{ paciente.apellido }}</td>
             <td>{{ paciente.dni }}</td>
             <td>
-                <a href="{% url 'paciente:modificar' paciente.id %}">Editar</a> |
-                <a href="{% url 'paciente:ficha' paciente.id %}">Ficha</a> |
-                <a href="{% url 'paciente:odontograma' paciente.id %}">Odontograma</a>
+                
             </td>
         </tr>
         {% empty %}
