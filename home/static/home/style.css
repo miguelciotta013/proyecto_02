@@ -84,10 +84,7 @@ APARTADO DE TURNOS
 /* ========================================
     FONDO GENERAL CON IMAGEN
     ======================================== */
-body {
-     background: url('fondo.jpg') no-repeat center center fixed;
-     background-size: cover;
-}
+
 
 /* ========================================
     CARD
