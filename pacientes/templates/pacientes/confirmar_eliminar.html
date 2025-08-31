@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Paciente - {{ paciente.nombre }} {{ paciente.apellido }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Card de confirmación -->
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación
+                    </h4>
+                </div>
+                
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-user-times fa-4x text-danger mb-3"></i>
+                        <h5>¿Está seguro de eliminar este paciente?</h5>
+                    </div>
+                    
+                    <!-- Información del paciente a eliminar -->
+                    <div class="alert alert-light border">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <td><strong>Nombre:</strong></td>
+                                <td>{{ paciente.nombre }} {{ paciente.apellido }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>DNI:</strong></td>
+                                <td>{{ paciente.dni_paciente }}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fecha Nac.:</strong></td>
+                                <td>{{ paciente.fecha_nacimiento|date:"d/m/Y" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <small>
+                            <i class="fas fa-warning"></i>
+                            <strong>Advertencia:</strong> Esta acción no se puede deshacer. 
+                            Se eliminarán también todas las obras sociales asociadas a este paciente.
+                        </small>
+                    </div>
+
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="{% url 'pacientes:informacion_paciente' paciente.id_paciente %}" 
+                               class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

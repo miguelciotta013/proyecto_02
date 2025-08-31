@@ -7,7 +7,7 @@ from home.models import Caja
 # ----------------------------
 # Home de cajas
 # ----------------------------
-def caja_home(request):
+def lista_cajas(request):
     cajas = Caja.objects.all().order_by('-fecha_apertura')
-    return render(request, 'caja/caja_home.html', {'cajas': cajas})
+    return render(request, 'caja/lista_cajas.html', {'cajas': cajas})
 
