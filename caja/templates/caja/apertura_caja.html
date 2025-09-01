@@ -1,196 +1,61 @@
 {% extends 'base.html' %}
-{% block title %}Apertura de Caja - Clínica Odontológica{% endblock %}
+{% load widget_tweaks %}
+
+{% block title %}Apertura de Caja{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="h2 text-success fw-bold">
-                    <i class="fas fa-unlock me-2"></i>
-                    Apertura de Caja
-                </h1>
-                <a href="{% url 'caja:lista_cajas' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>
-                    Volver a Lista
-                </a>
-            </div>
-            <hr class="border-success">
-        </div>
-    </div>
-
-    <!-- Info Card -->
-    <div class="row mb-4">
-        <div class="col-lg-8 mx-auto">
-            <div class="card border-success">
-                <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Información de Apertura
-                    </h5>
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h5 class="mb-0">Apertura de Caja</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p><strong>Usuario:</strong> {{ user.first_name }} {{ user.last_name }}</p>
-                            <p><strong>Fecha:</strong> {{ "now"|date:"d/m/Y" }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Hora:</strong> {{ "now"|date:"H:i" }}</p>
-                            <p><strong>Estado:</strong> <span class="badge bg-warning">Nueva Caja</span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Formulario -->
-    <div class="row">
-        <div class="col-lg-6 mx-auto">
-            <div class="card shadow-lg">
-                <div class="card-header bg-gradient bg-primary text-white">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-cash-register me-2"></i>
-                        Datos de Apertura
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post" id="aperturaForm">
+                    <form method="post">
                         {% csrf_token %}
                         
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger" role="alert">
-                                {% for error in form.non_field_errors %}
-                                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
-                                {% endfor %}
-                            </div>
-                        {% endif %}
+                        <!-- Usuario -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Usuario:</label>
+                            <input type="text" class="form-control bg-light" value="{{ user.username }}" readonly>
+                        </div>
 
-                        <div class="mb-4">
-                            <label for="{{ form.monto_apertura.id_for_label }}" class="form-label fs-5">
-                                <i class="fas fa-dollar-sign me-2 text-success"></i>
+                        <!-- Fecha -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Fecha:</label>
+                            <input type="text" class="form-control bg-light" value="{% now 'd/m/Y' %}" readonly>
+                        </div>
+
+                        <!-- Monto de apertura -->
+                        <div class="mb-3">
+                            <label for="{{ form.monto_apertura.id_for_label }}" class="form-label fw-bold">
                                 {{ form.monto_apertura.label }}
                             </label>
-                            {{ form.monto_apertura }}
+                            {{ form.monto_apertura|add_class:"form-control" }}
                             {% if form.monto_apertura.errors %}
                                 <div class="text-danger mt-1">
                                     {% for error in form.monto_apertura.errors %}
-                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                        <small>{{ error }}</small>
                                     {% endfor %}
                                 </div>
                             {% endif %}
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Ingrese el monto inicial con el que abre la caja
-                            </div>
-                        </div>
-
-                        <!-- Resumen -->
-                        <div class="bg-light p-3 rounded mb-4">
-                            <h6 class="text-primary mb-3">
-                                <i class="fas fa-clipboard-list me-2"></i>
-                                Resumen de Apertura
-                            </h6>
-                            <div class="row">
-                                <div class="col-6">
-                                    <small class="text-muted">Usuario Responsable:</small>
-                                    <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
-                                </div>
-                                <div class="col-6">
-                                    <small class="text-muted">Fecha y Hora:</small>
-                                    <div class="fw-bold">{{ "now"|date:"d/m/Y H:i" }}</div>
-                                </div>
-                            </div>
+                            <div class="form-text">Ingrese el monto inicial de la caja</div>
                         </div>
 
                         <!-- Botones -->
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success btn-lg">
-                                <i class="fas fa-unlock me-2"></i>
-                                Abrir Caja
-                            </button>
-                            <a href="{% url 'caja:lista_cajas' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i>
-                                Cancelar
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4">
+                            <a href="{% url 'caja:lista_cajas' %}" class="btn btn-secondary w-100 w-md-auto">
+                                <i class="bi bi-arrow-left"></i> Cancelar
                             </a>
+                            <button type="submit" class="btn btn-success w-100 w-md-auto">
+                                <i class="bi bi-check-circle"></i> Abrir caja
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Instrucciones -->
-    <div class="row mt-4">
-        <div class="col-lg-8 mx-auto">
-            <div class="card border-info">
-                <div class="card-header bg-info text-white">
-                    <h6 class="card-title mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        Instrucciones
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled mb-0">
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Asegúrese de contar el dinero físico antes de registrar el monto
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            El monto de apertura no puede ser negativo
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Solo puede haber una caja abierta a la vez
-                        </li>
-                        <li class="mb-0">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Una vez abierta, podrá comenzar a cobrar servicios
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Formatear el input de monto mientras se escribe
-    const montoInput = document.getElementById('id_monto_apertura');
-    
-    montoInput.addEventListener('input', function(e) {
-        let value = e.target.value;
-        // Permitir solo números y punto decimal
-        value = value.replace(/[^0-9.]/g, '');
-        // Evitar múltiples puntos decimales
-        const parts = value.split('.');
-        if (parts.length > 2) {
-            value = parts[0] + '.' + parts[1];
-        }
-        e.target.value = value;
-    });
-
-    // Validación adicional antes del envío
-    document.getElementById('aperturaForm').addEventListener('submit', function(e) {
-        const monto = parseFloat(montoInput.value);
-        
-        if (isNaN(monto) || monto < 0) {
-            e.preventDefault();
-            alert('Por favor, ingrese un monto válido mayor o igual a 0.');
-            montoInput.focus();
-            return false;
-        }
-        
-        // Confirmación
-        if (!confirm(`¿Está seguro de abrir la caja con $${monto.toFixed(2)}?`)) {
-            e.preventDefault();
-            return false;
-        }
-    });
-});
-</script>
 {% endblock %}
