@@ -3,67 +3,67 @@
 {% block title %}Eliminar Obra Social - {{ paciente.nombre }} {{ paciente.apellido }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-6 col-lg-5">
+
             <!-- Card de confirmación -->
-            <div class="card shadow border-warning">
-                <div class="card-header bg-warning text-dark">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-warning text-dark text-center">
                     <h4 class="mb-0">
-                        <i class="fas fa-unlink"></i> Confirmar Desvinculación
+                        <i class="fas fa-unlink me-2"></i> Confirmar Desvinculación
                     </h4>
                 </div>
-                
+
                 <div class="card-body text-center">
                     <div class="mb-4">
                         <i class="fas fa-heart-broken fa-4x text-warning mb-3"></i>
-                        <h5>¿Desvincular esta obra social del paciente?</h5>
+                        <h5 class="fw-semibold">¿Desvincular esta obra social del paciente?</h5>
                     </div>
-                    
+
                     <!-- Información de la asociación a eliminar -->
-                    <div class="alert alert-light border">
+                    <div class="alert alert-light border rounded shadow-sm mb-3">
                         <table class="table table-borderless mb-0">
                             <tr>
-                                <td><strong>Paciente:</strong></td>
+                                <td class="fw-semibold">Paciente:</td>
                                 <td>{{ paciente.nombre }} {{ paciente.apellido }}</td>
                             </tr>
                             <tr>
-                                <td><strong>Obra Social:</strong></td>
+                                <td class="fw-semibold">Obra Social:</td>
                                 <td>{{ paciente_obra.id_obra_social.nombre_os }}</td>
                             </tr>
                             <tr>
-                                <td><strong>Titular:</strong></td>
+                                <td class="fw-semibold">Titular:</td>
                                 <td>{{ paciente_obra.nombre_titular }}</td>
                             </tr>
                             <tr>
-                                <td><strong>Credencial:</strong></td>
+                                <td class="fw-semibold">Credencial:</td>
                                 <td>{{ paciente_obra.credencial }}</td>
                             </tr>
                         </table>
                     </div>
-                    
-                    <div class="alert alert-info">
-                        <small>
-                            <i class="fas fa-info-circle"></i>
-                            <strong>Nota:</strong> Solo se eliminará la asociación. 
-                            La obra social seguirá existiendo en el sistema.
-                        </small>
+
+                    <div class="alert alert-info small rounded shadow-sm">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Nota:</strong> Solo se eliminará la asociación. La obra social seguirá existiendo en el sistema.
                     </div>
 
-                    <form method="post" class="d-inline">
+                    <form method="post" class="mt-4">
                         {% csrf_token %}
-                        <div class="d-flex justify-content-center gap-3">
+                        <div class="d-flex flex-column flex-md-row justify-content-center gap-3">
                             <a href="{% url 'pacientes:informacion_paciente' paciente.id_paciente %}" 
-                               class="btn btn-secondary btn-lg">
-                                <i class="fas fa-times"></i> Cancelar
+                               class="btn btn-outline-secondary btn-lg shadow-sm w-100 w-md-auto">
+                                <i class="fas fa-times me-1"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-warning btn-lg">
-                                <i class="fas fa-unlink"></i> Sí, Desvincular
+                            <button type="submit" class="btn btn-warning btn-lg shadow-sm w-100 w-md-auto">
+                                <i class="fas fa-unlink me-1"></i> Sí, Desvincular
                             </button>
                         </div>
                     </form>
+
                 </div>
             </div>
+
         </div>
     </div>
 </div>

@@ -1,9 +1,482 @@
 {% extends 'base.html' %}
-{% block title %}Listado de Cajas{% endblock %}
+{% block title %}Gestión de Caja - Clínica Odontológica{% endblock %}
 {% block content %}
-    <h1>Listado de Cajas</h1>
+<div class="container-fluid">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h2 text-primary fw-bold">
+                    <i class="fas fa-cash-register me-2"></i>
+                    Gestión de Caja Odontológica
+                </h1>
+                <div class="d-flex gap-2">
+                    {% if not caja_abierta %}
+                        <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success btn-lg">
+                            <i class="fas fa-unlock me-2"></i>
+                            Abrir Caja
+                        </a>
+                    {% else %}
+                        <span class="badge bg-success fs-6 p-2 me-2">
+                            <i class="fas fa-unlock me-1"></i>Caja Abierta
+                        </span>
+                        <a href="{% url 'caja:cobrar_servicio' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-cash-register me-2"></i>
+                            Cobrar Servicio
+                        </a>
+                        <a href="{% url 'caja:cierre_caja' %}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-lock me-2"></i>
+                            Cerrar Caja
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <hr class="border-primary">
+        </div>
+    </div>
 
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_cajas }}</h4>
+                            <p class="card-text">Cajas Registradas</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-cash-register fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ cajas_hoy }}</h4>
+                            <p class="card-text">Cajas Hoy</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-calendar-day fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if caja_abierta %}
+                                <h4 class="card-title">{{ caja_abierta.total_servicios|default:"0" }}</h4>
+                                <p class="card-text">Servicios Hoy</p>
+                            {% else %}
+                                <h4 class="card-title">0</h4>
+                                <p class="card-text">Sin Caja Abierta</p>
+                            {% endif %}
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-injured fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="card {% if caja_abierta %}bg-warning{% else %}bg-secondary{% endif %} text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            {% if caja_abierta %}
+                                <h4 class="card-title">${{ caja_abierta.total_cobros|default:"0.00" }}</h4>
+                                <p class="card-text">Cobrado Hoy</p>
+                            {% else %}
+                                <h4 class="card-title">$0.00</h4>
+                                <p class="card-text">Sin Movimientos</p>
+                            {% endif %}
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-dollar-sign fa-2x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-success w-100 p-3" data-bs-toggle="modal" data-bs-target="#cobroModal">
+                                <i class="fas fa-money-bill-wave fa-2x mb-2"></i><br>
+                                <span>Registrar Cobro</span>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-danger w-100 p-3" data-bs-toggle="modal" data-bs-target="#gastoModal">
+                                <i class="fas fa-receipt fa-2x mb-2"></i><br>
+                                <span>Registrar Gasto</span>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-info w-100 p-3" data-bs-toggle="modal" data-bs-target="#movimientosModal">
+                                <i class="fas fa-exchange-alt fa-2x mb-2"></i><br>
+                                <span>Ver Movimientos</span>
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-outline-warning w-100 p-3" data-bs-toggle="modal" data-bs-target="#arqueoModal">
+                                <i class="fas fa-calculator fa-2x mb-2"></i><br>
+                                <span>Arqueo de Caja</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros y Búsqueda
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="buscar" class="form-label">Buscar</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="buscar" placeholder="Operador, fecha, turno...">
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado">
+                                <option value="">Todos</option>
+                                <option value="abierta">Abierta</option>
+                                <option value="cerrada">Cerrada</option>
+                                <option value="arqueo">En Arqueo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="turno" class="form-label">Turno</label>
+                            <select class="form-select" id="turno">
+                                <option value="">Todos</option>
+                                <option value="mañana">Mañana</option>
+                                <option value="tarde">Tarde</option>
+                                <option value="noche">Noche</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="fecha" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="fecha">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <button class="btn btn-outline-secondary w-100" type="button">
+                                <i class="fas fa-redo me-1"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Lista de Cajas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Historial de Cajas
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="vista" id="vista-tabla" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary" for="vista-tabla">
+                            <i class="fas fa-table"></i>
+                        </label>
+                        <input type="radio" class="btn-check" name="vista" id="vista-cards" autocomplete="off">
+                        <label class="btn btn-outline-primary" for="vista-cards">
+                            <i class="fas fa-th"></i>
+                        </label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Vista Tabla -->
+                    <div class="table-responsive" id="vista-tabla-content">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Fecha/Turno</th>
+                                    <th scope="col">Operador</th>
+                                    <th scope="col">Apertura</th>
+                                    <th scope="col">Cierre</th>
+                                    <th scope="col">Total Cobros</th>
+                                    <th scope="col">Total Gastos</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for caja in cajas %}
+                                <tr>
+                                    <td><strong>{{ forloop.counter }}</strong></td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ caja.fecha_apertura|date:"d/m/Y" }}</strong><br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>
+                                                {{ caja.fecha_apertura|date:"H:i" }} - 
+                                                {% if caja.fecha_cierre %}
+                                                    {{ caja.hora_cierre|date:"H:i" }}
+                                                {% else %}
+                                                    <span class="text-success">Abierta</span>
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <i class="fas fa-user-md me-1"></i>
+                                            {{ caja.id_usuario.get_full_name|default:caja.id_usuario.username }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            ${{ caja.monto_apertura }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if caja.monto_cierre %}
+                                            <span class="badge bg-secondary">
+                                                ${{ caja.monto_cierre }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                            ${{ caja.total_cobros|default:"0.00" }}
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <strong class="text-danger">
+                                            <i class="fas fa-arrow-down me-1"></i>
+                                            $0.00
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        {% if not caja.fecha_cierre %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-unlock me-1"></i>Abierta
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-lock me-1"></i>Cerrada
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="verDetalleCaja({{ caja.id_caja }})" title="Ver Detalle">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if not caja.fecha_cierre and caja_abierta.id_caja == caja.id_caja %}
+                                            {% if not caja.fecha_cierre %}
+                                            <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success btn-lg">
+                                                <i class="fas fa-unlock me-2"></i>Abrir Primera Caja
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success btn-lg">
+                                                <i class="fas fa-unlock me-2"></i>Abrir Nueva Caja
+                                            </a>
+                                        {% endif %}:cobrar_servicio' %}" 
+                                                   class="btn btn-outline-success" title="Cobrar Servicio">
+                                                    <i class="fas fa-cash-register"></i>
+                                                </a>
+                                                <a href="{% url 'caja:cierre_caja' %}" 
+                                                   class="btn btn-outline-warning" title="Cerrar Caja">
+                                                    <i class="fas fa-lock"></i>
+                                                </a>
+                                            {% else %}
+                                                <button type="button" class="btn btn-outline-success" 
+                                                        title="Imprimir Reporte" onclick="imprimirReporte({{ caja.id_caja }})">
+                                                    <i class="fas fa-print"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="9" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-cash-register fa-4x mb-3 text-primary opacity-50"></i>
+                                            <h4>No hay cajas registradas</h4>
+                                            <p>Comienza abriendo la primera caja del día</p>
+                                            <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success btn-lg">
+                                                <i class="fas fa-unlock me-2"></i>Abrir Primera Caja
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vista Cards (oculta por defecto) -->
+                    <div class="row d-none" id="vista-cards-content">
+                        {% for caja in cajas %}
+                        <div class="col-xl-4 col-lg-6 col-md-12 mb-3">
+                            <div class="card h-100 shadow-sm border-primary">
+                                <div class="card-header bg-gradient bg-primary text-white">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="card-title mb-0">
+                                            <i class="fas fa-cash-register me-2"></i>
+                                            Caja #{{ forloop.counter }}
+                                        </h6>
+                                        {% if not caja.fecha_cierre %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-unlock me-1"></i>Abierta
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark">
+                                                <i class="fas fa-lock me-1"></i>Cerrada
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Fecha</small>
+                                            <div><strong>{{ caja.fecha_apertura|date:"d/m/Y" }}</strong></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Operador</small>
+                                            <div>{{ caja.usuario|default:"Dr. Sistema" }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">Apertura</small>
+                                            <div class="text-info"><strong>${{ caja.monto_apertura|default:"0.00" }}</strong></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">Horario</small>
+                                            <div>
+                                                {{ caja.fecha_apertura|date:"H:i" }}
+                                                {% if caja.fecha_cierre %} - {{ caja.fecha_cierre|date:"H:i" }}{% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="bg-light p-2 rounded text-center">
+                                                <small class="text-muted">Cobros</small>
+                                                <div class="text-success fw-bold">
+                                                    <i class="fas fa-arrow-up"></i>
+                                                    ${{ caja.total_cobros|default:"0.00" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="bg-light p-2 rounded text-center">
+                                                <small class="text-muted">Gastos</small>
+                                                <div class="text-danger fw-bold">
+                                                    <i class="fas fa-arrow-down"></i>
+                                                    ${{ caja.total_gastos|default:"0.00" }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="btn-group w-100" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-success">
+                                            <i class="fas fa-print"></i> Imprimir
+                                        </button>
+                                        {% if not caja.fecha_cierre %}
+                                        <button type="button" class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-lock"></i> Cerrar
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center py-5">
+                            <div class="text-muted">
+                                <i class="fas fa-cash-register fa-5x mb-4 text-primary opacity-25"></i>
+                                <h3>No hay cajas registradas</h3>
+                                <p class="lead">Comienza abriendo la primera caja del día para gestionar los cobros y gastos de la clínica</p>
+                                <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-unlock me-2"></i>Abrir Primera Caja
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para cambiar vista -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const vistaTabla = document.getElementById('vista-tabla');
+    const vistaCards = document.getElementById('vista-cards');
+    const tablaContent = document.getElementById('vista-tabla-content');
+    const cardsContent = document.getElementById('vista-cards-content');
+
+    vistaTabla.addEventListener('change', function() {
+        if (this.checked) {
+            tablaContent.classList.remove('d-none');
+            cardsContent.classList.add('d-none');
+        }
+    });
+
+    vistaCards.addEventListener('change', function() {
+        if (this.checked) {
+            tablaContent.classList.add('d-none');
+            cardsContent.classList.remove('d-none');
+        }
+    });
+});
+</script>
 {% endblock %}

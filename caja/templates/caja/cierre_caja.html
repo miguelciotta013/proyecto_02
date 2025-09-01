@@ -6,4 +6,334 @@
 
 
 
+{% endblock %}{% extends 'base.html' %}
+{% block title %}Cierre de Caja - Clínica Odontológica{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h2 text-warning fw-bold">
+                    <i class="fas fa-lock me-2"></i>
+                    Cierre de Caja
+                </h1>
+                <a href="{% url 'caja:lista_cajas' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Volver a Lista
+                </a>
+            </div>
+            <hr class="border-warning">
+        </div>
+    </div>
+
+    <!-- Resumen de la Caja -->
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Resumen del Día
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="bg-info text-white p-3 rounded text-center">
+                                <h4 class="mb-1">${{ caja.monto_apertura }}</h4>
+                                <small>Monto Apertura</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-success text-white p-3 rounded text-center">
+                                <h4 class="mb-1">${{ total_cobros }}</h4>
+                                <small>Total Cobros</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-primary text-white p-3 rounded text-center">
+                                <h4 class="mb-1">{{ total_servicios }}</h4>
+                                <small>Servicios Realizados</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-secondary text-white p-3 rounded text-center">
+                                <h4 class="mb-1">${{ monto_teorico }}</h4>
+                                <small>Monto Teórico</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="bg-light p-3 rounded">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Usuario Responsable:</strong> {{ caja.id_usuario.get_full_name }}</p>
+                                        <p class="mb-1"><strong>Fecha Apertura:</strong> {{ caja.fecha_apertura|date:"d/m/Y" }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Hora Apertura:</strong> {{ caja.hora_apertura|date:"H:i" }}</p>
+                                        <p class="mb-1"><strong>Duración:</strong> <span id="duracion-caja"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Formulario de Cierre -->
+        <div class="col-lg-6">
+            <div class="card shadow-lg">
+                <div class="card-header bg-gradient bg-warning text-dark">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-calculator me-2"></i>
+                        Arqueo Final
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="cierreForm">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {% for error in form.non_field_errors %}
+                                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label for="{{ form.monto_cierre.id_for_label }}" class="form-label fs-5">
+                                <i class="fas fa-coins me-2 text-warning"></i>
+                                {{ form.monto_cierre.label }}
+                            </label>
+                            {{ form.monto_cierre }}
+                            {% if form.monto_cierre.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.monto_cierre.errors %}
+                                        <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Cuente el dinero físico en caja
+                            </div>
+                        </div>
+
+                        <!-- Cálculo de Diferencia -->
+                        <div class="bg-light p-3 rounded mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-calculator me-2"></i>
+                                Cálculo Automático
+                            </h6>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Monto Teórico:</span>
+                                        <span class="fw-bold">${{ monto_teorico }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Monto Físico:</span>
+                                        <span class="fw-bold" id="monto-fisico">$0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-bold">Diferencia:</span>
+                                        <span class="fw-bold" id="diferencia">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-lock me-2"></i>
+                                Cerrar Caja
+                            </button>
+                            <a href="{% url 'caja:lista_cajas' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimos Servicios -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Últimos Servicios del Día
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if servicios %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Hora</th>
+                                        <th>Paciente</th>
+                                        <th>Total</th>
+                                        <th>Método</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for servicio in servicios %}
+                                    <tr>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ servicio.created_at|date:"H:i" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                {{ servicio.id_paciente.nombre }} {{ servicio.id_paciente.apellido }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">
+                                                ${{ servicio.total }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-capitalize">
+                                                {{ servicio.metodo_pago }}
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                            <p>No hay servicios registrados hoy</p>
+                        </div>
+                    {% endif %}
+                </div>
+                {% if total_servicios > 10 %}
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        Y {{ total_servicios|add:"-10" }} servicios más...
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas de Diferencia -->
+    <div id="alerta-diferencia" class="row mt-4 d-none">
+        <div class="col-12">
+            <div class="alert alert-warning" role="alert">
+                <h5 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Diferencia Detectada
+                </h5>
+                <p class="mb-0" id="mensaje-diferencia"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const montoTeorico = {{ monto_teorico }};
+    const montoInput = document.getElementById('id_monto_cierre');
+    const montoFisicoSpan = document.getElementById('monto-fisico');
+    const diferenciaSpan = document.getElementById('diferencia');
+    const alertaDiferencia = document.getElementById('alerta-diferencia');
+    const mensajeDiferencia = document.getElementById('mensaje-diferencia');
+
+    // Calcular duración de la caja
+    const horaApertura = '{{ caja.hora_apertura|time:"H:i" }}';
+    const fechaApertura = '{{ caja.fecha_apertura|date:"Y-m-d" }}';
+    const aperturaDate = new Date(`${fechaApertura}T${horaApertura}`);
+    const ahora = new Date();
+    const duracion = Math.floor((ahora - aperturaDate) / (1000 * 60 * 60)); // horas
+    document.getElementById('duracion-caja').textContent = `${duracion} horas`;
+
+    function actualizarCalculos() {
+        const montoFisico = parseFloat(montoInput.value) || 0;
+        const diferencia = montoFisico - montoTeorico;
+        
+        montoFisicoSpan.textContent = `$${montoFisico.toFixed(2)}`;
+        
+        if (diferencia === 0) {
+            diferenciaSpan.textContent = '$0.00';
+            diferenciaSpan.className = 'fw-bold text-success';
+            alertaDiferencia.classList.add('d-none');
+        } else if (diferencia > 0) {
+            diferenciaSpan.textContent = `+$${diferencia.toFixed(2)}`;
+            diferenciaSpan.className = 'fw-bold text-primary';
+            mensajeDiferencia.textContent = `Hay un sobrante de $${diferencia.toFixed(2)}. Verifique el conteo.`;
+            alertaDiferencia.classList.remove('d-none');
+            alertaDiferencia.querySelector('.alert').className = 'alert alert-info';
+        } else {
+            diferenciaSpan.textContent = `-$${Math.abs(diferencia).toFixed(2)}`;
+            diferenciaSpan.className = 'fw-bold text-danger';
+            mensajeDiferencia.textContent = `Hay un faltante de $${Math.abs(diferencia).toFixed(2)}. Verifique el conteo.`;
+            alertaDiferencia.classList.remove('d-none');
+            alertaDiferencia.querySelector('.alert').className = 'alert alert-warning';
+        }
+    }
+
+    // Formatear input y actualizar cálculos
+    montoInput.addEventListener('input', function(e) {
+        let value = e.target.value;
+        value = value.replace(/[^0-9.]/g, '');
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts[1];
+        }
+        e.target.value = value;
+        actualizarCalculos();
+    });
+
+    // Validación del formulario
+    document.getElementById('cierreForm').addEventListener('submit', function(e) {
+        const monto = parseFloat(montoInput.value);
+        
+        if (isNaN(monto) || monto < 0) {
+            e.preventDefault();
+            alert('Por favor, ingrese un monto válido mayor o igual a 0.');
+            montoInput.focus();
+            return false;
+        }
+        
+        const diferencia = monto - montoTeorico;
+        let mensaje = `¿Está seguro de cerrar la caja con $${monto.toFixed(2)}?`;
+        
+        if (diferencia !== 0) {
+            if (diferencia > 0) {
+                mensaje += `\n\nHay un sobrante de $${diferencia.toFixed(2)}.`;
+            } else {
+                mensaje += `\n\nHay un faltante de $${Math.abs(diferencia).toFixed(2)}.`;
+            }
+        }
+        
+        if (!confirm(mensaje)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // Inicializar cálculos
+    actualizarCalculos();
+});
+</script>
 {% endblock %}
