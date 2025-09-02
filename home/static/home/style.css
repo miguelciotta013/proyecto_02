@@ -302,3 +302,73 @@ APARTADO DE CAJA
 */
 /* caja.css */
 
+/*
+====================================================================================================================
+APARTADO DE CALENDARIO
+====================================================================================================================
+*/
+
+
+
+  #calendar {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 6px;
+    box-sizing: border-box;
+    overflow-x: auto; /* evita romper en móvil */
+  }
+
+  .fc-daygrid td,
+  .fc-daygrid th,
+  .fc-timegrid td,
+  .fc-timegrid th {
+    border: 1px solid #000 !important;
+  }
+
+  .fc .fc-daygrid-day-number {
+    font-size: 14px;
+    color: #000 !important; /* números en negro */
+    text-decoration: none !important; /* quitar subrayado */
+  }
+
+  .fc .fc-daygrid-day-frame {
+    padding: 4px;
+    color: #000 !important;
+  }
+
+  .fc .fc-col-header-cell {
+    background-color: #2f76f9 !important; /* fondo azul */
+  }
+
+  .fc .fc-col-header-cell-cushion {
+    color: #000 !important; /* texto negro */
+    text-decoration: none !important; /* sin subrayado */
+    font-weight: bold;
+  }
+
+  .fc-list td,
+  .fc-list th {
+    border: none !important;
+  }
+
+  .fc-timegrid-all-day,
+  .fc-timeGridDay-view .fc-timegrid-axis {
+  display: none !important;
+  }
+
+  .fc .fc-daygrid-day:hover {
+  background-color: #bcbca8 !important;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+  }
+
+  .fc-list,
+  .fc-list a,
+  .fc-list-day-cushion,
+  .fc-list-event-time,
+  .fc-list-event-title {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+
+
