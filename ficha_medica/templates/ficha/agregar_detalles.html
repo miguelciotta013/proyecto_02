@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalles de Consulta - {{ paciente.apellido }}, {{ paciente.nombre }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'lista_pacientes' %}">Pacientes</a></li>
+        <li class="breadcrumb-item active">Detalles de Consulta</li>
+    </ol>
+</nav>
+<div class="row">
+    <div class="col-12">
+        <!-- Información del paciente y consulta -->
+        <div class="card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user"></i> Información de la Consulta
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Paciente:</strong> {{ paciente.apellido }}, {{ paciente.nombre }}</p>
+                        <p><strong>DNI:</strong> {{ paciente.dni_paciente }}</p>
+                        <p><strong>Fecha de Consulta:</strong> {{ consulta.fecha_consulta|date:"d/m/Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Motivo:</strong> {{ consulta.motivo_consulta|default:"Sin especificar" }}</p>
+                        <p><strong>Total Consulta:</strong> ${{ consulta.total_consulta }}</p>
+                        <p><strong>Fecha Ficha:</strong> {{ ficha.fecha_creacion|date:"d/m/Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de detalles -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="fas fa-list"></i> Detalles de la Consulta
+                </h6>
+                <a href="{% url 'agregar_detalle' ficha.id_ficha_medica consulta.id_consulta %}" 
+                   class="btn btn-success btn-sm">
+                    <i class="fas fa-plus"></i> Agregar Detalle
+                </a>
+            </div>
+            <div class="card-body">
+                {% if detalles %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nro. Diente</th>
+                                    <th>Cara Diente</th>
+                                    <th>Código</th>
+                                    <th>Importe</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detalle in detalles %}
+                                <tr>
+                                    <td>{{ detalle.nro_diente|default:"-" }}</td>
+                                    <td>{{ detalle.cara_diente|default:"-"|capfirst }}</td>
+                                    <td>{{ detalle.codigo|default:"-" }}</td>
+                                    <td>${{ detalle.importe }}</td>
+                                    <td class="text-center">
+                                        <a href="{% url 'editar_detalle' detalle.id_detalle_consulta %}" 
+                                           class="btn btn-primary btn-sm" 
+                                           title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'eliminar_detalle' detalle.id_detalle_consulta %}" 
+                                           class="btn btn-danger btn-sm" 
+                                           title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-info">
+                                    <th colspan="3">Total:</th>
+                                    <th>${{ total_detalles }}</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No hay detalles agregados</h6>
+                        <p class="text-muted mb-3">Agrega detalles de tratamientos para completar la consulta.</p>
+                        <a href="{% url 'agregar_detalle' ficha.id_ficha_medica consulta.id_consulta %}" 
+                           class="btn btn-success">
+                            <i class="fas fa-plus"></i> Agregar Primer Detalle
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <a href="{% url 'lista_pacientes' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" name="finalizar" class="btn btn-success">
+                    <i class="fas fa-check"></i> Guardar y Finalizar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,155 +1,194 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.forms import formset_factory
-from home.models import Pacientes, FichaMedica, DetalleConsulta, Consultas, AuthUser
-from .forms import FormularioFichaMedica, FormularioDetalleConsulta, FormularioConsulta
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
+#from django.http import JsonResponse
+from django.urls import reverse
+from django.db import transaction
+from home.models import Pacientes, FichaMedica, Consultas, DetalleConsulta
+from .forms import FichaMedicaForm, ConsultaForm, DetalleConsultaForm
 
-# Create your views here.
-@login_required
-def mostrar_pacientes(request):
-    paciente = Pacientes.objects.all()
-    return render(request,"historial/lista_pacientes.html", {"pacientes":paciente})
 
-@login_required  # Asegurar que el usuario esté autenticado
-def crear_ficha(request, pk):
-    paciente = get_object_or_404(Pacientes, pk=pk)
+def lista_pacientes(request):
+    """Vista principal - Lista de pacientes"""
+    pacientes = Pacientes.objects.all().order_by('apellido', 'nombre')
+    return render(request, 'ficha/lista_pacientes.html', {
+        'pacientes': pacientes
+    })
+
+
+def agregar_ficha(request, paciente_id):
+    """Vista para agregar ficha médica y consulta"""
+    paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
     
-    # SOLUCIÓN: Obtener el AuthUser usando el mismo ID del usuario autenticado
-    try:
-        auth_user = AuthUser.objects.get(id=request.user.id)
-    except AuthUser.DoesNotExist:
-        messages.error(request, 'Tu usuario no está registrado en el sistema médico.')
+    if request.method == 'POST':
+        ficha_form = FichaMedicaForm(request.POST)
+        consulta_form = ConsultaForm(request.POST)
+        
+        if ficha_form.is_valid() and consulta_form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Crear ficha médica
+                    ficha = ficha_form.save(commit=False)
+                    ficha.id_paciente = paciente
+                    ficha.id_usuario = 1  # Usuario fijo por ahora (sin auth)
+                    ficha.save()
+                    
+                    # Crear consulta
+                    consulta = consulta_form.save(commit=False)
+                    consulta.save()
+                    
+                    # Redirigir a agregar detalles
+                    return redirect('agregar_detalles', 
+                                  ficha_id=ficha.id_ficha_medica, 
+                                  consulta_id=consulta.id_consulta)
+                    
+            except Exception as e:
+                messages.error(request, f'Error al guardar: {str(e)}')
+    else:
+        ficha_form = FichaMedicaForm()
+        consulta_form = ConsultaForm()
+    
+    return render(request, 'ficha/agregar_ficha.html', {
+        'paciente': paciente,
+        'ficha_form': ficha_form,
+        'consulta_form': consulta_form
+    })
+
+
+def agregar_detalles(request, ficha_id, consulta_id):
+    """Vista para agregar detalles a la consulta"""
+    ficha = get_object_or_404(FichaMedica, id_ficha_medica=ficha_id)
+    consulta = get_object_or_404(Consultas, id_consulta=consulta_id)
+    
+    # Obtener detalles existentes
+    detalles = DetalleConsulta.objects.filter(
+        id_consulta=consulta,
+        id_ficha_medica=ficha
+    ).order_by('id_detalle_consulta')
+    
+    # Calcular total de detalles
+    total_detalles = sum(detalle.importe for detalle in detalles)
+    
+    if request.method == 'POST' and 'finalizar' in request.POST:
+        # Finalizar y volver a la lista de pacientes
+        messages.success(request, 'Ficha médica y consulta guardadas correctamente.')
         return redirect('lista_pacientes')
     
-    if request.method == "POST":
-        form = FormularioFichaMedica(request.POST)
-        if form.is_valid():
-            ficha = form.save(commit=False)
-            ficha.id_paciente = paciente  # Asignar el paciente
-            ficha.id_usuario = auth_user  # Usar AuthUser (no request.user)
-            ficha.save()
-            
-            messages.success(
-                request, 
-                f'Ficha médica creada exitosamente para {paciente.nombre} {paciente.apellido} '
-                f'por Dr. {auth_user.first_name} {auth_user.last_name}'
-            )
-            return redirect('historial_paciente', pk=paciente.pk)
-        else:
-            messages.error(request, 'Por favor corrija los errores en el formulario')
-    else:
-        # Pre-llenar fecha actual
-        form = FormularioFichaMedica(initial={
-            'fecha_creacion': timezone.now().date()
-        })
-    
-    return render(request, "historial/crear_ficha.html", {
-        "form": form,
-        "paciente": paciente,
-        "usuario_actual": auth_user  # Usar AuthUser para mostrar datos
-    })
-@login_required
-def historial_paciente(request, pk):
-    paciente = get_object_or_404(Pacientes, pk=pk)
-    
-    # Buscar si tiene ficha médica
-    try:
-        ficha_medica = FichaMedica.objects.select_related('id_usuario').get(id_paciente=paciente)
-        tiene_ficha = True
-    except FichaMedica.DoesNotExist:
-        ficha_medica = None
-        tiene_ficha = False
-    
-    # Obtener todas las consultas del paciente (a través de la ficha médica)
-    consultas = []
-    if tiene_ficha:
-        consultas = Consultas.objects.filter(
-            detalleconsulta__id_ficha_medica=ficha_medica
-        ).distinct().order_by('-fecha_consulta')
-    
-    return render(request, "historial/historial_paciente.html", {
-        "paciente": paciente,
-        "ficha_medica": ficha_medica,
-        "tiene_ficha": tiene_ficha,
-        "consultas": consultas
+    return render(request, 'ficha/agregar_detalles.html', {
+        'ficha': ficha,
+        'consulta': consulta,
+        'detalles': detalles,
+        'paciente': ficha.id_paciente,
+        'total_detalles': total_detalles
     })
 
-@login_required
-def nueva_consulta(request, pk):
-    paciente = get_object_or_404(Pacientes, pk=pk)
-    ficha_medica = get_object_or_404(FichaMedica, id_paciente=paciente)
+
+def agregar_detalle(request, ficha_id, consulta_id):
+    """Vista para agregar un detalle individual"""
+    ficha = get_object_or_404(FichaMedica, id_ficha_medica=ficha_id)
+    consulta = get_object_or_404(Consultas, id_consulta=consulta_id)
     
-    # Obtener el AuthUser usando el mismo ID del usuario autenticado
-    try:
-        auth_user = AuthUser.objects.get(id=request.user.id)
-    except AuthUser.DoesNotExist:
-        messages.error(request, 'Tu usuario no está registrado en el sistema médico.')
-        return redirect('historial_paciente', pk=paciente.pk)
-    
-    # Formset para múltiples tratamientos - MEJORADO
-    DetalleTratamientoFormSet = formset_factory(
-        FormularioDetalleConsulta,   
-        can_delete=True,
-        max_num=10  # Máximo 10 tratamientos por consulta
-    )
-    
-    if request.method == "POST":
-        form_consulta = FormularioConsulta(request.POST)
-        formset_detalles = DetalleTratamientoFormSet(request.POST)
-        
-        if form_consulta.is_valid() and formset_detalles.is_valid():
-            # Crear la consulta
-            consulta = form_consulta.save()
-            
-            # Validar que hay al menos un tratamiento
-            tratamientos_validos = 0
-            
-            # Crear los detalles de tratamiento
-            for form_detalle in formset_detalles:
-                if form_detalle.is_valid() and form_detalle.cleaned_data:
-                    # Solo procesar formularios que tienen datos y no están marcados para eliminar
-                    if (not form_detalle.cleaned_data.get('DELETE', False) and 
-                        form_detalle.cleaned_data.get('nro_diente') and 
-                        form_detalle.cleaned_data.get('importe')):
-                        
-                        detalle = form_detalle.save(commit=False)
-                        detalle.id_consulta = consulta
-                        detalle.id_ficha_medica = ficha_medica
-                        detalle.save()
-                        tratamientos_validos += 1
-            
-            # Validar que se guardó al menos un tratamiento
-            if tratamientos_validos == 0:
-                messages.warning(request, 'Debe agregar al menos un tratamiento para guardar la consulta.')
-                # No redirigir, mostrar el formulario nuevamente
-            else:
-                messages.success(
-                    request, 
-                    f'Consulta guardada exitosamente con {tratamientos_validos} tratamiento(s) '
-                    f'para {paciente.nombre} {paciente.apellido}'
-                )
-                return redirect('historial_paciente', pk=paciente.pk)
-        else:
-            # Mostrar errores específicos
-            if not form_consulta.is_valid():
-                messages.error(request, 'Por favor corrija los errores en los datos de la consulta.')
-            if not formset_detalles.is_valid():
-                messages.error(request, 'Por favor revise los datos de los tratamientos.')
+    if request.method == 'POST':
+        form = DetalleConsultaForm(request.POST)
+        if form.is_valid():
+            detalle = form.save(commit=False)
+            detalle.id_consulta = consulta
+            detalle.id_ficha_medica = ficha
+            detalle.save()
+            messages.success(request, 'Detalle agregado correctamente.')
+            return redirect('agregar_detalles', ficha_id=ficha_id, consulta_id=consulta_id)
     else:
-        # Pre-llenar fecha actual en nueva consulta
-        form_consulta = FormularioConsulta(initial={
-            'fecha_consulta': timezone.now().date(),
-            'total_consulta': 0
-        })
-        formset_detalles = DetalleTratamientoFormSet()
+        form = DetalleConsultaForm()
     
-    return render(request, "historial/nueva_consulta.html", {
-        "paciente": paciente,
-        "ficha_medica": ficha_medica,
-        "form_consulta": form_consulta,
-        "formset_detalles": formset_detalles,
-        "usuario_actual": auth_user
-})
+    return render(request, 'ficha/agregar_detalle.html', {
+        'form': form,
+        'ficha': ficha,
+        'consulta': consulta,
+        'paciente': ficha.id_paciente
+    })
+
+
+def editar_detalle(request, detalle_id):
+    """Vista para editar un detalle existente"""
+    detalle = get_object_or_404(DetalleConsulta, id_detalle_consulta=detalle_id)
+    
+    if request.method == 'POST':
+        form = DetalleConsultaForm(request.POST, instance=detalle)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Detalle actualizado correctamente.')
+            return redirect('agregar_detalles', 
+                          ficha_id=detalle.id_ficha_medica.id_ficha_medica, 
+                          consulta_id=detalle.id_consulta.id_consulta)
+    else:
+        form = DetalleConsultaForm(instance=detalle)
+    
+    return render(request, 'ficha/editar_detalle.html', {
+        'form': form,
+        'detalle': detalle,
+        'paciente': detalle.id_ficha_medica.id_paciente
+    })
+
+
+def eliminar_detalle(request, detalle_id):
+    """Vista para eliminar un detalle"""
+    detalle = get_object_or_404(DetalleConsulta, id_detalle_consulta=detalle_id)
+    ficha_id = detalle.id_ficha_medica.id_ficha_medica
+    consulta_id = detalle.id_consulta.id_consulta
+    
+    if request.method == 'POST':
+        detalle.delete()
+        messages.success(request, 'Detalle eliminado correctamente.')
+        return redirect('agregar_detalles', ficha_id=ficha_id, consulta_id=consulta_id)
+    
+    return render(request, 'ficha/eliminar_detalle.html', {
+        'detalle': detalle,
+        'paciente': detalle.id_ficha_medica.id_paciente
+    })
+
+
+def historial_paciente(request, paciente_id):
+    """Vista para ver el historial del paciente"""
+    paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
+    
+    # Obtener todas las fichas médicas del paciente
+    fichas = FichaMedica.objects.filter(id_paciente=paciente).order_by('-fecha_creacion')
+    
+    # Obtener consultas con sus detalles
+    historial = []
+    for ficha in fichas:
+        # Buscar si hay detalles de consulta para esta ficha
+        detalles = DetalleConsulta.objects.filter(id_ficha_medica=ficha).select_related('id_consulta')
+        
+        if detalles.exists():
+            # Agrupar por consulta
+            consultas_dict = {}
+            for detalle in detalles:
+                consulta = detalle.id_consulta
+                if consulta.id_consulta not in consultas_dict:
+                    consultas_dict[consulta.id_consulta] = {
+                        'consulta': consulta,
+                        'detalles': []
+                    }
+                consultas_dict[consulta.id_consulta]['detalles'].append(detalle)
+            
+            for consulta_data in consultas_dict.values():
+                total_detalles = sum(detalle.importe for detalle in consulta_data['detalles'])
+                historial.append({
+                    'ficha': ficha,
+                    'consulta': consulta_data['consulta'],
+                    'detalles': consulta_data['detalles'],
+                    'total_detalles': total_detalles
+                })
+        else:
+            # Ficha sin consultas asociadas
+            historial.append({
+                'ficha': ficha,
+                'consulta': None,
+                'detalles': [],
+                'total_detalles': 0
+            })
+    
+    return render(request, 'ficha/historial_paciente.html', {
+        'paciente': paciente,
+        'historial': historial
+    })
