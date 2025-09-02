@@ -27,8 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-LOGIN_URL = "/admin/login/"
-LOGIN_REDIRECT_URL = "/caja/"
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = '/'      # después de loguear -> Home
+LOGOUT_REDIRECT_URL = '/login/'  # después de cerrar sesión -> Login
 
 # Application definition
 

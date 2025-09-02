@@ -1,11 +1,13 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from home.models import Turnos
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
+@login_required
 def home(request):
     return render(request, "home.html")
-
+@login_required
 def turnos_json(request):
     turnos = Turnos.objects.select_related("id_paciente").all()
     eventos = []

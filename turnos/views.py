@@ -4,17 +4,17 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from home.models import Turnos
 from .forms import TurnoForm
-
+from django.contrib.auth.decorators import login_required
 
 # -------------------------
 # VISTAS HTML
 # -------------------------
-
+@login_required
 def vista_turnos(request):
     """Renderiza la vista principal con la tabla de turnos."""
     return render(request, "vista_turnos.html")
 
-
+@login_required
 def registrar_turno(request):
     """Formulario para registrar un turno nuevo."""
     if request.method == "POST":
@@ -26,7 +26,7 @@ def registrar_turno(request):
         form = TurnoForm()
     return render(request, "registrar_turno.html", {"form": form})
 
-
+@login_required
 def modificar_turno(request, pk):
     """Formulario para editar un turno existente."""
     turno = get_object_or_404(Turnos, pk=pk)
@@ -43,7 +43,7 @@ def modificar_turno(request, pk):
 # -------------------------
 # API JSON para DataTables
 # -------------------------
-
+@login_required 
 @require_http_methods(["GET"])
 def api_turnos(request):
     """
@@ -72,7 +72,7 @@ def api_turnos(request):
 
     return JsonResponse({"data": data})
 
-
+@login_required
 @csrf_exempt  # ✅ evita problemas con AJAX DELETE/POST sin token CSRF
 @require_http_methods(["POST"])
 def api_eliminar_turno(request, pk):
