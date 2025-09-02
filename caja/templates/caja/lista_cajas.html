@@ -3,95 +3,102 @@
 {% block title %}Gestión de Caja{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-2">
+<div class="container-fluid py-3">
     <div class="row">
         <div class="col-12">
             <h2 class="mb-3 text-center text-sm-start">Gestión de Caja</h2>
-            
+
             <!-- Estado actual de la caja -->
-            <div class="card mb-3">
+            {% if caja_abierta %}
+            <div class="card mb-4 shadow-sm border-primary">
                 <div class="card-body">
-                    {% if caja_abierta %}
-                        <div class="alert alert-success small">
-                            <h6 class="mb-1"><strong>Caja Abierta</strong></h6>
-                            <p class="mb-1"><strong>Usuario:</strong> {{ caja_abierta.id_usuario.username }}</p>
-                            <p class="mb-1"><strong>Fecha/Hora:</strong> {{ caja_abierta.fecha_apertura }} - {{ caja_abierta.hora_apertura }}</p>
-                            <p class="mb-0"><strong>Monto inicial:</strong> ${{ caja_abierta.monto_apertura }}</p>
-                        </div>
-                        <div class="d-flex flex-column flex-sm-row gap-2 mt-2">
-                            <a href="{% url 'caja:cierre_caja' %}" class="btn btn-danger w-100 w-sm-auto">Cerrar Caja</a>
-                            <a href="{% url 'caja:cobrar_servicio' %}" class="btn btn-primary w-100 w-sm-auto">Cobrar Servicio</a>
-                        </div>
-                    {% else %}
-                        <div class="alert alert-warning small mb-2">
-                            <h6 class="mb-1"><strong>No hay caja abierta</strong></h6>
-                            <p class="mb-0">Debe abrir una caja para poder registrar servicios.</p>
-                        </div>
-                        <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success w-100 w-sm-auto mb-2">Abrir Caja</a>
-                    {% endif %}
+                    <h6 class="mb-2"><strong>Caja Abierta</strong></h6>
+                    <p class="mb-1"><strong>Usuario:</strong> {{ caja_abierta.id_usuario.username }}</p>
+                    <p class="mb-1"><strong>Fecha/Hora:</strong> {{ caja_abierta.fecha_apertura }} - {{ caja_abierta.hora_apertura }}</p>
+                    <p class="mb-0"><strong>Monto inicial:</strong> ${{ caja_abierta.monto_apertura }}</p>
+                    
+                    <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
+                        <a href="{% url 'caja:cierre_caja' %}" class="btn btn-danger w-100 w-sm-auto">
+                            <i class="bi bi-box-arrow-in-down-right"></i> Cerrar Caja
+                        </a>
+                        <a href="{% url 'caja:cobrar_servicio' %}" class="btn btn-primary w-100 w-sm-auto">
+                            <i class="bi bi-cash-stack"></i> Cobrar Servicio
+                        </a>
+                    </div>
                 </div>
             </div>
+            {% else %}
+            <div class="alert alert-warning shadow-sm">
+                <h6 class="mb-1"><strong>No hay caja abierta</strong></h6>
+                <p class="mb-0">Debe abrir una caja para poder registrar servicios.</p>
+            </div>
+            <a href="{% url 'caja:apertura_caja' %}" class="btn btn-success mb-3 w-100 w-sm-auto">
+                <i class="bi bi-plus-circle"></i> Abrir Caja
+            </a>
+            {% endif %}
 
             <!-- Historial de cajas -->
-            <div class="card mb-2">
-                <div class="card-header p-2">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
                     <h6 class="mb-0">Historial de Cajas</h6>
                 </div>
-                <div class="card-body p-1">
+                <div class="card-body p-2">
                     {% if cajas %}
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover mb-0 small">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Usuario</th>
-                                        <th>Fecha Apertura</th>
-                                        <th>Hora Apertura</th>
-                                        <th>Fecha Cierre</th>
-                                        <th>Hora Cierre</th>
-                                        <th>Estado</th>
-                                        <th>Monto Inicial</th>
-                                        <th>Monto Final</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for caja in cajas %}
-                                    <tr>
-                                        <td>{{ caja.id_caja }}</td>
-                                        <td>{{ caja.id_usuario.username }}</td>
-                                        <td>{{ caja.fecha_apertura|date:'d/m/Y' }}</td>
-                                        <td>{{ caja.hora_apertura|time:'H:i' }}</td>
-                                        <td>{{ caja.fecha_cierre|date:'d/m/Y'|default:"-" }}</td>
-                                        <td>{{ caja.hora_cierre|time:'H:i'|default:"-" }}</td>
-                                        <td>
-                                            {% if caja.estado_cierre == 'abierta' %}
-                                                <span class="badge bg-success">Abierta</span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">Cerrada</span>
-                                            {% endif %}
-                                        </td>
-                                        <td>${{ caja.monto_apertura|floatformat:0 }}</td>
-                                        <td>
-                                            {% if caja.monto_cierre %}
-                                                ${{ caja.monto_cierre|floatformat:0 }}
-                                            {% else %}
-                                                -
-                                            {% endif %}
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover align-middle mb-0 small">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Fecha Apertura</th>
+                                    <th>Hora Apertura</th>
+                                    <th>Fecha Cierre</th>
+                                    <th>Hora Cierre</th>
+                                    <th>Estado</th>
+                                    <th>Monto Inicial</th>
+                                    <th>Monto Final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for caja in cajas %}
+                                <tr>
+                                    <td>{{ caja.id_caja }}</td>
+                                    <td>{{ caja.id_usuario.username }}</td>
+                                    <td>{{ caja.fecha_apertura|date:'d/m/Y' }}</td>
+                                    <td>{{ caja.hora_apertura|time:'H:i' }}</td>
+                                    <td>{{ caja.fecha_cierre|date:'d/m/Y'|default:"-" }}</td>
+                                    <td>{{ caja.hora_cierre|time:'H:i'|default:"-" }}</td>
+                                    <td>
+                                        {% if caja.estado_cierre == 'abierta' %}
+                                            <span class="badge bg-success">Abierta</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Cerrada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ caja.monto_apertura|floatformat:0 }}</td>
+                                    <td>
+                                        {% if caja.monto_cierre %}
+                                            ${{ caja.monto_cierre|floatformat:0 }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                     {% else %}
-                        <div class="text-center py-3 small">
-                            <p class="text-muted mb-0">No hay cajas registradas.</p>
-                        </div>
+                    <div class="text-center py-3 small text-muted">
+                        No hay cajas registradas.
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Iconos de Bootstrap -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 {% endblock %}
