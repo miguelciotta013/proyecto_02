@@ -8,6 +8,7 @@ from django.db.models import Sum
 from home.models import Caja, ServiciosParticulares, DetalleServicio, AuthUser
 from .forms import AperturaCajaForm, CierreCajaForm, ServicioParticularForm, DetalleServicioForm
 
+
 @login_required
 def lista_cajas(request):
     """Lista todas las cajas y muestra el estado actual"""
@@ -21,10 +22,10 @@ def lista_cajas(request):
     }
     return render(request, 'caja/lista_cajas.html', context)
 
+
 @login_required
 def apertura_caja(request):
     """Abrir una nueva caja"""
-    # Verificar que no haya una caja abierta
     caja_abierta = Caja.objects.filter(estado_cierre='abierta').exists()
     if caja_abierta:
         messages.error(request, 'Ya existe una caja abierta. Debe cerrarla antes de abrir una nueva.')
@@ -34,7 +35,6 @@ def apertura_caja(request):
         form = AperturaCajaForm(request.POST)
         if form.is_valid():
             caja = form.save(commit=False)
-            # Obtener el AuthUser correspondiente al usuario autenticado
             try:
                 auth_user = AuthUser.objects.get(username=request.user.username)
                 caja.id_usuario = auth_user
@@ -53,6 +53,7 @@ def apertura_caja(request):
         form = AperturaCajaForm()
     
     return render(request, 'caja/apertura_caja.html', {'form': form})
+
 
 @login_required
 def cierre_caja(request):
@@ -73,7 +74,6 @@ def cierre_caja(request):
     else:
         form = CierreCajaForm(instance=caja_abierta)
     
-    # Calcular total de servicios del día
     total_servicios = ServiciosParticulares.objects.filter(
         id_caja=caja_abierta,
         estado_pago='pagado'
@@ -86,11 +86,11 @@ def cierre_caja(request):
     }
     return render(request, 'caja/cierre_caja.html', context)
 
+
 @login_required
 @transaction.atomic
 def cobrar_servicio(request):
     """Registrar un nuevo servicio y su detalle"""
-    # Verificar que haya una caja abierta
     caja_abierta = Caja.objects.filter(estado_cierre='abierta').first()
     if not caja_abierta:
         messages.error(request, 'Debe abrir una caja antes de registrar servicios.')
@@ -101,21 +101,19 @@ def cobrar_servicio(request):
         detalle_form = DetalleServicioForm(request.POST)
         
         if servicio_form.is_valid() and detalle_form.is_valid():
-            # Guardar el servicio
             servicio = servicio_form.save(commit=False)
             servicio.id_caja = caja_abierta
             servicio.fecha_realizacion = timezone.now().date()
             servicio.created_at = timezone.now()
             servicio.save()
             
-            # Guardar el detalle
             detalle = detalle_form.save(commit=False)
             detalle.id_servicio = servicio
             detalle.created_at = timezone.now()
             detalle.save()
             
             messages.success(request, 'Servicio registrado exitosamente.')
-            return redirect('lista_cajas')
+            return redirect('caja:lista_cajas')  # 🔹 namespace agregado
     else:
         servicio_form = ServicioParticularForm()
         detalle_form = DetalleServicioForm()

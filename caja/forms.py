@@ -3,6 +3,23 @@ from django.core.exceptions import ValidationError
 # Importar modelos desde la app home
 from home.models import Caja, ServiciosParticulares, DetalleServicio, Pacientes
 
+class ServicioForm(forms.ModelForm):
+    estado_pago = forms.CharField(
+        max_length=50,
+        label="Estado de Pago",
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    metodo_pago = forms.CharField(
+        max_length=50,
+        label="Método de Pago",
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = ServiciosParticulares
+        fields = ['id_paciente', 'total', 'estado_pago', 'metodo_pago']
+
 class AperturaCajaForm(forms.ModelForm):
     class Meta:
         model = Caja

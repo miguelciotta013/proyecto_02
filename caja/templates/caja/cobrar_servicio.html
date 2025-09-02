@@ -10,6 +10,23 @@
                 <h5 class="mb-0">Cobrar Servicio</h5>
             </div>
             <div class="card-body">
+
+                <!-- Contenedor de Toasts -->
+                <div class="position-fixed top-0 end-0 p-3" style="z-index: 1100">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="toast align-items-center text-bg-{{ message.tags }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                                <div class="d-flex">
+                                    <div class="toast-body">
+                                        {{ message }}
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
                 <!-- Información de la caja actual -->
                 <div class="alert alert-info mb-4">
                     <h6><strong>Caja Actual:</strong></h6>
@@ -17,9 +34,9 @@
                     <p class="mb-0"><strong>Fecha:</strong> {{ caja_abierta.fecha_apertura|date:'d/m/Y' }}</p>
                 </div>
 
-                <form method="post">
+                <form method="post" id="cobrarForm">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <h6 class="mb-3">Información del Servicio</h6>
@@ -52,11 +69,15 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Estado de Pago como select -->
                             <div class="mb-3">
-                                <label for="{{ servicio_form.estado_pago.id_for_label }}" class="form-label fw-bold">
-                                    {{ servicio_form.estado_pago.label }}
-                                </label>
-                                {{ servicio_form.estado_pago }}
+                                <label for="id_estado_pago" class="form-label fw-bold">Estado de Pago</label>
+                                <select name="estado_pago" id="id_estado_pago" class="form-select">
+                                    <option value="pendiente" {% if servicio_form.estado_pago.value == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                    <option value="pagado" {% if servicio_form.estado_pago.value == 'pagado' %}selected{% endif %}>Pagado</option>
+                                    <option value="cancelado" {% if servicio_form.estado_pago.value == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                                    <option value="parcial" {% if servicio_form.estado_pago.value == 'parcial' %}selected{% endif %}>Parcial</option>
+                                </select>
                                 {% if servicio_form.estado_pago.errors %}
                                     <div class="text-danger mt-1">
                                         {% for error in servicio_form.estado_pago.errors %}
@@ -66,11 +87,13 @@
                                 {% endif %}
                             </div>
 
+                            <!-- Método de Pago como select -->
                             <div class="mb-3">
-                                <label for="{{ servicio_form.metodo_pago.id_for_label }}" class="form-label fw-bold">
-                                    {{ servicio_form.metodo_pago.label }}
-                                </label>
-                                {{ servicio_form.metodo_pago }}
+                                <label for="id_metodo_pago" class="form-label fw-bold">Método de Pago</label>
+                                <select name="metodo_pago" id="id_metodo_pago" class="form-select">
+                                    <option value="efectivo" {% if servicio_form.metodo_pago.value == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                                    <option value="transferencia" {% if servicio_form.metodo_pago.value == 'transferencia' %}selected{% endif %}>Transferencia</option>
+                                </select>
                                 {% if servicio_form.metodo_pago.errors %}
                                     <div class="text-danger mt-1">
                                         {% for error in servicio_form.metodo_pago.errors %}
@@ -79,11 +102,12 @@
                                     </div>
                                 {% endif %}
                             </div>
+
                         </div>
 
                         <div class="col-md-6">
                             <h6 class="mb-3">Detalle del Tratamiento</h6>
-                            
+
                             <div class="mb-3">
                                 <label for="{{ detalle_form.tratamiento.id_for_label }}" class="form-label fw-bold">
                                     {{ detalle_form.tratamiento.label }}
@@ -135,13 +159,49 @@
                         <a href="{% url 'caja:lista_cajas' %}" class="btn btn-secondary">
                             Cancelar
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmModal">
                             Registrar Servicio
                         </button>
                     </div>
                 </form>
+
+                <!-- Modal de confirmación -->
+                <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="confirmModalLabel">Confirmar Cobro</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                            </div>
+                            <div class="modal-body">
+                                ¿Estás seguro de registrar este servicio y cobrarlo?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" id="confirmSubmit">Sí, cobrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Inicializar Toasts
+    var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    toastElList.map(function (toastEl) {
+        var toast = new bootstrap.Toast(toastEl, { delay: 5000 })
+        toast.show()
+    })
+
+    // Confirmación de cobro
+    document.getElementById('confirmSubmit').addEventListener('click', function () {
+        document.getElementById('cobrarForm').submit();
+    })
+})
+</script>
 {% endblock %}
