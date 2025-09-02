@@ -1,10 +1,9 @@
-# login/forms.py
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 
 class LoginForm(AuthenticationForm):
-    # Opcional: estilos Bootstrap
+    # Aqui puede ser opcional estilo de Boostrap va si quieren xd
     username = forms.CharField(
         label='Usuario',
         widget=forms.TextInput(attrs={'class': 'form-control', 'autofocus': True})
@@ -24,7 +23,7 @@ class RegisterForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Opcional: estilos Bootstrap
+        # Aqui puede ser opcional estilo de Boostrap va si quieren xd
         self.fields['username'].widget.attrs.update({'class': 'form-control'})
         self.fields['password1'].widget.attrs.update({'class': 'form-control'})
         self.fields['password2'].widget.attrs.update({'class': 'form-control'})
