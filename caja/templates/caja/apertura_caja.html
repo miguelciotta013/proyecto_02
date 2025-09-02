@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Apertura de Caja{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h5 class="mb-0">Apertura de Caja</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Usuario -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Usuario:</label>
+                            <input type="text" class="form-control bg-light" value="{{ user.username }}" readonly>
+                        </div>
+
+                        <!-- Fecha -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Fecha:</label>
+                            <input type="text" class="form-control bg-light" value="{% now 'd/m/Y' %}" readonly>
+                        </div>
+
+                        <!-- Monto de apertura -->
+                        <div class="mb-3">
+                            <label for="{{ form.monto_apertura.id_for_label }}" class="form-label fw-bold">
+                                {{ form.monto_apertura.label }}
+                            </label>
+                            {{ form.monto_apertura|add_class:"form-control" }}
+                            {% if form.monto_apertura.errors %}
+                                <div class="text-danger mt-1">
+                                    {% for error in form.monto_apertura.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">Ingrese el monto inicial de la caja</div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mt-4">
+                            <a href="{% url 'caja:lista_cajas' %}" class="btn btn-secondary w-100 w-md-auto">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success w-100 w-md-auto">
+                                <i class="bi bi-check-circle"></i> Abrir caja
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

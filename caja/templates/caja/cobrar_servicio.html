@@ -1,133 +1,147 @@
 {% extends 'base.html' %}
-{% load static %}
+
 {% block title %}Cobrar Servicio{% endblock %}
 
-
 {% block content %}
-<h1 class="titulo-cobrar-servicio">Cobrar Servicio</h1>
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Cobrar Servicio</h5>
+            </div>
+            <div class="card-body">
+                <!-- Información de la caja actual -->
+                <div class="alert alert-info mb-4">
+                    <h6><strong>Caja Actual:</strong></h6>
+                    <p class="mb-1"><strong>Usuario:</strong> {{ caja_abierta.id_usuario.username }}</p>
+                    <p class="mb-0"><strong>Fecha:</strong> {{ caja_abierta.fecha_apertura|date:'d/m/Y' }}</p>
+                </div>
 
-<form id="form-cobrar-servicio" class="form-cobrar-servicio">
-    <div class="form-container-cobrar">
-        <label for="paciente-cobrar" class="label-cobrar">Paciente:</label>
-        <input type="text" id="paciente-cobrar" name="paciente" class="input-cobrar" placeholder="Nombre del Paciente">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Información del Servicio</h6>
+                            
+                            <div class="mb-3">
+                                <label for="{{ servicio_form.id_paciente.id_for_label }}" class="form-label fw-bold">
+                                    {{ servicio_form.id_paciente.label }}
+                                </label>
+                                {{ servicio_form.id_paciente }}
+                                {% if servicio_form.id_paciente.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in servicio_form.id_paciente.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
 
-        <label for="servicio-cobrar" class="label-cobrar">Servicio:</label>
-        <input type="text" id="servicio-cobrar" name="servicio" class="input-cobrar" placeholder="Servicio">
+                            <div class="mb-3">
+                                <label for="{{ servicio_form.total.id_for_label }}" class="form-label fw-bold">
+                                    {{ servicio_form.total.label }}
+                                </label>
+                                {{ servicio_form.total }}
+                                {% if servicio_form.total.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in servicio_form.total.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
 
-        <label for="monto-cobrar" class="label-cobrar">Monto:</label>
-        <input type="number" id="monto-cobrar" name="monto" class="input-cobrar" placeholder="Monto">
+                            <div class="mb-3">
+                                <label for="{{ servicio_form.estado_pago.id_for_label }}" class="form-label fw-bold">
+                                    {{ servicio_form.estado_pago.label }}
+                                </label>
+                                {{ servicio_form.estado_pago }}
+                                {% if servicio_form.estado_pago.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in servicio_form.estado_pago.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
 
-        <label for="pago-cobrar" class="label-cobrar">Método de Pago:</label>
-        <input type="text" id="pago-cobrar" name="pago" class="input-cobrar" placeholder="Método de Pago">
+                            <div class="mb-3">
+                                <label for="{{ servicio_form.metodo_pago.id_for_label }}" class="form-label fw-bold">
+                                    {{ servicio_form.metodo_pago.label }}
+                                </label>
+                                {{ servicio_form.metodo_pago }}
+                                {% if servicio_form.metodo_pago.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in servicio_form.metodo_pago.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
 
-        <button type="button" id="btn-cobrar-servicio" class="btn-cobrar">Cobrar</button>
-        <button type="button" id="btn-volver" class="btn-volver">⬅️ Volver</button>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Detalle del Tratamiento</h6>
+                            
+                            <div class="mb-3">
+                                <label for="{{ detalle_form.tratamiento.id_for_label }}" class="form-label fw-bold">
+                                    {{ detalle_form.tratamiento.label }}
+                                </label>
+                                {{ detalle_form.tratamiento }}
+                                {% if detalle_form.tratamiento.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in detalle_form.tratamiento.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ detalle_form.nro_diente.id_for_label }}" class="form-label fw-bold">
+                                    {{ detalle_form.nro_diente.label }}
+                                </label>
+                                {{ detalle_form.nro_diente }}
+                                <small class="form-text text-muted">Opcional (1-48)</small>
+                                {% if detalle_form.nro_diente.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in detalle_form.nro_diente.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ detalle_form.importe.id_for_label }}" class="form-label fw-bold">
+                                    {{ detalle_form.importe.label }}
+                                </label>
+                                {{ detalle_form.importe }}
+                                {% if detalle_form.importe.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in detalle_form.importe.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'caja:lista_cajas' %}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            Registrar Servicio
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-</form>
-
-<style>
-    .titulo-cobrar-servicio {
-    text-align: center;
-    color: #004080;
-    margin-bottom: 20px;
-}
-
-.form-container-cobrar {
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 20px;
-    background: #f4f4f4;
-    border-radius: 10px;
-    box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
-}
-
-.label-cobrar {
-    display: block;
-    margin-top: 15px;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #333;
-}
-
-.input-cobrar {
-    width: 100%;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-.btn-cobrar, .btn-volver {
-    margin-top: 20px;
-    padding: 10px 20px;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.btn-cobrar {
-    background-color: #0066cc;
-    margin-right: 10px;
-}
-
-.btn-cobrar:hover {
-    background-color: #004080;
-}
-
-.btn-volver {
-    background-color: #888;
-}
-
-.btn-volver:hover {
-    background-color: #555;
-}
-
-</style>
-
-<script>
-async function cobrarServicio() {
-    const paciente = document.getElementById('paciente-cobrar').value.trim();
-    const servicio = document.getElementById('servicio-cobrar').value.trim();
-    const monto = document.getElementById('monto-cobrar').value.trim();
-    const pago = document.getElementById('pago-cobrar').value.trim();
-
-    if (!paciente || !servicio || !monto || !pago) {
-        alert("Todos los campos son obligatorios.");
-        return;
-    }
-
-    try {
-        const response = await fetch("{% url 'caja:cobrar_servicio_ajax' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify({paciente, servicio, monto, pago})
-        });
-
-        const data = await response.json();
-
-        if(response.ok){
-            alert(data.mensaje);
-            document.getElementById('form-cobrar-servicio').reset();
-        } else {
-            alert(data.mensaje || "Error al cobrar el servicio");
-        }
-    } catch (error) {
-        console.error(error);
-        alert("Ocurrió un error al procesar la solicitud.");
-    }
-}
-
-// Botón Cobrar
-document.getElementById('btn-cobrar-servicio').addEventListener('click', cobrarServicio);
-
-// Botón Volver
-document.getElementById('btn-volver').addEventListener('click', () => {
-    window.location.href = "{% url 'caja:caja_home' %}";
-});
-</script>
-
+</div>
 {% endblock %}

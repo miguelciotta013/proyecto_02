@@ -1,114 +1,128 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.utils import timezone
+from django.db import transaction
+from django.db.models import Sum
+# Importar modelos desde la app home
+from home.models import Caja, ServiciosParticulares, DetalleServicio, AuthUser
+from .forms import AperturaCajaForm, CierreCajaForm, ServicioParticularForm, DetalleServicioForm
 
-# caja/views.py
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from .models import Caja, Servicio
-from datetime import datetime
-import json
+@login_required
+def lista_cajas(request):
+    """Lista todas las cajas y muestra el estado actual"""
+    cajas = Caja.objects.all().order_by('-fecha_apertura', '-hora_apertura')
+    caja_abierta = Caja.objects.filter(estado_cierre='abierta').first()
+    
+    context = {
+        'cajas': cajas,
+        'caja_abierta': caja_abierta,
+        'tiene_caja_abierta': caja_abierta is not None
+    }
+    return render(request, 'caja/lista_cajas.html', context)
 
-# ----------------------------
-# Home de cajas
-# ----------------------------
-def caja_home(request):
-    cajas = Caja.objects.all().order_by('-fecha_apertura')
-    return render(request, 'caja/caja_home.html', {'cajas': cajas})
-
-# ----------------------------
-# Abrir caja
-# ----------------------------
-def abrir_caja(request):
-    return render(request, 'caja/abrir_caja.html')
-
-@csrf_exempt
-def abrir_caja_ajax(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        fecha = data.get("fecha")
-        hora = data.get("hora")
-        monto = data.get("monto")
-        responsable = data.get("responsable")
-
-        if not all([fecha, hora, monto, responsable]):
-            return JsonResponse({"mensaje": "Todos los campos son obligatorios"}, status=400)
-
-        try:
-            fecha_obj = datetime.strptime(fecha, "%Y-%m-%d").date()
-            hora_obj = datetime.strptime(hora, "%H:%M").time()
-        except ValueError:
-            return JsonResponse({"mensaje": "Fecha u hora inválida"}, status=400)
-
-        Caja.objects.create(
-            fecha_apertura=fecha_obj,
-            hora_apertura=hora_obj,
-            monto_inicial=monto,
-            responsable=responsable,
-            estado="Abierta"
-        )
-        return JsonResponse({"mensaje": "Caja abierta correctamente"})
-
-# ----------------------------
-# Cerrar caja
-# ----------------------------
-def cerrar_caja(request):
-    return render(request, 'caja/cerrar_caja.html')
-
-@csrf_exempt
-def cerrar_caja_ajax(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        caja = Caja.objects.filter(estado="Abierta").last()
-        if not caja:
-            return JsonResponse({"mensaje": "No hay caja abierta"}, status=400)
-
-        caja.hora_cierre = data.get("hora_cierre")
-        caja.monto_final = data.get("monto_final")
-        caja.responsable = data.get("responsable")
-        caja.estado = "Cerrada"
-        caja.save()
-        return JsonResponse({"mensaje": "Caja cerrada correctamente"})
-
-# ----------------------------
-# Cobrar servicio
-# ----------------------------
-
-
-# Vista HTML
-def cobrar_servicio(request):
-    return render(request, 'caja/cobrar_servicio.html')
-
-# AJAX POST
-@csrf_exempt
-def cobrar_servicio_ajax(request):
+@login_required
+def apertura_caja(request):
+    """Abrir una nueva caja"""
+    # Verificar que no haya una caja abierta
+    caja_abierta = Caja.objects.filter(estado_cierre='abierta').exists()
+    if caja_abierta:
+        messages.error(request, 'Ya existe una caja abierta. Debe cerrarla antes de abrir una nueva.')
+        return redirect('caja:lista_cajas')
+    
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'mensaje': 'Datos inválidos'}, status=400)
+        form = AperturaCajaForm(request.POST)
+        if form.is_valid():
+            caja = form.save(commit=False)
+            # Obtener el AuthUser correspondiente al usuario autenticado
+            try:
+                auth_user = AuthUser.objects.get(username=request.user.username)
+                caja.id_usuario = auth_user
+            except AuthUser.DoesNotExist:
+                messages.error(request, 'Error: Usuario no encontrado en el sistema.')
+                return redirect('caja:lista_cajas')
+            
+            caja.fecha_apertura = timezone.now().date()
+            caja.hora_apertura = timezone.now().time()
+            caja.estado_cierre = 'abierta'
+            caja.created_at = timezone.now()
+            caja.save()
+            messages.success(request, 'Caja abierta exitosamente.')
+            return redirect('caja:lista_cajas')
+    else:
+        form = AperturaCajaForm()
+    
+    return render(request, 'caja/apertura_caja.html', {'form': form})
 
-        paciente = data.get('paciente', '').strip()
-        servicio = data.get('servicio', '').strip()
-        monto = data.get('monto')
-        pago = data.get('pago', '').strip()
+@login_required
+def cierre_caja(request):
+    """Cerrar la caja actual"""
+    caja_abierta = get_object_or_404(Caja, estado_cierre='abierta')
+    
+    if request.method == 'POST':
+        form = CierreCajaForm(request.POST, instance=caja_abierta)
+        if form.is_valid():
+            caja = form.save(commit=False)
+            caja.fecha_cierre = timezone.now().date()
+            caja.hora_cierre = timezone.now().time()
+            caja.estado_cierre = 'cerrada'
+            caja.updated_at = timezone.now()
+            caja.save()
+            messages.success(request, 'Caja cerrada exitosamente.')
+            return redirect('caja:lista_cajas')
+    else:
+        form = CierreCajaForm(instance=caja_abierta)
+    
+    # Calcular total de servicios del día
+    total_servicios = ServiciosParticulares.objects.filter(
+        id_caja=caja_abierta,
+        estado_pago='pagado'
+    ).aggregate(total=Sum('total'))['total'] or 0
+    
+    context = {
+        'form': form,
+        'caja': caja_abierta,
+        'total_servicios': total_servicios
+    }
+    return render(request, 'caja/cierre_caja.html', context)
 
-        # Validaciones
-        if not paciente or not servicio or not monto or not pago:
-            return JsonResponse({'mensaje': 'Todos los campos son obligatorios'}, status=400)
-
-        try:
-            monto = float(monto)
-        except ValueError:
-            return JsonResponse({'mensaje': 'El monto debe ser un número'}, status=400)
-
-        # Crear el registro
-        Servicio.objects.create(
-            paciente=paciente,
-            servicio=servicio,
-            monto=monto,
-            metodo_pago=pago
-        )
-
-        return JsonResponse({'mensaje': 'Servicio cobrado correctamente'})
-
-    return JsonResponse({'mensaje': 'Método no permitido'}, status=405)
-
+@login_required
+@transaction.atomic
+def cobrar_servicio(request):
+    """Registrar un nuevo servicio y su detalle"""
+    # Verificar que haya una caja abierta
+    caja_abierta = Caja.objects.filter(estado_cierre='abierta').first()
+    if not caja_abierta:
+        messages.error(request, 'Debe abrir una caja antes de registrar servicios.')
+        return redirect('caja:lista_cajas')
+    
+    if request.method == 'POST':
+        servicio_form = ServicioParticularForm(request.POST)
+        detalle_form = DetalleServicioForm(request.POST)
+        
+        if servicio_form.is_valid() and detalle_form.is_valid():
+            # Guardar el servicio
+            servicio = servicio_form.save(commit=False)
+            servicio.id_caja = caja_abierta
+            servicio.fecha_realizacion = timezone.now().date()
+            servicio.created_at = timezone.now()
+            servicio.save()
+            
+            # Guardar el detalle
+            detalle = detalle_form.save(commit=False)
+            detalle.id_servicio = servicio
+            detalle.created_at = timezone.now()
+            detalle.save()
+            
+            messages.success(request, 'Servicio registrado exitosamente.')
+            return redirect('lista_cajas')
+    else:
+        servicio_form = ServicioParticularForm()
+        detalle_form = DetalleServicioForm()
+    
+    context = {
+        'servicio_form': servicio_form,
+        'detalle_form': detalle_form,
+        'caja_abierta': caja_abierta
+    }
+    return render(request, 'caja/cobrar_servicio.html', context)

@@ -89,6 +89,7 @@ class Caja(models.Model):
     monto_cierre = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(blank=True, null=True)
+    
 
     class Meta:
         managed = False

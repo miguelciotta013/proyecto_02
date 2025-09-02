@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Paciente{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Botón volver -->
+            <div class="mb-3">
+                <a href="{% url 'pacientes:lista' %}" class="btn btn-outline-secondary shadow-sm">
+                    <i class="fas fa-arrow-left"></i> Volver a Lista
+                </a>
+            </div>
+
+            <!-- Card del formulario -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i> Agregar Nuevo Paciente
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- DNI -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.dni_paciente.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.dni_paciente.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.dni_paciente }}
+                                {% if form.dni_paciente.errors %}
+                                    <div class="text-danger small">{{ form.dni_paciente.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Fecha de Nacimiento -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.fecha_nacimiento.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.fecha_nacimiento.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.fecha_nacimiento }}
+                                {% if form.fecha_nacimiento.errors %}
+                                    <div class="text-danger small">{{ form.fecha_nacimiento.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Apellido -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.apellido.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.apellido.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.apellido }}
+                                {% if form.apellido.errors %}
+                                    <div class="text-danger small">{{ form.apellido.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Nombre -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nombre.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.nombre.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.nombre }}
+                                {% if form.nombre.errors %}
+                                    <div class="text-danger small">{{ form.nombre.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Domicilio -->
+                            <div class="col-md-8 mb-3">
+                                <label for="{{ form.domicilio.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.domicilio.label }}
+                                </label>
+                                {{ form.domicilio }}
+                                {% if form.domicilio.errors %}
+                                    <div class="text-danger small">{{ form.domicilio.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Teléfono -->
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.telefono.label }}
+                                </label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger small">{{ form.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Localidad -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.localidad.id_for_label }}" class="form-label fw-semibold">
+                                    {{ form.localidad.label }}
+                                </label>
+                                {{ form.localidad }}
+                                {% if form.localidad.errors %}
+                                    <div class="text-danger small">{{ form.localidad.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <a href="{% url 'pacientes:lista' %}" class="btn btn-outline-secondary shadow-sm">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-success shadow-sm px-4">
+                                <i class="fas fa-save me-1"></i> Guardar Paciente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Nota informativa -->
+            <div class="alert alert-info mt-3 shadow-sm">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Después de crear el paciente, podrá agregar obras sociales desde su información detallada.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
