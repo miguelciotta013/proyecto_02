@@ -315,7 +315,7 @@ APARTADO DE CALENDARIO
     margin: 0 auto;
     padding: 0 6px;
     box-sizing: border-box;
-    overflow-x: auto; /* evita romper en móvil */
+    overflow-x: auto;
   }
 
   .fc-daygrid td,
@@ -327,8 +327,8 @@ APARTADO DE CALENDARIO
 
   .fc .fc-daygrid-day-number {
     font-size: 14px;
-    color: #000 !important; /* números en negro */
-    text-decoration: none !important; /* quitar subrayado */
+    color: #000 !important;
+    text-decoration: none !important;
   }
 
   .fc .fc-daygrid-day-frame {
@@ -337,12 +337,12 @@ APARTADO DE CALENDARIO
   }
 
   .fc .fc-col-header-cell {
-    background-color: #2f76f9 !important; /* fondo azul */
+    background-color: #2f76f9 !important;
   }
 
   .fc .fc-col-header-cell-cushion {
-    color: #000 !important; /* texto negro */
-    text-decoration: none !important; /* sin subrayado */
+    color: #000 !important;
+    text-decoration: none !important;
     font-weight: bold;
   }
 
