@@ -3,8 +3,9 @@ from django.contrib import messages
 from django.urls import reverse
 from home.models import Pacientes, ObraSocial, PacientesXOs
 from .forms import PacienteForm, ObraSocialForm, PacienteObraSocialForm
+from django.contrib.auth.decorators import login_required
 
-
+@login_required
 def lista_pacientes(request):
     """Vista principal: lista todos los pacientes"""
     pacientes = Pacientes.objects.all().order_by('apellido', 'nombre')
@@ -12,7 +13,7 @@ def lista_pacientes(request):
         'pacientes': pacientes
     })
 
-
+@login_required
 def agregar_paciente(request):
     """Vista para agregar un nuevo paciente sin obra social"""
     if request.method == 'POST':
@@ -28,7 +29,7 @@ def agregar_paciente(request):
         'form': form
     })
 
-
+@login_required
 def agregar_obra(request, paciente_id):
     """Vista para agregar obra social a un paciente existente"""
     paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
@@ -63,7 +64,7 @@ def agregar_obra(request, paciente_id):
         'paciente_obra_form': paciente_obra_form
     })
 
-
+@login_required
 def editar_paciente(request, paciente_id):
     """Vista para editar información del paciente"""
     paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
@@ -82,7 +83,7 @@ def editar_paciente(request, paciente_id):
         'paciente': paciente
     })
 
-
+@login_required
 def editar_obra(request, paciente_id, obra_id):
     """Vista para editar la relación paciente-obra social"""
     paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
@@ -103,7 +104,7 @@ def editar_obra(request, paciente_id, obra_id):
         'paciente_obra': paciente_obra
     })
 
-
+@login_required
 def informacion_paciente(request, paciente_id):
     """Vista para mostrar información detallada del paciente"""
     paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
@@ -114,7 +115,7 @@ def informacion_paciente(request, paciente_id):
         'obras_sociales': obras_sociales
     })
 
-
+@login_required
 def eliminar_paciente(request, paciente_id):
     """Vista para eliminar un paciente"""
     paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
@@ -129,7 +130,7 @@ def eliminar_paciente(request, paciente_id):
         'paciente': paciente
     })
 
-
+@login_required
 def eliminar_obra_social(request, paciente_id, obra_id):
     """Vista para eliminar la asociación paciente-obra social"""
     paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)

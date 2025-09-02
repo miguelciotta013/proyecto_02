@@ -5,9 +5,10 @@ from django.forms import formset_factory
 from home.models import Pacientes, FichaMedica, DetalleConsulta, Consultas, AuthUser
 from .forms import FormularioFichaMedica, FormularioDetalleConsulta, FormularioConsulta
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
-
+@login_required
 def mostrar_pacientes(request):
     paciente = Pacientes.objects.all()
     return render(request,"historial/lista_pacientes.html", {"pacientes":paciente})
@@ -50,7 +51,7 @@ def crear_ficha(request, pk):
         "paciente": paciente,
         "usuario_actual": auth_user  # Usar AuthUser para mostrar datos
     })
-
+@login_required
 def historial_paciente(request, pk):
     paciente = get_object_or_404(Pacientes, pk=pk)
     
