@@ -36,8 +36,9 @@ def apertura_caja(request):
         if form.is_valid():
             caja = form.save(commit=False)
             try:
+                
                 auth_user = AuthUser.objects.get(username=request.user.username)
-                caja.id_usuario = auth_user
+                caja.id_usuario = auth_user.id
             except AuthUser.DoesNotExist:
                 messages.error(request, 'Error: Usuario no encontrado en el sistema.')
                 return redirect('caja:lista_cajas')
@@ -124,3 +125,4 @@ def cobrar_servicio(request):
         'caja_abierta': caja_abierta
     }
     return render(request, 'caja/cobrar_servicio.html', context)
+

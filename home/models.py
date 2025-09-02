@@ -79,17 +79,16 @@ class AuthUserUserPermissions(models.Model):
 
 class Caja(models.Model):
     id_caja = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='id_usuario')
+    id_usuario = models.IntegerField()
     fecha_apertura = models.DateField()
     hora_apertura = models.TimeField()
     fecha_cierre = models.DateField(blank=True, null=True)
     hora_cierre = models.TimeField(blank=True, null=True)
-    estado_cierre = models.CharField(max_length=7)
+    estado_cierre = models.CharField(max_length=20)
     monto_apertura = models.IntegerField()
     monto_cierre = models.IntegerField(blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(blank=True, null=True)
-    
 
     class Meta:
         managed = False
@@ -102,6 +101,7 @@ class Consultas(models.Model):
     total_consulta = models.IntegerField()
     observaciones = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
+    motivo_consulta = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -109,11 +109,11 @@ class Consultas(models.Model):
 
 
 class DetalleConsulta(models.Model):
-    id_detalle_consulta = models.AutoField(primary_key=True)  # Nueva PK individual
+    id_detalle_consulta = models.AutoField(primary_key=True)
     id_consulta = models.ForeignKey(Consultas, models.DO_NOTHING, db_column='id_consulta')
     id_ficha_medica = models.ForeignKey('FichaMedica', models.DO_NOTHING, db_column='id_ficha_medica')
     nro_diente = models.IntegerField(blank=True, null=True)
-    cara_diente = models.CharField(max_length=13, blank=True, null=True)
+    cara_diente = models.CharField(max_length=10, blank=True, null=True)
     codigo = models.IntegerField(blank=True, null=True)
     importe = models.IntegerField()
     created_at = models.DateTimeField(blank=True, null=True)
@@ -123,6 +123,7 @@ class DetalleConsulta(models.Model):
         managed = False
         db_table = 'detalle_consulta'
         unique_together = (('id_consulta', 'id_ficha_medica'),)
+
 
 class DetalleServicio(models.Model):
     id_detalle_servicio = models.AutoField(primary_key=True)
@@ -186,7 +187,7 @@ class DjangoSession(models.Model):
 class FichaMedica(models.Model):
     id_ficha_medica = models.AutoField(primary_key=True)
     id_paciente = models.ForeignKey('Pacientes', models.DO_NOTHING, db_column='id_paciente')
-    id_usuario = models.ForeignKey(AuthUser, models.DO_NOTHING, db_column='id_usuario')
+    id_usuario = models.IntegerField()
     fecha_creacion = models.DateField()
     observaciones = models.CharField(max_length=50, blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
@@ -218,8 +219,8 @@ class Pacientes(models.Model):
     domicilio = models.CharField(max_length=50, blank=True, null=True)
     localidad = models.CharField(max_length=50, blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
-    def __str__(self):
-        return f"{self.nombre} {self.apellido}  "
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -227,7 +228,7 @@ class Pacientes(models.Model):
 
 
 class PacientesXOs(models.Model):
-    id_paciente_os = models.AutoField(primary_key=True)  # Nueva PK individual
+    id_paciente_os = models.AutoField(primary_key=True)
     id_paciente = models.ForeignKey(Pacientes, models.DO_NOTHING, db_column='id_paciente')
     id_obra_social = models.ForeignKey(ObraSocial, models.DO_NOTHING, db_column='id_obra_social')
     nombre_titular = models.CharField(max_length=50)
@@ -249,7 +250,7 @@ class ServiciosParticulares(models.Model):
     fecha_realizacion = models.DateField()
     total = models.IntegerField()
     estado_pago = models.CharField(max_length=9)
-    metodo_pago = models.CharField(max_length=13)
+    metodo_pago = models.CharField(max_length=13, blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(blank=True, null=True)
 
@@ -265,11 +266,8 @@ class Turnos(models.Model):
     hora_turno = models.TimeField()
     asunto = models.CharField(max_length=50, blank=True, null=True)
     comentario_turno = models.CharField(max_length=60, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)   # 👈 se guarda al crear
-    updated_at = models.DateTimeField(auto_now=True)     
-
-    def __str__(self):
-     return f"Turno: {self.id_paciente} con {self.fecha_turno} - {self.hora_turno} {self.asunto} - {self.comentario_turno}"
+    created_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False

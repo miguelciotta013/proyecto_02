@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Ficha Médica - {{ paciente.apellido }}, {{ paciente.nombre }}{% endblock %}
+
+{% block content %}
+<!-- Estilos específicos -->
+<style>
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+</style>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'lista_pacientes' %}">Pacientes</a></li>
+        <li class="breadcrumb-item active">Agregar Ficha</li>
+    </ol>
+</nav>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-medical"></i> Nueva Ficha Médica
+                </h5>
+                <small class="text-muted">
+                    Paciente: <strong>{{ paciente.apellido }}, {{ paciente.nombre }}</strong> - DNI: {{ paciente.dni_paciente }}
+                </small>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Formulario de Ficha Médica -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="fas fa-folder-open"></i> Datos de la Ficha Médica
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ ficha_form.fecha_creacion.label_tag }}
+                                        {{ ficha_form.fecha_creacion }}
+                                        {% if ficha_form.fecha_creacion.errors %}
+                                            <div class="text-danger small">
+                                                {{ ficha_form.fecha_creacion.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        {{ ficha_form.observaciones.label_tag }}
+                                        {{ ficha_form.observaciones }}
+                                        {% if ficha_form.observaciones.errors %}
+                                            <div class="text-danger small">
+                                                {{ ficha_form.observaciones.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Consulta -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">
+                                <i class="fas fa-stethoscope"></i> Datos de la Consulta
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ consulta_form.motivo_consulta.label_tag }}
+                                        {{ consulta_form.motivo_consulta }}
+                                        {% if consulta_form.motivo_consulta.errors %}
+                                            <div class="text-danger small">
+                                                {{ consulta_form.motivo_consulta.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ consulta_form.fecha_consulta.label_tag }}
+                                        {{ consulta_form.fecha_consulta }}
+                                        {% if consulta_form.fecha_consulta.errors %}
+                                            <div class="text-danger small">
+                                                {{ consulta_form.fecha_consulta.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        {{ consulta_form.total_consulta.label_tag }}
+                                        {{ consulta_form.total_consulta }}
+                                        {% if consulta_form.total_consulta.errors %}
+                                            <div class="text-danger small">
+                                                {{ consulta_form.total_consulta.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        {{ consulta_form.observaciones.label_tag }}
+                                        {{ consulta_form.observaciones }}
+                                        {% if consulta_form.observaciones.errors %}
+                                            <div class="text-danger small">
+                                                {{ consulta_form.observaciones.errors }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'lista_pacientes' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Guardar y Continuar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
