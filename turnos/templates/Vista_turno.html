@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-  Turnos - Sistema Odontológico GyF
-{% endblock %}
+{% block title %}Turnos - Sistema Odontológico GyF{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'home/style.css' %}">
-
+<style>
+.estado-confirmado { background-color: #d4edda !important; }
+.estado-pendiente  { background-color: #fff3cd !important; }
+.estado-cancelado  { background-color: #f8d7da !important; }
+.badge-estado { padding: .35em .6em; border-radius: .35rem; font-size: .85em; }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -15,7 +18,7 @@
   <div class="card shadow-lg">
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
       <h5 class="mb-0">Turnos</h5>
-      <a href="{% url 'registrar_turno' %}" class="btn btn-success btn-sm">
+      <a href="{% url 'turnos:registrar_turno' %}" class="btn btn-success btn-sm">
         <i class="fa-solid fa-plus"></i> Agregar
       </a>
     </div>
@@ -30,7 +33,8 @@
             <th>Hora</th>
             <th>Asunto</th>
             <th>Comentario</th>
-            <th style="width:110px;">Acciones</th>
+            <th>Estado</th>
+            <th style="width:200px;">Acciones</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -44,21 +48,13 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">
-          <i class="fa-solid fa-triangle-exclamation"></i> Confirmar eliminación
-        </h5>
+        <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation"></i> Confirmar eliminación</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <p class="mb-0">¿Seguro que querés eliminar este turno?</p>
-      </div>
+      <div class="modal-body"><p class="mb-0">¿Seguro que querés eliminar este turno?</p></div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="fa-solid fa-xmark"></i> Cancelar
-        </button>
-        <button id="btnConfirmDelete" type="button" class="btn btn-danger">
-          <i class="fa-solid fa-trash"></i> Eliminar
-        </button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+        <button id="btnConfirmDelete" type="button" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Eliminar</button>
       </div>
     </div>
   </div>
@@ -72,14 +68,12 @@
 <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
 
-<!-- Definición de URLs de Django para pasarlas al JS -->
 <script>
-  const URLS_LIST = "{% url 'api_turnos' %}";
-  const URLS_DELETE = "{% url 'api_eliminar_turno' 0 %}".replace("0", "__ID__");
-  const URLS_EDIT = "{% url 'modificar_turno' 0 %}".replace("0", "__ID__");
+  const URLS_LIST = "{% url 'turnos:api_turnos' %}";
+  const URLS_DELETE = "{% url 'turnos:api_eliminar_turno' 0 %}".replace("0", "__ID__");
+  const URLS_EDIT = "{% url 'turnos:modificar_turno' 0 %}".replace("0", "__ID__");
+  const URLS_SET_ESTADO = "{% url 'turnos:api_set_estado' 0 %}".replace("0", "__ID__");
 </script>
 
-<!-- Tu JS separado -->
 <script src="{% static 'home/turnos.js' %}"></script>
-<script src="{% static 'home/Logica.js' %}"></script>
 {% endblock %}
