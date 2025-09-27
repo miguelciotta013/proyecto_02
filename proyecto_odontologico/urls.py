@@ -3,11 +3,10 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('home.urls')),          # Página principal
-    path('', include('login.urls')),
-    path('turnos/', include('turnos.urls')),
-    path('pacientes/', include('pacientes.urls')),
-    path('ficha_medica/', include('ficha_medica.urls')),
-    path('caja/', include('caja.urls', namespace='caja')),  # Cajas con namespace
-    
+    path('api/ficha_medica/', include('ficha_medica.urls')),
+    path('api/pacientes/', include('pacientes.urls')),
+    path('api/turnos/', include('turnos.urls')),
+    path('api/caja/', include('caja.urls')),
+    path('api/home/', include('home.urls')),
+
 ]
