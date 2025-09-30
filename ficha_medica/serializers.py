@@ -1,0 +1,161 @@
+from rest_framework import serializers
+from home.models import (
+    Pacientes, FichasMedicas, PacientesXOs, FichasPatologicas,
+    Dientes, CarasDiente, Parentesco, Tratamientos, 
+    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago
+)
+
+class PacienteFichaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pacientes
+        fields = ['id_paciente', 'dni_paciente', 'nombre_paciente', 'apellido_paciente', 'fecha_nacimiento']
+
+class DientesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dientes
+        fields = ['id_diente', 'nombre_diente']
+
+class CarasDienteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CarasDiente
+        fields = ['id_cara', 'nombre_cara', 'abreviatura']
+
+class ParentescoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Parentesco
+        fields = ['id_parentesco', 'tipo_parentesco']
+
+class TratamientosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tratamientos
+        fields = ['id_tratamiento', 'nombre_tratamiento', 'codigo', 'importe']
+
+class DetalleConsultaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetallesConsulta
+        fields = [
+            'id_tratamiento',
+            'id_diente',
+            'id_cara'
+        ]
+
+
+class FichaMedicaCreateSerializer(serializers.ModelSerializer):
+    detalles_consulta = DetalleConsultaSerializer(many=True, write_only=True)
+    fecha_creacion = serializers.DateField(required=False)
+
+    class Meta:
+        model = FichasMedicas
+        fields = [
+            'id_paciente_os', 
+            'id_empleado',
+            'id_ficha_patologica',
+            'fecha_creacion',
+            'observaciones',
+            'nro_autorizacion',
+            'nro_coseguro',
+            'detalles_consulta'
+        ]
+    
+    def create(self, validated_data):
+        from django.utils import timezone
+        
+        detalles_data = validated_data.pop('detalles_consulta')
+        
+        if 'fecha_creacion' not in validated_data:
+            validated_data['fecha_creacion'] = timezone.now().date()
+        
+        ficha_medica = FichasMedicas.objects.create(**validated_data)
+        print(f"✓ Ficha médica creada: {ficha_medica.id_ficha_medica}")
+        
+        monto_total = 0
+        obra_social = ficha_medica.id_paciente_os.id_obra_social
+        monto_obra_social = 0
+        
+        try:
+            estado_pendiente = EstadosPago.objects.get(nombre_estado='pendiente')
+        except EstadosPago.DoesNotExist:
+            estado_pendiente = EstadosPago.objects.create(nombre_estado='pendiente')
+        
+        print(f"✓ Estado pendiente obtenido: {estado_pendiente.id_estado_pago}")
+        
+        cobro = CobrosConsulta.objects.create(
+            monto_total=0,
+            monto_obra_social=0,
+            monto_paciente=0,
+            monto_pagado=0.00,
+            id_estado_pago=estado_pendiente,
+        )
+        
+        print(f"✓ Cobro creado: ID={cobro.id_cobro_consulta}")
+        print(f"✓ Tipo de cobro: {type(cobro)}")
+        
+        for i, detalle_data in enumerate(detalles_data):
+            print(f"→ Creando detalle {i+1}...")
+            print(f"  - Ficha: {ficha_medica.id_ficha_medica}")
+            print(f"  - Cobro: {cobro.id_cobro_consulta}")
+            print(f"  - Datos: {detalle_data}")
+            
+            detalle = DetallesConsulta.objects.create(
+                id_ficha_medica=ficha_medica,
+                id_cobro_consulta=cobro,
+                **detalle_data
+            )
+            
+            print(f"✓ Detalle creado: {detalle.id_detalle}")
+            
+            tratamiento = detalle.id_tratamiento
+            monto_total += tratamiento.importe
+            
+            try:
+                cobertura = CoberturasOs.objects.get(
+                    id_obra_social=obra_social,
+                    id_tratamiento=tratamiento
+                )
+                monto_obra_social += (tratamiento.importe * cobertura.porcentaje / 100)
+            except CoberturasOs.DoesNotExist:
+                pass
+        
+        monto_paciente = monto_total - monto_obra_social
+        cobro.monto_total = monto_total
+        cobro.monto_obra_social = monto_obra_social
+        cobro.monto_paciente = monto_paciente
+        cobro.save()
+        
+        print(f"✓ Cobro actualizado con montos")
+        
+        return ficha_medica
+        
+class FichaMedicaDetailSerializer(serializers.ModelSerializer):
+    paciente_nombre = serializers.CharField(source='id_paciente_os.id_paciente.nombre_paciente', read_only=True)
+    paciente_apellido = serializers.CharField(source='id_paciente_os.id_paciente.apellido_paciente', read_only=True)
+    detalles = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = FichasMedicas
+        fields = '__all__'
+    
+    def get_detalles(self, obj):
+        detalles = DetallesConsulta.objects.filter(id_ficha_medica=obj, eliminado__isnull=True)
+        data = []
+        
+        for d in detalles:
+            try:
+                cara = CarasDiente.objects.get(id_cara=d.id_cara)
+                cara_nombre = cara.nombre_cara
+            except CarasDiente.DoesNotExist:
+                cara_nombre = f"Cara {d.id_cara}"
+            
+            data.append({
+                'id_detalle': d.id_detalle,
+                'tratamiento': d.id_tratamiento.nombre_tratamiento,
+                'diente': d.id_diente.nombre_diente,
+                'cara': cara_nombre
+            })
+        
+        return data
+    
+class FichaPatologicaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FichasPatologicas
+        fields = '__all__'

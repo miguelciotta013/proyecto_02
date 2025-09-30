@@ -341,6 +341,8 @@ class ObrasSociales(models.Model):
     class Meta:
         managed = False
         db_table = 'obras_sociales'
+    def __str__(self):
+        return self.nombre_os
 
 
 class Pacientes(models.Model):
@@ -387,6 +389,8 @@ class Parentesco(models.Model):
     class Meta:
         managed = False
         db_table = 'parentesco'
+    def __str__(self):
+        return self.tipo_parentesco
 
 
 class Tratamientos(models.Model):
@@ -400,6 +404,8 @@ class Tratamientos(models.Model):
     class Meta:
         managed = False
         db_table = 'tratamientos'
+    def __str__(self):
+        return self.nombre_tratamiento
 
 
 class Turnos(models.Model):
