@@ -2,7 +2,7 @@ from rest_framework import serializers
 from home.models import (
     Pacientes, FichasMedicas, PacientesXOs, FichasPatologicas,
     Dientes, CarasDiente, Parentesco, Tratamientos, 
-    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago
+    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago, Cajas
 )
 
 class PacienteFichaSerializer(serializers.ModelSerializer):
@@ -43,6 +43,7 @@ class DetalleConsultaSerializer(serializers.ModelSerializer):
 class FichaMedicaCreateSerializer(serializers.ModelSerializer):
     detalles_consulta = DetalleConsultaSerializer(many=True, write_only=True)
     fecha_creacion = serializers.DateField(required=False)
+    id_caja = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = FichasMedicas
@@ -54,6 +55,7 @@ class FichaMedicaCreateSerializer(serializers.ModelSerializer):
             'observaciones',
             'nro_autorizacion',
             'nro_coseguro',
+            'id_caja',
             'detalles_consulta'
         ]
     
@@ -61,6 +63,7 @@ class FichaMedicaCreateSerializer(serializers.ModelSerializer):
         from django.utils import timezone
         
         detalles_data = validated_data.pop('detalles_consulta')
+        id_caja = validated_data.pop('id_caja')
         
         if 'fecha_creacion' not in validated_data:
             validated_data['fecha_creacion'] = timezone.now().date()
@@ -77,6 +80,8 @@ class FichaMedicaCreateSerializer(serializers.ModelSerializer):
         except EstadosPago.DoesNotExist:
             estado_pendiente = EstadosPago.objects.create(nombre_estado='pendiente')
         
+        caja = Cajas.objects.get(id_caja=id_caja)
+
         print(f"✓ Estado pendiente obtenido: {estado_pendiente.id_estado_pago}")
         
         cobro = CobrosConsulta.objects.create(
@@ -85,6 +90,8 @@ class FichaMedicaCreateSerializer(serializers.ModelSerializer):
             monto_paciente=0,
             monto_pagado=0.00,
             id_estado_pago=estado_pendiente,
+            id_caja=caja,
+            id_metodo_cobro=1,
         )
         
         print(f"✓ Cobro creado: ID={cobro.id_cobro_consulta}")

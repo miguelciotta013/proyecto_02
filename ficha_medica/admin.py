@@ -48,3 +48,8 @@ class ListaPacXOsAdmin(admin.ModelAdmin):
     search_fields = ('id_paciente','id_obra_social', 'id_parentesco','titular', 'credencial_paciente')
 
 admin.site.register(PacientesXOs, ListaPacXOsAdmin)
+
+class ListaCajasAdmin(admin.ModelAdmin):
+    list_display = ('id_caja', 'fecha_hora_apertura','monto_apertura', 'fecha_hora_cierre', 'monto_cierre', 'estado_caja')
+    search_fields = ('id_caja', 'fecha_papertura','monto_apertura', 'fecha_cierre', 'monto_cierre', 'estado_caja')
+admin.site.register(Cajas, ListaCajasAdmin)
