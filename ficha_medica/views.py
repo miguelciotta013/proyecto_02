@@ -128,6 +128,21 @@ class FichaPatologicaView(APIView):
         except Exception as e:
             return Response({'success': False, 'error': str(e)}, status=500)
 
+class FichasMedicasListView(APIView):
+    def get(self, request):
+        try:
+            fichas = FichasMedicas.objects.filter(eliminado__isnull=True)
+            serializer = FichaMedicaDetailSerializer(fichas, many=True)
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'total': fichas.count()
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 '''
 class MiVista(APIView):
