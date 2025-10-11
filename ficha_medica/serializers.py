@@ -2,7 +2,7 @@ from rest_framework import serializers
 from home.models import (
     Pacientes, FichasMedicas, PacientesXOs, FichasPatologicas,
     Dientes, CarasDiente, Parentesco, Tratamientos, 
-    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago, Cajas
+    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago, Cajas, MetodosCobro
 )
 
 class PacienteFichaSerializer(serializers.ModelSerializer):
@@ -166,3 +166,98 @@ class FichaPatologicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FichasPatologicas
         fields = '__all__'
+
+class FichaPatologicaCreateUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FichasPatologicas
+        exclude = ['id_ficha_patologica']
+
+# ficha_medica/serializers.py - Agregar
+
+class CobroDetailSerializer(serializers.ModelSerializer):
+    metodo_cobro = serializers.SerializerMethodField()
+    estado_pago = serializers.CharField(source='id_estado_pago.nombre_estado', read_only=True)
+    
+    class Meta:
+        model = CobrosConsulta
+        fields = [
+            'id_cobro_consulta',
+            'monto_total',
+            'monto_obra_social',
+            'monto_paciente',
+            'monto_pagado',
+            'fecha_hora_cobro',
+            'metodo_cobro',
+            'estado_pago'
+        ]
+    
+    def get_metodo_cobro(self, obj):
+        if obj.id_metodo_cobro:
+            try:
+                metodo = MetodosCobro.objects.get(id_metodo_cobro=obj.id_metodo_cobro)
+                return metodo.tipo_cobro
+            except MetodosCobro.DoesNotExist:
+                return None
+        return None
+
+class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
+    paciente_nombre = serializers.CharField(source='id_paciente_os.id_paciente.nombre_paciente', read_only=True)
+    paciente_apellido = serializers.CharField(source='id_paciente_os.id_paciente.apellido_paciente', read_only=True)
+    empleado_nombre = serializers.SerializerMethodField()
+    detalles = serializers.SerializerMethodField()
+    cobro = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = FichasMedicas
+        fields = [
+            'id_ficha_medica',
+            'paciente_nombre',
+            'paciente_apellido',
+            'empleado_nombre',
+            'fecha_creacion',
+            'observaciones',
+            'nro_autorizacion',
+            'nro_coseguro',
+            'detalles',
+            'cobro'
+        ]
+    
+    def get_empleado_nombre(self, obj):
+        user = obj.id_empleado.user
+        return f"{user.first_name} {user.last_name}"
+    
+    def get_detalles(self, obj):
+        detalles = DetallesConsulta.objects.filter(
+            id_ficha_medica=obj, 
+            eliminado__isnull=True
+        )
+        data = []
+        for d in detalles:
+            try:
+                cara = CarasDiente.objects.get(id_cara=d.id_cara)
+                cara_nombre = cara.nombre_cara
+            except CarasDiente.DoesNotExist:
+                cara_nombre = f"Cara {d.id_cara}"
+            
+            data.append({
+                'id_detalle': d.id_detalle,
+                'tratamiento': d.id_tratamiento.nombre_tratamiento,
+                'codigo': d.id_tratamiento.codigo,
+                'importe': str(d.id_tratamiento.importe),
+                'diente': d.id_diente.nombre_diente if d.id_diente else None,
+                'cara': cara_nombre
+            })
+        return data
+    
+    def get_cobro(self, obj):
+        try:
+            # Obtener el cobro asociado a los detalles de esta ficha
+            detalle = DetallesConsulta.objects.filter(
+                id_ficha_medica=obj
+            ).first()
+            
+            if detalle and detalle.id_cobro_consulta:
+                return CobroDetailSerializer(detalle.id_cobro_consulta).data
+            return None
+        except:
+            return None

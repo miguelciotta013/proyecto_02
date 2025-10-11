@@ -8,5 +8,5 @@ urlpatterns = [
     path('api/turnos/', include('turnos.urls')),
     path('api/caja/', include('caja.urls')),
     path('api/home/', include('home.urls')),
-
+    path('api/panel_control/', include('panel_control.urls')),
 ]

@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'pacientes',
     'ficha_medica',
     'caja',
+    'panel_control',
     'login',
     'widget_tweaks',
     
