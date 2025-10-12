@@ -1,4 +1,3 @@
-# panel_control/urls.py
 from django.urls import path
 from .views import (
     # Usuarios

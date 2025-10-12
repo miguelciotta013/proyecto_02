@@ -6,7 +6,7 @@ from rest_framework import status
 from django.utils import timezone
 from django.db.models import Q
 from home.models import (
-    AuthUser,  # ✅ CAMBIAR: Usar AuthUser en lugar de User
+    AuthUser,
     Empleados, Dientes, Tratamientos, ObrasSociales,
     CoberturasOs, MetodosCobro
 )

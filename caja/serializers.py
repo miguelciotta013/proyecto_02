@@ -1,4 +1,3 @@
-# caja/serializers.py
 from rest_framework import serializers
 from home.models import (
     Cajas, Empleados, Ingresos, Egresos, 

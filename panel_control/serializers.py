@@ -1,5 +1,3 @@
-# panel_control/serializers.py
-
 from rest_framework import serializers
 from home.models import (
     AuthUser,  # ✅ CAMBIAR: Usar AuthUser
