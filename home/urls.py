@@ -1,8 +1,8 @@
+# home/urls.py
 from django.urls import path
-from home import views
-
+from .views import HomeView, MensajeBienvenidaView
 
 urlpatterns = [
-    path("", views.home, name = "home"),
-    path("api/turnos/", views.turnos_json, name="turnos_json"),
+    path('', HomeView.as_view(), name='home'),
+    path('bienvenida/', MensajeBienvenidaView.as_view(), name='bienvenida'),
 ]
