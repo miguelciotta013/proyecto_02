@@ -22,18 +22,16 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
 
   useEffect(() => {
     if (initialData) {
-      // Map fields from initialData to form state if present
-      setForm(prev => ({
-        ...prev,
+      setForm({
         dni_paciente: initialData.dni_paciente || '',
         nombre_paciente: initialData.nombre_paciente || '',
         apellido_paciente: initialData.apellido_paciente || '',
         fecha_nacimiento: initialData.fecha_nacimiento || '',
         domicilio: initialData.domicilio || '',
         localidad: initialData.localidad || '',
-        telefono: initialData.telefono || initialData.telefono || '',
+        telefono: initialData.telefono || '',
         correo: initialData.correo || ''
-      }));
+      });
     }
   }, [initialData]);
 
@@ -67,40 +65,137 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
   }
 
   return (
-    <div style={{ padding: 12, border: '1px solid #ccc', marginTop: 12 }}>
-      <h3>Nuevo paciente</h3>
-      {error && <div style={{ color: 'red' }}>{JSON.stringify(error)}</div>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>DNI</label><br />
-          <input name="dni_paciente" value={form.dni_paciente} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Nombre</label><br />
-          <input name="nombre_paciente" value={form.nombre_paciente} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Apellido</label><br />
-          <input name="apellido_paciente" value={form.apellido_paciente} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Fecha Nac.</label><br />
-          <input type="date" name="fecha_nacimiento" value={form.fecha_nacimiento} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Teléfono</label><br />
-          <input name="telefono" value={form.telefono} onChange={handleChange} />
-        </div>
-        <div>
-          <label>Correo</label><br />
-          <input name="correo" value={form.correo} onChange={handleChange} />
-        </div>
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100vw",
+      height: "100vh",
+      backgroundColor: "rgba(0,0,0,0.4)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      fontFamily: "'Poppins', sans-serif"
+    }}>
+      <div
+        style={{
+          backgroundColor: "#fff",
+          padding: 24,
+          borderRadius: 16,
+          boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+          width: "90%",
+          maxWidth: 500,
+          animation: "fadeIn 0.3s ease"
+        }}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            border: "none",
+            backgroundColor: "#f44336",
+            color: "#fff",
+            padding: "6px 12px",
+            borderRadius: 8,
+            cursor: "pointer",
+            transition: "background-color 0.2s",
+            fontWeight: "bold"
+          }}
+          onMouseEnter={e => e.target.style.backgroundColor = "#d32f2f"}
+          onMouseLeave={e => e.target.style.backgroundColor = "#f44336"}
+        >
+          Cerrar
+        </button>
 
-        <div style={{ marginTop: 8 }}>
-          <button type="submit" disabled={loading}>{loading ? 'Guardando...' : 'Crear'}</button>
-          <button type="button" onClick={onClose} style={{ marginLeft: 8 }}>Cancelar</button>
-        </div>
-      </form>
+        <h2 style={{ marginBottom: 16, color: "#333", textAlign: "center" }}>
+          {initialData ? 'Editar paciente' : 'Nuevo paciente'}
+        </h2>
+
+        {error && (
+          <div style={{ color: 'red', marginBottom: 12, textAlign: 'center' }}>
+            {JSON.stringify(error)}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {[
+            { label: 'DNI', name: 'dni_paciente' },
+            { label: 'Nombre', name: 'nombre_paciente' },
+            { label: 'Apellido', name: 'apellido_paciente' },
+            { label: 'Fecha de nacimiento', name: 'fecha_nacimiento', type: 'date' },
+            { label: 'Teléfono', name: 'telefono' },
+            { label: 'Correo', name: 'correo' },
+            { label: 'Domicilio', name: 'domicilio' },
+            { label: 'Localidad', name: 'localidad' }
+          ].map(({ label, name, type = 'text' }) => (
+            <div key={name}>
+              <label style={{ display: "block", marginBottom: 4, color: "#333" }}>{label}</label>
+              <input
+                type={type}
+                name={name}
+                value={form[name]}
+                onChange={handleChange}
+                style={{
+                  width: '100%',
+                  padding: 10,
+                  borderRadius: 8,
+                  border: '1px solid #ccc',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                  fontSize: 14
+                }}
+                onFocus={e => e.target.style.borderColor = "#1976d2"}
+                onBlur={e => e.target.style.borderColor = "#ccc"}
+              />
+            </div>
+          ))}
+
+          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                flex: 1,
+                padding: 10,
+                borderRadius: 10,
+                border: 'none',
+                backgroundColor: '#1976d2',
+                color: '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={e => e.target.style.backgroundColor = '#1565c0'}
+              onMouseLeave={e => e.target.style.backgroundColor = '#1976d2'}
+            >
+              {loading ? 'Guardando...' : initialData ? 'Actualizar' : 'Crear'}
+            </button>
+
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                flex: 1,
+                padding: 10,
+                borderRadius: 10,
+                border: 'none',
+                backgroundColor: '#777',
+                color: '#fff',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={e => e.target.style.backgroundColor = '#555'}
+              onMouseLeave={e => e.target.style.backgroundColor = '#777'}
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
