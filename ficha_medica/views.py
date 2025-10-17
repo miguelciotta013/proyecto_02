@@ -1,194 +1,333 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-#from django.http import JsonResponse
-from django.urls import reverse
-from django.db import transaction
-from home.models import Pacientes, FichaMedica, Consultas, DetalleConsulta
-from .forms import FichaMedicaForm, ConsultaForm, DetalleConsultaForm
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from home.models import *
+from .serializers import *
 
-
-def lista_pacientes(request):
-    """Vista principal - Lista de pacientes"""
-    pacientes = Pacientes.objects.all().order_by('apellido', 'nombre')
-    return render(request, 'ficha/lista_pacientes.html', {
-        'pacientes': pacientes
-    })
-
-
-def agregar_ficha(request, paciente_id):
-    """Vista para agregar ficha médica y consulta"""
-    paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
-    
-    if request.method == 'POST':
-        ficha_form = FichaMedicaForm(request.POST)
-        consulta_form = ConsultaForm(request.POST)
-        
-        if ficha_form.is_valid() and consulta_form.is_valid():
-            try:
-                with transaction.atomic():
-                    # Crear ficha médica
-                    ficha = ficha_form.save(commit=False)
-                    ficha.id_paciente = paciente
-                    ficha.id_usuario = 1  # Usuario fijo por ahora (sin auth)
-                    ficha.save()
-                    
-                    # Crear consulta
-                    consulta = consulta_form.save(commit=False)
-                    consulta.save()
-                    
-                    # Redirigir a agregar detalles
-                    return redirect('agregar_detalles', 
-                                  ficha_id=ficha.id_ficha_medica, 
-                                  consulta_id=consulta.id_consulta)
-                    
-            except Exception as e:
-                messages.error(request, f'Error al guardar: {str(e)}')
-    else:
-        ficha_form = FichaMedicaForm()
-        consulta_form = ConsultaForm()
-    
-    return render(request, 'ficha/agregar_ficha.html', {
-        'paciente': paciente,
-        'ficha_form': ficha_form,
-        'consulta_form': consulta_form
-    })
-
-
-def agregar_detalles(request, ficha_id, consulta_id):
-    """Vista para agregar detalles a la consulta"""
-    ficha = get_object_or_404(FichaMedica, id_ficha_medica=ficha_id)
-    consulta = get_object_or_404(Consultas, id_consulta=consulta_id)
-    
-    # Obtener detalles existentes
-    detalles = DetalleConsulta.objects.filter(
-        id_consulta=consulta,
-        id_ficha_medica=ficha
-    ).order_by('id_detalle_consulta')
-    
-    # Calcular total de detalles
-    total_detalles = sum(detalle.importe for detalle in detalles)
-    
-    if request.method == 'POST' and 'finalizar' in request.POST:
-        # Finalizar y volver a la lista de pacientes
-        messages.success(request, 'Ficha médica y consulta guardadas correctamente.')
-        return redirect('lista_pacientes')
-    
-    return render(request, 'ficha/agregar_detalles.html', {
-        'ficha': ficha,
-        'consulta': consulta,
-        'detalles': detalles,
-        'paciente': ficha.id_paciente,
-        'total_detalles': total_detalles
-    })
-
-
-def agregar_detalle(request, ficha_id, consulta_id):
-    """Vista para agregar un detalle individual"""
-    ficha = get_object_or_404(FichaMedica, id_ficha_medica=ficha_id)
-    consulta = get_object_or_404(Consultas, id_consulta=consulta_id)
-    
-    if request.method == 'POST':
-        form = DetalleConsultaForm(request.POST)
-        if form.is_valid():
-            detalle = form.save(commit=False)
-            detalle.id_consulta = consulta
-            detalle.id_ficha_medica = ficha
-            detalle.save()
-            messages.success(request, 'Detalle agregado correctamente.')
-            return redirect('agregar_detalles', ficha_id=ficha_id, consulta_id=consulta_id)
-    else:
-        form = DetalleConsultaForm()
-    
-    return render(request, 'ficha/agregar_detalle.html', {
-        'form': form,
-        'ficha': ficha,
-        'consulta': consulta,
-        'paciente': ficha.id_paciente
-    })
-
-
-def editar_detalle(request, detalle_id):
-    """Vista para editar un detalle existente"""
-    detalle = get_object_or_404(DetalleConsulta, id_detalle_consulta=detalle_id)
-    
-    if request.method == 'POST':
-        form = DetalleConsultaForm(request.POST, instance=detalle)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Detalle actualizado correctamente.')
-            return redirect('agregar_detalles', 
-                          ficha_id=detalle.id_ficha_medica.id_ficha_medica, 
-                          consulta_id=detalle.id_consulta.id_consulta)
-    else:
-        form = DetalleConsultaForm(instance=detalle)
-    
-    return render(request, 'ficha/editar_detalle.html', {
-        'form': form,
-        'detalle': detalle,
-        'paciente': detalle.id_ficha_medica.id_paciente
-    })
-
-
-def eliminar_detalle(request, detalle_id):
-    """Vista para eliminar un detalle"""
-    detalle = get_object_or_404(DetalleConsulta, id_detalle_consulta=detalle_id)
-    ficha_id = detalle.id_ficha_medica.id_ficha_medica
-    consulta_id = detalle.id_consulta.id_consulta
-    
-    if request.method == 'POST':
-        detalle.delete()
-        messages.success(request, 'Detalle eliminado correctamente.')
-        return redirect('agregar_detalles', ficha_id=ficha_id, consulta_id=consulta_id)
-    
-    return render(request, 'ficha/eliminar_detalle.html', {
-        'detalle': detalle,
-        'paciente': detalle.id_ficha_medica.id_paciente
-    })
-
-
-def historial_paciente(request, paciente_id):
-    """Vista para ver el historial del paciente"""
-    paciente = get_object_or_404(Pacientes, id_paciente=paciente_id)
-    
-    # Obtener todas las fichas médicas del paciente
-    fichas = FichaMedica.objects.filter(id_paciente=paciente).order_by('-fecha_creacion')
-    
-    # Obtener consultas con sus detalles
-    historial = []
-    for ficha in fichas:
-        # Buscar si hay detalles de consulta para esta ficha
-        detalles = DetalleConsulta.objects.filter(id_ficha_medica=ficha).select_related('id_consulta')
-        
-        if detalles.exists():
-            # Agrupar por consulta
-            consultas_dict = {}
-            for detalle in detalles:
-                consulta = detalle.id_consulta
-                if consulta.id_consulta not in consultas_dict:
-                    consultas_dict[consulta.id_consulta] = {
-                        'consulta': consulta,
-                        'detalles': []
-                    }
-                consultas_dict[consulta.id_consulta]['detalles'].append(detalle)
-            
-            for consulta_data in consultas_dict.values():
-                total_detalles = sum(detalle.importe for detalle in consulta_data['detalles'])
-                historial.append({
-                    'ficha': ficha,
-                    'consulta': consulta_data['consulta'],
-                    'detalles': consulta_data['detalles'],
-                    'total_detalles': total_detalles
-                })
-        else:
-            # Ficha sin consultas asociadas
-            historial.append({
-                'ficha': ficha,
-                'consulta': None,
-                'detalles': [],
-                'total_detalles': 0
+class ListaPacientesFicha(APIView):
+    def get(self, request):
+        try:
+            pacientes = Pacientes.objects.filter(eliminado__isnull=True)
+            serializer = PacienteFichaSerializer(pacientes, many=True)
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'total': pacientes.count()
             })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-    return render(request, 'ficha/historial_paciente.html', {
-        'paciente': paciente,
-        'historial': historial
-    })
+    def post(self, request):
+        try:
+            data = request.data.copy()
+            data['fecha_creacion'] = timezone.now().date()
+            
+            serializer = FichaMedicaCreateSerializer(data=data)
+            if serializer.is_valid():
+                ficha = serializer.save()
+                detail_serializer = FichaMedicaDetailSerializer(ficha)
+                
+                return Response({
+                    'success': True,
+                    'message': 'Ficha médica creada correctamente',
+                    'data': detail_serializer.data
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'success': False,
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CatalogosOdontologicos(APIView):
+    def get(self, request):
+        try:
+            return Response({
+                'success': True,
+                'data': {
+                    'dientes': DientesSerializer(
+                        Dientes.objects.filter(eliminado__isnull=True), 
+                        many=True
+                    ).data,
+                    'caras': CarasDienteSerializer(
+                        CarasDiente.objects.all(), 
+                        many=True
+                    ).data,
+                    'parentescos': ParentescoSerializer(
+                        Parentesco.objects.filter(eliminado__isnull=True), 
+                        many=True
+                    ).data,
+                    'tratamientos': TratamientosSerializer(
+                        Tratamientos.objects.filter(eliminado__isnull=True), 
+                        many=True
+                    ).data
+                }
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PacientesConObraSocial(APIView):
+    def get(self, request):
+        try:
+            pacientes_os = PacientesXOs.objects.filter(
+                eliminado__isnull=True
+            ).select_related('id_paciente', 'id_obra_social')
+            
+            data = []
+            for pac_os in pacientes_os:
+                data.append({
+                    'id_paciente_os': pac_os.id_paciente_os,
+                    'id_paciente': pac_os.id_paciente.id_paciente,
+                    'nombre_completo': f"{pac_os.id_paciente.nombre_paciente} {pac_os.id_paciente.apellido_paciente}",
+                    'dni': pac_os.id_paciente.dni_paciente,
+                    'obra_social': pac_os.id_obra_social.nombre_os,
+                    'credencial': pac_os.credencial_paciente
+                })
+            
+            return Response({
+                'success': True,
+                'data': data,
+                'total': len(data)
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)    
+
+class FichaPatologicaView(APIView):
+    def post(self, request):
+        try:
+            serializer = FichaPatologicaSerializer(data=request.data)
+            if serializer.is_valid():
+                ficha_patologica = serializer.save()
+                return Response({
+                    'success': True,
+                    'message': 'Ficha patológica creada',
+                    'data': {
+                        'id_ficha_patologica': ficha_patologica.id_ficha_patologica
+                    }
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'errors': serializer.errors
+                }, status=400)
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=500)
+
+class FichasMedicasListView(APIView):
+    def get(self, request):
+        try:
+            fichas = FichasMedicas.objects.filter(eliminado__isnull=True)
+            serializer = FichaMedicaDetailSerializer(fichas, many=True)
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'total': fichas.count()
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# ficha_medica/views.py - Agregar
+
+class FichaPatologicaView(APIView):
+    def get(self, request):
+        """Obtener ficha patológica de un paciente-OS"""
+        id_paciente_os = request.query_params.get('id_paciente_os')
+        
+        if not id_paciente_os:
+            return Response({
+                'success': False,
+                'error': 'id_paciente_os es requerido'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            ficha = FichasPatologicas.objects.get(id_paciente_os=id_paciente_os)
+            serializer = FichaPatologicaSerializer(ficha)
+            return Response({
+                'success': True,
+                'exists': True,
+                'data': serializer.data
+            })
+        except FichasPatologicas.DoesNotExist:
+            return Response({
+                'success': True,
+                'exists': False,
+                'message': 'No existe ficha patológica para este paciente'
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def post(self, request):
+        """Crear nueva ficha patológica"""
+        try:
+            # Verificar si ya existe
+            id_paciente_os = request.data.get('id_paciente_os')
+            if FichasPatologicas.objects.filter(id_paciente_os=id_paciente_os).exists():
+                return Response({
+                    'success': False,
+                    'error': 'Ya existe una ficha patológica para este paciente'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            serializer = FichaPatologicaCreateUpdateSerializer(data=request.data)
+            if serializer.is_valid():
+                ficha = serializer.save()
+                return Response({
+                    'success': True,
+                    'message': 'Ficha patológica creada',
+                    'data': {
+                        'id_ficha_patologica': ficha.id_ficha_patologica
+                    }
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({
+                    'success': False,
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def put(self, request):
+        """Actualizar ficha patológica existente"""
+        try:
+            id_ficha_patologica = request.data.get('id_ficha_patologica')
+            ficha = FichasPatologicas.objects.get(id_ficha_patologica=id_ficha_patologica)
+            
+            serializer = FichaPatologicaCreateUpdateSerializer(
+                ficha, 
+                data=request.data, 
+                partial=True
+            )
+            
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'success': True,
+                    'message': 'Ficha patológica actualizada'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'errors': serializer.errors
+                }, status=status.HTTP_400_BAD_REQUEST)
+        except FichasPatologicas.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Ficha patológica no encontrada'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# ficha_medica/views.py - Modificar FichasMedicasListView
+
+class FichasMedicasListView(APIView):
+    def get(self, request):
+        try:
+            # Filtros opcionales
+            id_paciente = request.query_params.get('id_paciente')
+            fecha_desde = request.query_params.get('fecha_desde')
+            fecha_hasta = request.query_params.get('fecha_hasta')
+            
+            fichas = FichasMedicas.objects.filter(eliminado__isnull=True)
+            
+            # Filtrar por paciente si se especifica
+            if id_paciente:
+                fichas = fichas.filter(id_paciente_os__id_paciente=id_paciente)
+            
+            # Filtrar por rango de fechas
+            if fecha_desde:
+                fichas = fichas.filter(fecha_creacion__gte=fecha_desde)
+            if fecha_hasta:
+                fichas = fichas.filter(fecha_creacion__lte=fecha_hasta)
+            
+            fichas = fichas.order_by('-fecha_creacion')
+            
+            serializer = FichaMedicaConCobroSerializer(fichas, many=True)
+            return Response({
+                'success': True,
+                'data': serializer.data,
+                'total': fichas.count()
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# caja/views.py (o ficha_medica/views.py)
+
+class CobroUpdateView(APIView):
+    def patch(self, request, id_cobro):
+        try:
+            cobro = CobrosConsulta.objects.get(id_cobro_consulta=id_cobro)
+            
+            # Actualizar campos permitidos
+            if 'id_metodo_cobro' in request.data:
+                cobro.id_metodo_cobro = request.data['id_metodo_cobro']
+            
+            if 'monto_pagado' in request.data:
+                cobro.monto_pagado = request.data['monto_pagado']
+            
+            if 'id_estado_pago' in request.data:
+                estado = EstadosPago.objects.get(id_estado_pago=request.data['id_estado_pago'])
+                cobro.id_estado_pago = estado
+            
+            # Actualizar fecha de cobro si se marca como pagado
+            if cobro.id_estado_pago.nombre_estado.lower() == 'pagado':
+                cobro.fecha_hora_cobro = timezone.now()
+            
+            cobro.save()
+            
+            return Response({
+                'success': True,
+                'message': 'Cobro actualizado correctamente',
+                'data': CobroDetailSerializer(cobro).data
+            })
+            
+        except CobrosConsulta.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Cobro no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+'''
+class MiVista(APIView):
+    def get(self, request):
+        try:
+            # Tu lógica aquí
+            return Response({'success': True})
+        except Exception as e:
+            # Siempre manejar errores
+            return Response({'error': str(e)}, status=500)
+
+'''

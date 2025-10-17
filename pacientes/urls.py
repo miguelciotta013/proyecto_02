@@ -1,20 +1,27 @@
+# pacientes/urls.py
 from django.urls import path
-from pacientes.views import *
-
-app_name = 'pacientes'
+from .views import (
+    PacienteListCreateView,
+    PacienteDetailView,
+    PacienteObraSocialView,
+    ObrasSocialesListView,
+    PacienteFichaPatologicaView  # ← AGREGAR
+)
 
 urlpatterns = [
-    # Página principal - lista de pacientes
-    path('lista/',lista_pacientes, name='lista'),
+    # Lista y creación
+    path('', PacienteListCreateView.as_view(), name='paciente-list-create'),
     
-    # Gestión de pacientes
-    path('agregar/', agregar_paciente, name='agregar_paciente'),
-    path('<int:paciente_id>/', informacion_paciente, name='informacion_paciente'),
-    path('<int:paciente_id>/editar/', editar_paciente, name='editar_paciente'),
-    path('<int:paciente_id>/eliminar/', eliminar_paciente, name='eliminar_paciente'),
+    # Detalle individual
+    path('<int:id_paciente>/', PacienteDetailView.as_view(), name='paciente-detail'),
     
-    # Gestión de obras sociales
-    path('<int:paciente_id>/agregar-obra/', agregar_obra, name='agregar_obra'),
-    path('<int:paciente_id>/obra/<int:obra_id>/editar/', editar_obra, name='editar_obra'),
-    path('<int:paciente_id>/obra/<int:obra_id>/eliminar/', eliminar_obra_social, name='eliminar_obra_social'),
+    # Obras sociales del paciente
+    path('<int:id_paciente>/obras-sociales/', PacienteObraSocialView.as_view(), name='paciente-obra-social'),
+    path('<int:id_paciente>/obras-sociales/<int:id_paciente_os>/', PacienteObraSocialView.as_view(), name='paciente-obra-social-delete'),
+    
+    # Ficha patológica del paciente ← AGREGAR
+    path('<int:id_paciente>/ficha-patologica/', PacienteFichaPatologicaView.as_view(), name='paciente-ficha-patologica'),
+    
+    # Lista de obras sociales disponibles
+    path('obras-sociales/disponibles/', ObrasSocialesListView.as_view(), name='obras-sociales-list'),
 ]

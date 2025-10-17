@@ -1,20 +1,22 @@
 from django.urls import path
-from . import views
-
+from .views import (
+    ListaPacientesFicha, 
+    PacientesConObraSocial, 
+    CatalogosOdontologicos,
+    FichasMedicasListView,
+    FichaPatologicaView,
+    CobroUpdateView
+)
 
 urlpatterns = [
-    # Lista principal de pacientes
-    path('lista_pacientes/', views.lista_pacientes, name='lista_pacientes'),
+    path('', ListaPacientesFicha.as_view(), name='lista_pacientes_ficha'),
+    path('fichas/', FichasMedicasListView.as_view(), name='lista-fichas'),
+    path('pacientes-os/', PacientesConObraSocial.as_view(), name='pacientes-obra-social'),
+    path('catalogos/', CatalogosOdontologicos.as_view(), name='catalogos-odontologicos'),
     
-    # Gestión de fichas médicas y consultas
-    path('agregar-ficha/<int:paciente_id>/', views.agregar_ficha, name='agregar_ficha'),
-    path('agregar-detalles/<int:ficha_id>/<int:consulta_id>/', views.agregar_detalles, name='agregar_detalles'),
+    # Fichas patológicas
+    path('patologia/', FichaPatologicaView.as_view(), name='ficha-patologica'),
     
-    # Gestión de detalles de consulta
-    path('agregar-detalle/<int:ficha_id>/<int:consulta_id>/', views.agregar_detalle, name='agregar_detalle'),
-    path('editar-detalle/<int:detalle_id>/', views.editar_detalle, name='editar_detalle'),
-    path('eliminar-detalle/<int:detalle_id>/', views.eliminar_detalle, name='eliminar_detalle'),
-    
-    # Historial de pacientes
-    path('historial-paciente/<int:paciente_id>/', views.historial_paciente, name='historial_paciente'),
+    # Cobros
+    path('cobros/<int:id_cobro>/', CobroUpdateView.as_view(), name='cobro-update'),
 ]
