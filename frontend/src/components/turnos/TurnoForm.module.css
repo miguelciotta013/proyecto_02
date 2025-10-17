@@ -1,0 +1,113 @@
+:root {
+  --color-primary: #007bff; 
+  --color-secondary: #6c757d;
+  --color-success: #28a745; 
+  --color-danger: #dc3545; 
+  --color-background: #f8f9fa; 
+  --color-card: #ffffff; 
+  --color-border: #ced4da; 
+  --color-text: #343a40; 
+}
+
+.turno-form-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 30px;
+  background-color: var(--color-card);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+
+.turno-form-container > div {
+  margin-bottom: 20px;
+}
+
+.turno-form-container label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.turno-form-container input:not([type="checkbox"]),
+.turno-form-container select {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box; 
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: #fff;
+}
+
+.turno-form-container input:focus,
+.turno-form-container select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+
+.error-message {
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  background-color: #f8d7da; 
+  color: var(--color-danger); 
+  border: 1px solid #f5c6cb;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.turno-form-container p {
+  color: var(--color-secondary);
+  font-style: italic;
+  margin-top: 5px;
+}
+
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end; 
+  gap: 10px;
+  margin-top: 30px;
+}
+
+
+.form-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  min-width: 100px; 
+}
+
+
+.form-actions button[type="submit"] {
+  background-color: var(--color-success);
+  color: white;
+}
+
+.form-actions button[type="submit"]:hover {
+  background-color: #218838; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+
+.form-actions button[type="button"] {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+.form-actions button[type="button"]:hover {
+  background-color: #5a6268; 
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
