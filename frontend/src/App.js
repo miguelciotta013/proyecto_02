@@ -14,6 +14,9 @@ import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
 
+import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
+import HistorialPage from "./pages/fichasMedicas/HistorialPage";
+
 function App() {
   return (
     <div className="App" style={{ fontFamily: "'Poppins', sans-serif", minHeight: "100vh", backgroundColor: "#f9fafc" }}>
@@ -23,6 +26,9 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/pacientes" element={<ListaPacientes />} />
+
+            <Route path="/historial" element={<HistorialPage />} />
+            <Route path="/historial/paciente/:id" element={<TratamientosPacientePage />} />  
 
             <Route path="/cajas" element={<ListaCajas />} />
             <Route path="/caja/:id" element={<DetalleCajaWrapper />} />
@@ -68,6 +74,7 @@ function Header() {
           <StyledNav to="/pacientes">Pacientes</StyledNav>
           <StyledNav to="/turnos">Turnos</StyledNav>
           <StyledNav to="/cajas">Cajas</StyledNav>
+          <StyledNav to="/historial">Fichas Medicas</StyledNav>
         </div>
       </nav>
     </header>

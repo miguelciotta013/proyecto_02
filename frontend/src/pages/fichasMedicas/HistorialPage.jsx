@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPacientes } from '../../api/fichasApi';
 import PacientesTable from '../../components/fichas/pacientesTableFicha';
-//import '../../styles/fichasMedicas.css';
+import styles from './HistorialPage.module.css'
 
 function HistorialPage() {
   const [pacientes, setPacientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-//algo
+
   useEffect(() => {
     fetchPacientes();
   }, []);
@@ -41,10 +41,10 @@ function HistorialPage() {
 
   if (loading) {
     return (
-      <div className="main-container">
-        <div className="card">
-          <div className="loading-spinner">
-            <div className="spinner"></div>
+      <div className={styles.mainContainer}>
+        <div className={styles.card}>
+          <div className={styles.loadingSpinner}>
+            <div className={styles.spinner}></div>
             <p>Cargando pacientes...</p>
           </div>
         </div>
@@ -53,16 +53,16 @@ function HistorialPage() {
   }
 
   return (
-    <div className="main-container">
-      <div className="card">
-        <div className="card-header">
-          <h2 className="card-title">Fichas Medicas</h2>
+    <div className={styles.mainContainer}>
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Fichas Médicas</h2>
         </div>
 
-        <div className="search-bar">
+        <div className={styles.searchBar}>
           <input
             type="text"
-            className="search-input"
+            className={styles.searchInput}
             placeholder="Buscar por DNI, nombre o apellido..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
