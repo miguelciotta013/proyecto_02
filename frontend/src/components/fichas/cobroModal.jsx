@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateCobro, getMetodosCobro } from '../../api/fichasApi';
-
+//algo
 
 function CobroModal({ cobro, onClose, onUpdate }) {
   const [metodosCobro, setMetodosCobro] = useState([]);

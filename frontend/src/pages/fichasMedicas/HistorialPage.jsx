@@ -9,7 +9,7 @@ function HistorialPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const navigate = useNavigate();
-
+//algo
   useEffect(() => {
     fetchPacientes();
   }, []);
