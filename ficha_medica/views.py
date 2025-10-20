@@ -55,7 +55,7 @@ class CatalogosOdontologicos(APIView):
                 'success': True,
                 'data': {
                     'dientes': DientesSerializer(
-                        Dientes.objects.filter(eliminado__isnull=True), 
+                        Dientes.objects.all(),  # <- CAMBIAR AQUÍ
                         many=True
                     ).data,
                     'caras': CarasDienteSerializer(
@@ -63,7 +63,7 @@ class CatalogosOdontologicos(APIView):
                         many=True
                     ).data,
                     'parentescos': ParentescoSerializer(
-                        Parentesco.objects.filter(eliminado__isnull=True), 
+                        Parentesco.objects.all(),  # <- CAMBIAR AQUÍ también
                         many=True
                     ).data,
                     'tratamientos': TratamientosSerializer(
@@ -320,6 +320,53 @@ class CobroUpdateView(APIView):
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class PacienteDetalleView(APIView):
+    """Obtener datos básicos del paciente para mostrar en la página de tratamientos"""
+    
+    def get(self, request, id_paciente):
+        try:
+            paciente = Pacientes.objects.get(
+                id_paciente=id_paciente,
+                eliminado__isnull=True
+            )
+            
+            # Obtener obras sociales del paciente
+            pacientes_os = PacientesXOs.objects.filter(
+                id_paciente=paciente,
+                eliminado__isnull=True
+            ).select_related('id_obra_social')
+            
+            obras_sociales = [{
+                'id_paciente_os': pos.id_paciente_os,
+                'nombre_os': pos.id_obra_social.nombre_os,
+                'credencial': pos.credencial_paciente
+            } for pos in pacientes_os]
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'id_paciente': paciente.id_paciente,
+                    'dni': paciente.dni_paciente,
+                    'nombre': paciente.nombre_paciente,
+                    'apellido': paciente.apellido_paciente,
+                    'nombre_completo': f"{paciente.nombre_paciente} {paciente.apellido_paciente}",
+                    'fecha_nacimiento': paciente.fecha_nacimiento,
+                    'telefono': paciente.telefono,
+                    'correo': paciente.correo,
+                    'obras_sociales': obras_sociales
+                }
+            })
+            
+        except Pacientes.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Paciente no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 '''
 class MiVista(APIView):
     def get(self, request):

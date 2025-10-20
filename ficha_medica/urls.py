@@ -5,7 +5,8 @@ from .views import (
     CatalogosOdontologicos,
     FichasMedicasListView,
     FichaPatologicaView,
-    CobroUpdateView
+    CobroUpdateView, 
+    PacienteDetalleView
 )
 
 urlpatterns = [
@@ -19,4 +20,7 @@ urlpatterns = [
     
     # Cobros
     path('cobros/<int:id_cobro>/', CobroUpdateView.as_view(), name='cobro-update'),
+    
+    path('paciente/<int:id_paciente>/', PacienteDetalleView.as_view(), name='paciente-detalle'),  # ← AGREGAR
+
 ]
