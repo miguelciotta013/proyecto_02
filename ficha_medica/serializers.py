@@ -4,7 +4,7 @@ from home.models import (
     Dientes, CarasDiente, Parentesco, Tratamientos, 
     DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago, Cajas, MetodosCobro
 )
-
+#asdasd
 class PacienteFichaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pacientes

@@ -1,3 +1,5 @@
+
+// src/Api/api.js
 import axios from "axios";
 
 // Base URL: usa la variable de entorno REACT_APP_API_URL si está definida,
@@ -23,3 +25,7 @@ export const getHome = async () => {
         throw error;
     }
 };
+
+export default sistemaApi;
+
+
