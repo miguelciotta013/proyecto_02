@@ -1,0 +1,81 @@
+/* src/pages/fichasMedicas/TratamientosPacientePage.module.css */
+
+.mainContainer {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f4f6f9;
+  min-height: 100vh;
+}
+
+.card {
+  background: #fff;
+  width: 100%;
+  max-width: 950px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.infoCard {
+  background: #f9fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.infoRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #333;
+  width: 180px;
+}
+
+.infoValue {
+  color: #555;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  transition: background-color 0.2s ease;
+}
+
+.btnPrimary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.btnPrimary:hover {
+  background-color: #115293;
+}
+
+.btnSecondary {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.btnSecondary:hover {
+  background-color: #bdbdbd;
+}
