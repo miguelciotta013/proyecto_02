@@ -30,7 +30,7 @@ function HistorialPage() {
   };
 
   const handleVerTratamientos = (idPaciente) => {
-    navigate(`/historial/paciente/${idPaciente}`);
+    navigate(`/historial/${idPaciente}`);
   };
 
   const filteredPacientes = pacientes.filter(p =>

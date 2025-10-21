@@ -2,7 +2,9 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login as django_login, logout as django_logout
+from django.shortcuts import render, redirect
+from django.views import View
 from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from home.models import AuthUser, Empleados
@@ -33,6 +35,45 @@ class LoginView(APIView):
                 "success": False,
                 "error": "Credenciales inválidas"
             }, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class LoginTemplateView(View):
+    """Vista basada en templates para el formulario de inicio de sesión (session auth).
+
+    Método GET: Renderiza el formulario.
+    Método POST: Autentica con django.contrib.auth.authenticate y realiza login por sesión.
+    """
+    template_name = 'login/login.html'
+
+    def get(self, request):
+        # Si ya está autenticado, redirigir al index
+        if request.user.is_authenticated:
+            return redirect('/')
+        return render(request, self.template_name, {})
+
+    def post(self, request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            django_login(request, user)
+            return redirect('/')
+        else:
+            context = {'error': 'Credenciales inválidas', 'username': username}
+            return render(request, self.template_name, context)
+
+
+class LogoutTemplateView(View):
+    """Cerrar sesión por sesión y redirigir al login"""
+    def post(self, request):
+        django_logout(request)
+        return redirect('/login/')
+
+    def get(self, request):
+        # permitir logout via GET por simplicidad (redirige luego)
+        django_logout(request)
+        return redirect('/login/')
 
 class LogoutView(APIView):
     """Cerrar sesión"""

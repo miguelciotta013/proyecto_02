@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.db.models import Q, Sum
 from home.models import (
     Cajas, Empleados, Ingresos, Egresos,
-    CobrosConsulta, MetodosCobro
+    CobrosConsulta, MetodosCobro, AuthUser
 )
 from .serializers import (
     CajaListSerializer,
@@ -65,9 +65,55 @@ class CajaAperturaView(APIView):
                     }
                 }, status=status.HTTP_400_BAD_REQUEST)
             
-            # Crear nueva caja
+            # Validar id_empleado: debe existir en la tabla Empleados
+            id_empleado_input = request.data.get('id_empleado')
+            empleado_obj = None
+
+            if id_empleado_input:
+                try:
+                    empleado_obj = Empleados.objects.get(id_empleado=id_empleado_input)
+                except Empleados.DoesNotExist:
+                    return Response({
+                        'success': False,
+                        'error': 'Empleado no encontrado. Verifique id_empleado.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            else:
+                # Normalizar request.user -> obtener instancia AuthUser si es necesario
+                user_obj = request.user
+                try:
+                    if not isinstance(user_obj, AuthUser):
+                        # puede venir como username (str) o como objeto con atributo username
+                        if isinstance(user_obj, str):
+                            user_obj = AuthUser.objects.get(username=user_obj)
+                        elif hasattr(user_obj, 'username') and getattr(user_obj, 'username'):
+                            user_obj = AuthUser.objects.get(username=getattr(user_obj, 'username'))
+                        else:
+                            user_obj = None
+                except AuthUser.DoesNotExist:
+                    user_obj = None
+
+                # Intentar obtener el empleado asociado al usuario autenticado (si tenemos user_obj)
+                empleado_obj = None
+                if user_obj:
+                    try:
+                        empleado_obj = Empleados.objects.get(user=user_obj)
+                    except Empleados.DoesNotExist:
+                        empleado_obj = None
+
+                # Si el usuario autenticado es superuser, crear un Empleados automáticamente
+                if empleado_obj is None and user_obj and getattr(user_obj, 'is_superuser', False):
+                    empleado_obj = Empleados.objects.create(user=user_obj, rol='superuser')
+
+            if not empleado_obj:
+                return Response({
+                    'success': False,
+                    'error': 'No se proporcionó id_empleado válido y no se encontró empleado para el usuario autenticado.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Crear nueva caja usando la instancia de Empleados
             caja = Cajas.objects.create(
-                id_empleado_id=request.data.get('id_empleado'),
+                id_empleado=empleado_obj,
                 fecha_hora_apertura=timezone.now(),
                 monto_apertura=request.data.get('monto_apertura', 0),
                 estado_caja=1
@@ -276,3 +322,23 @@ class MetodosCobroListView(APIView):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class EmpleadosListView(APIView):
+    """Listar empleados activos"""
+    def get(self, request):
+        try:
+            empleados = Empleados.objects.filter(
+                Q(eliminado__isnull=True) | Q(eliminado=0)
+            )
+            data = []
+            for e in empleados:
+                user = e.user
+                nombre = f"{user.first_name} {user.last_name}".strip() or user.username
+                data.append({
+                    'id_empleado': e.id_empleado,
+                    'nombre': nombre
+                })
+            return Response({'success': True, 'data': data})
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

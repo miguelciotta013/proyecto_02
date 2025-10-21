@@ -1,60 +1,80 @@
 import React from 'react';
 
-export default function CajaTable({ items = [], onView = () => {} }) {
+const thStyle = {
+  padding: '12px 16px',
+  fontSize: '0.9rem',
+  fontWeight: 600,
+  textTransform: 'uppercase',
+  borderBottom: '2px solid #1976d2',
+};
+
+const tdStyle = {
+  padding: '10px 16px',
+  fontSize: '0.9rem',
+  color: '#333',
+  borderBottom: '1px solid #eee',
+};
+
+const buttonStyle = {
+  background: '#1976d2',
+  color: '#fff',
+  border: 'none',
+  padding: '6px 14px',
+  borderRadius: '8px',
+  cursor: 'pointer',
+  fontSize: '0.9rem',
+  transition: 'all 0.3s',
+};
+
+const cardStyle = {
+  border: '1px solid #eee',
+  borderRadius: '12px',
+  padding: '16px',
+  margin: '12px',
+  background: '#fff',
+  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+};
+
+export default function CajaTable({ items = [], onView = () => {}, onClose = () => {} }) {
   return (
-    <div
-      style={{
-        background: '#fff',
-        borderRadius: 16,
-        boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
-        overflow: 'hidden',
-        marginTop: 20,
-        fontFamily: "'Poppins', sans-serif",
-      }}
-    >
-      {/* Tabla para pantallas grandes */}
+    <div style={{ background: '#fff', borderRadius: 16, boxShadow: '0 8px 20px rgba(0,0,0,0.1)', overflow: 'hidden', marginTop: 20 }}>
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 800 }}>
-          <thead style={{ background: 'linear-gradient(135deg, #2196f3, #64b5f6)', color: '#fff', textAlign: 'left' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+          <thead style={{ background: '#1976d2', color: '#fff' }}>
             <tr>
-              {['ID', 'Empleado', 'Apertura', 'Cierre', 'Estado', 'Monto apertura', 'Monto cierre', 'Acciones'].map((h, i) => (
-                <th key={i} style={{ ...thStyle, textAlign: i === 7 ? 'center' : 'left' }}>{h}</th>
-              ))}
+              <th style={thStyle}>ID</th>
+              <th style={thStyle}>Tipo</th>
+              <th style={thStyle}>Descripción</th>
+              <th style={{ ...thStyle, textAlign: 'right' }}>Monto</th>
+              <th style={thStyle}>Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {items.length ? items.map((c, i) => (
-              <tr
-                key={c.id_caja || i}
-                style={{ background: i % 2 === 0 ? '#f9f9f9' : '#fff', transition: 'background 0.3s' }}
-                onMouseEnter={e => e.currentTarget.style.background = '#e3f2fd'}
-                onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#f9f9f9' : '#fff'}
-              >
-                <td style={tdStyle}>{c.id_caja}</td>
-                <td style={tdStyle}>{c.empleado || '—'}</td>
-                <td style={tdStyle}>{c.fecha_hora_apertura || '—'}</td>
-                <td style={tdStyle}>{c.fecha_hora_cierre || '—'}</td>
-                <td style={{ ...tdStyle, color: c.estado_caja === 1 ? '#388e3c' : '#d32f2f', fontWeight: 600 }}>
-                  {c.estado_caja === 1 ? 'Abierta' : 'Cerrada'}
-                </td>
-                <td style={tdStyle}>${c.monto_apertura || '0'}</td>
-                <td style={tdStyle}>${c.monto_cierre || '0'}</td>
+            {items.length ? items.map((it, i) => {
+              const idCaja = it.id_caja || it.id || (it.idCaja && it.idCaja.id) || null;
+              const isOpen = (it.estado === 'Abierta') || (it.estado_caja === 1) || (!it.fecha_hora_cierre && it.fecha_hora_cierre !== 0);
+              return (
+              <tr key={idCaja || i} style={{ background: i % 2 === 0 ? '#f9f9f9' : '#fff' }}>
+                <td style={tdStyle}>{idCaja || '—'}</td>
+                <td style={tdStyle}>{it.tipo || it.tipo_movimiento || it.estado || '—'}</td>
+                <td style={tdStyle}>{it.descripcion || it.descripcion_ingreso || it.descripcion_egreso || it.empleado_nombre || '—'}</td>
+                <td style={{ ...tdStyle, textAlign: 'right' }}>${it.monto || it.monto_ingreso || it.monto_egreso || it.monto_apertura || 0}</td>
                 <td style={{ ...tdStyle, textAlign: 'center' }}>
-                  <button
-                    onClick={() => onView(c.id_caja)}
-                    style={buttonStyle}
-                    onMouseEnter={e => e.target.style.background = '#0d47a1'}
-                    onMouseLeave={e => e.target.style.background = '#1976d2'}
-                  >
-                    Ver
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+                    <button style={buttonStyle} onClick={() => onView(idCaja)}>Ver</button>
+                    {isOpen && (
+                      <button
+                        style={{ ...buttonStyle, background: '#d32f2f' }}
+                        onClick={() => { if (window.confirm('¿Cerrar esta caja?')) onClose(idCaja); }}
+                      >Cerrar</button>
+                    )}
+                  </div>
                 </td>
               </tr>
-            )) : (
+              )
+            }) : (
               <tr>
-                <td colSpan="8" style={{ textAlign: 'center', padding: 20, color: '#777', fontStyle: 'italic' }}>
-                  No hay registros de caja.
-                </td>
+                <td colSpan={5} style={{ textAlign: 'center', padding: 20, color: '#777' }}>No hay registros.</td>
               </tr>
             )}
           </tbody>
@@ -93,39 +113,3 @@ export default function CajaTable({ items = [], onView = () => {} }) {
     </div>
   );
 }
-
-// Estilos
-const thStyle = {
-  padding: '12px 16px',
-  fontSize: '0.9rem',
-  fontWeight: 600,
-  textTransform: 'uppercase',
-  borderBottom: '2px solid #1976d2',
-};
-
-const tdStyle = {
-  padding: '10px 16px',
-  fontSize: '0.9rem',
-  color: '#333',
-  borderBottom: '1px solid #eee',
-};
-
-const buttonStyle = {
-  background: '#1976d2',
-  color: '#fff',
-  border: 'none',
-  padding: '6px 14px',
-  borderRadius: '8px',
-  cursor: 'pointer',
-  fontSize: '0.9rem',
-  transition: 'all 0.3s',
-};
-
-const cardStyle = {
-  border: '1px solid #eee',
-  borderRadius: '12px',
-  padding: '16px',
-  margin: '12px',
-  background: '#fff',
-  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-};

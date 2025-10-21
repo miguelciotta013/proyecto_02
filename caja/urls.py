@@ -8,6 +8,7 @@ from .views import (
     CajaEgresoView,
     MetodosCobroListView
 )
+from .views import EmpleadosListView
 
 urlpatterns = [
     # Lista de cajas
@@ -26,4 +27,5 @@ urlpatterns = [
     
     # Métodos de cobro
     path('metodos-cobro/', MetodosCobroListView.as_view(), name='metodos-cobro'),
+    path('empleados/', EmpleadosListView.as_view(), name='empleados-list'),
 ]

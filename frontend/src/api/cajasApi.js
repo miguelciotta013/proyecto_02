@@ -1,14 +1,11 @@
 
-import axios from 'axios';
-
-const API_BASE = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000';
+import apiClient from './axiosConfig';
 
 async function safeRequest(promise) {
   try {
     const resp = await promise;
     return resp.data;
   } catch (err) {
-    // axios error: try to extract server response
     if (err.response && err.response.data) {
       return err.response.data;
     }
@@ -17,30 +14,30 @@ async function safeRequest(promise) {
 }
 
 export async function listCajas(params = {}) {
-  return safeRequest(axios.get(`${API_BASE}/api/caja/`, { params }));
+  return safeRequest(apiClient.get('/caja/', { params }));
 }
 
 export async function aperturaCaja(payload) {
-  return safeRequest(axios.post(`${API_BASE}/api/caja/apertura/`, payload));
+  return safeRequest(apiClient.post('/caja/apertura/', payload));
 }
 
 export async function cierreCaja(id_caja, payload) {
-  return safeRequest(axios.post(`${API_BASE}/api/caja/${id_caja}/cierre/`, payload));
+  return safeRequest(apiClient.post(`/caja/${id_caja}/cierre/`, payload));
 }
 
 export async function getCajaDetail(id_caja) {
-  return safeRequest(axios.get(`${API_BASE}/api/caja/${id_caja}/`));
+  return safeRequest(apiClient.get(`/caja/${id_caja}/`));
 }
 
 export async function addIngreso(id_caja, payload) {
-  return safeRequest(axios.post(`${API_BASE}/api/caja/${id_caja}/ingresos/`, payload));
+  return safeRequest(apiClient.post(`/caja/${id_caja}/ingresos/`, payload));
 }
 
 export async function addEgreso(id_caja, payload) {
-  return safeRequest(axios.post(`${API_BASE}/api/caja/${id_caja}/egresos/`, payload));
+  return safeRequest(apiClient.post(`/caja/${id_caja}/egresos/`, payload));
 }
 
 export async function listMetodosCobro() {
-  return safeRequest(axios.get(`${API_BASE}/api/caja/metodos-cobro/`));
+  return safeRequest(apiClient.get('/caja/metodos-cobro/'));
 }
 

@@ -12,21 +12,27 @@ export default function DetalleTurno() {
 
   const viewOnly = Boolean(location?.state?.viewOnly);
 
-  useEffect(() => { fetch(); }, [id]);
+  useEffect(() => {
+    const fetchTurno = async () => {
+      setLoading(true);
+      try {
+        const r = await obtenerTurno(id);
+        if (r && r.success) {
+          setTurno(r.data);
+        } else {
+          alert(r?.error || 'Error al obtener turno');
+          navigate('/turnos');
+        }
+      } catch (e) {
+        alert(e.message || String(e));
+        navigate('/turnos');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  async function fetch() {
-    setLoading(true);
-    try {
-      const r = await obtenerTurno(id);
-      if (r && r.success) setTurno(r.data);
-      else { alert(r?.error || 'Error al obtener turno'); navigate('/turnos'); }
-    } catch (e) {
-      alert(e.message || String(e));
-      navigate('/turnos');
-    } finally {
-      setLoading(false);
-    }
-  }
+    fetchTurno();
+  }, [id, navigate]);
 
   async function handleEliminar(id_turno) {
     const r = await eliminarTurno(id_turno);
@@ -43,12 +49,13 @@ export default function DetalleTurno() {
   }
 
   async function handleCambiarEstado(id_turno, id_estado) {
-    
     if (!id_estado) return;
     try {
       const r = await cambiarEstadoTurno(id_turno, parseInt(id_estado, 10));
       if (r && r.success) {
-        await fetch();
+        // recargamos los datos del turno actualizado
+        const r2 = await obtenerTurno(id);
+        if (r2 && r2.success) setTurno(r2.data);
       } else {
         alert(r?.error || 'Error al cambiar estado');
       }
@@ -57,7 +64,14 @@ export default function DetalleTurno() {
     }
   }
 
-  if (loading) return <div className="app-container"><div className="card"><p className="muted">Cargando...</p></div></div>;
+  if (loading)
+    return (
+      <div className="app-container">
+        <div className="card">
+          <p className="muted">Cargando...</p>
+        </div>
+      </div>
+    );
 
   return (
     <div className="app-container page-padding">
