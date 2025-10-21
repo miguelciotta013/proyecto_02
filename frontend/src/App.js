@@ -13,6 +13,10 @@ import ListadoTurnos from "./pages/turnos/ListadoTurnos";
 import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
+import TratamientosPacientePage from './pages/fichasMedicas/TratamientosPacientePage'
+import HistorialPage from './pages/fichasMedicas/HistorialPage'
+
+import VistaPanel from "./pages/panel_control/vista_panel";
 
 function App() {
   return (
@@ -23,6 +27,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/pacientes" element={<ListaPacientes />} />
+            
+
+            <Route path="/historial" element={<HistorialPage/>} />
+            <Route path="/historial/:id" element={<TratamientosPacientePage />} />
 
             <Route path="/cajas" element={<ListaCajas />} />
             <Route path="/caja/:id" element={<DetalleCajaWrapper />} />
@@ -31,6 +39,9 @@ function App() {
             <Route path="/turnos/nuevo" element={<NuevoTurno />} />
             <Route path="/turnos/:id" element={<DetalleTurno />} />
             <Route path="/turnos/:id/editar" element={<EditarTurno />} />
+
+            
+            <Route path="/panel" element={<VistaPanel />} />
           </Routes>
         </main>
       </Router>
@@ -68,6 +79,8 @@ function Header() {
           <StyledNav to="/pacientes">Pacientes</StyledNav>
           <StyledNav to="/turnos">Turnos</StyledNav>
           <StyledNav to="/cajas">Cajas</StyledNav>
+          <StyledNav to="/historial">Fichas Medicas</StyledNav>
+          <StyledNav to="/panel">Panel de Control</StyledNav>
         </div>
       </nav>
     </header>
