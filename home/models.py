@@ -92,7 +92,7 @@ class Cajas(models.Model):
 
 
 class CarasDiente(models.Model):
-    id_cara = models.BigAutoField(primary_key=True)
+    id_cara = models.BigAutoField(primary_key=True) 
     nombre_cara = models.CharField(max_length=30)
     abreviatura = models.CharField(max_length=5)
 

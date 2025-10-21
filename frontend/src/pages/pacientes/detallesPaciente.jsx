@@ -1,5 +1,4 @@
 import React from "react";
-
 export default function PacienteCard({ paciente, onEditar, onEliminar, onAsignarObra, onAgregarFicha }) {
   return (
     <div

@@ -1,0 +1,197 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2e7d9d;
+  color: #fff;
+  padding: 1rem;
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.resumenCobro {
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.resumenItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.badgeSuccess {
+  background: #4caf50;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+}
+
+.badgeWarning {
+  background: #ffb300;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+}
+
+.badgeInfo {
+  background: #2e7d9d;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 8px;
+}
+
+/* Botones */
+.btnPrimary {
+  background-color: #2e7d9d;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.btnPrimary:hover {
+  background-color: #25677e;
+}
+
+.btnSecondary {
+  background-color: #9e9e9e;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btnSecondary:hover {
+  background-color: #7a7a7a;
+}
+
+.btnSuccess {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.btnSuccess:hover {
+  background-color: #3b8d3b;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.formLabel {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.formSelect, .formInput {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+
+.hint {
+  color: #6c757d;
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.buttonsRow {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modalFooter {
+  padding: 1rem;
+  text-align: right;
+  border-top: 1px solid #eee;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 🔹 Contenedor del formulario (limita el alto cuando se edita) */
+.formContainer {
+  max-height: 40vh;        /* 🔸 ajusta el alto máximo visible del formulario */
+  overflow-y: auto;         /* 🔸 activa el scroll interno si el contenido supera el alto */
+  padding-right: 4px;
+}
+
+/* 🔹 Scrollbar más discreta (solo estética) */
+.formContainer::-webkit-scrollbar {
+  width: 6px;
+}
+
+.formContainer::-webkit-scrollbar-thumb {
+  background-color: #bdbdbd;
+  border-radius: 4px;
+}
+
+.bodyWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.resumenCobro {
+  flex: 1;
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.formSide {
+  flex: 1;
+  background: #ffffff;
+  padding: 1rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}

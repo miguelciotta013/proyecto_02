@@ -1,0 +1,56 @@
+.listado-turnos-container {
+  padding: 12px;
+}
+
+.titulo-turnos {
+  margin: 6px 0 12px 0;
+  font-size: 1.25rem;
+  color: #0b63d6;
+}
+
+.controls-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.search-wrapper {
+  flex: 1 1 300px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+.nuevo-turno-container {
+  flex: 0 0 auto;
+}
+
+.nuevo-turno-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #0b63d6;
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+}
+
+.icono {
+  font-weight: 700;
+}
+
+.loading-text {
+  color: #666;
+}

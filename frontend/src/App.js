@@ -14,22 +14,12 @@ import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
 
-import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
-import HistorialPage from "./pages/fichasMedicas/HistorialPage";
-
 function App() {
   return (
-    <div className="App">
-      <BrowserRouter>
-        <header style={{ padding: 12, borderBottom: '1px solid #eee' }}>
-          <nav style={{ display: 'flex', gap: 12 }}>
-            <Link to="/">Home</Link>
-            <Link to="/pacientes">Pacientes</Link>
-            <Link to="/historial">Fichas Medicas</Link>
-          </nav>
-        </header>
-
-        <main style={{ padding: 16 }}>
+    <div className="App" style={{ fontFamily: "'Poppins', sans-serif", minHeight: "100vh", backgroundColor: "#f9fafc" }}>
+      <Router>
+        <Header />
+        <main style={{ padding: 24 }}>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/pacientes" element={<ListaPacientes />} />
@@ -43,7 +33,7 @@ function App() {
             <Route path="/turnos/:id/editar" element={<EditarTurno />} />
           </Routes>
         </main>
-      </BrowserRouter>
+      </Router>
     </div>
   );
 }
