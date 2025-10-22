@@ -1,0 +1,193 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2e7d9d;
+  color: #fff;
+  padding: 1rem;
+  border-radius: 8px 8px 0 0;
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modalBody {
+  margin-top: 1rem;
+}
+
+.infoCard {
+  background: #f9f9f9;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.infoLabel {
+  font-weight: 600;
+}
+
+.formGroup {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.formLabel {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.formInput, .formTextarea, .formSelect {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.5rem;
+  font-size: 1rem;
+}
+.formSelect {
+  width: 150px;  
+  padding: 0.3rem 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #ced4da;
+  border-radius: 5px;
+}
+
+
+.formTextarea {
+  min-height: 60px;
+  resize: vertical;
+}
+
+.formRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.tratamientoItem {
+  border: 1px solid #eee;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.tratamientoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.btnRemove {
+  background-color: #e53935;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btnRemove:hover {
+  background-color: #b71c1c;
+}
+
+.btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background-color: #2e7d9d;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #25677e;
+}
+
+.btn-secondary {
+  background-color: #9e9e9e;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #7a7a7a;
+}
+
+.btnAddTratamiento {
+  background-color: #4caf50;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.btnAddTratamiento:hover {
+  background-color: #3b8d3b;
+}
+
+.resumenCobro {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f1f1f1;
+  border-radius: 8px;
+}
+
+.resumenItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.resumenItem.total span:last-child {
+  font-weight: bold;
+  color: #2e7d9d;
+}
+
+.formError {
+  color: #e53935;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

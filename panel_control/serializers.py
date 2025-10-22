@@ -1,232 +1,78 @@
 from rest_framework import serializers
-from home.models import (
-    AuthUser,  # ✅ CAMBIAR: Usar AuthUser
-    Empleados, Dientes, Tratamientos, ObrasSociales,
-    CoberturasOs, MetodosCobro, PacientesXOs
-)
-from django.db.models import Q
+from django.contrib.auth.models import User
+from home.models import Empleados, ObrasSociales, MetodosCobro, AuthUser, Tratamientos
 
-# ===== USUARIOS Y PERMISOS =====
-
-class UsuarioListSerializer(serializers.ModelSerializer):
-    """Lista de usuarios con información básica"""
-    nombre_completo = serializers.SerializerMethodField()
-    rol = serializers.CharField(source='empleados.rol', read_only=True)
-    fecha_creacion = serializers.DateTimeField(source='empleados.fecha_creacion', read_only=True)
-    estado = serializers.SerializerMethodField()
-    
+# ---------- USUARIOS ----------
+class AuthUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AuthUser  # ✅ CAMBIAR
-        fields = [
-            'id',
-            'username',
-            'nombre_completo',
-            'email',
-            'rol',
-            'is_active',
-            'estado',
-            'fecha_creacion'
-        ]
-    
-    def get_nombre_completo(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip() or obj.username
-    
-    def get_estado(self, obj):
-        return "Activo" if obj.is_active else "Inactivo"
+        model = User
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password', 'is_active']
+        extra_kwargs = {'password': {'write_only': True}}
 
-class UsuarioDetailSerializer(serializers.ModelSerializer):
-    """Detalle completo del usuario"""
-    rol = serializers.CharField(source='empleados.rol', read_only=True)
-    permisos = serializers.SerializerMethodField()
-    
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', '')
+        )
+        return user
+
+    def update(self, instance, validated_data):
+        instance.first_name = validated_data.get('first_name', instance.first_name)
+        instance.last_name = validated_data.get('last_name', instance.last_name)
+        instance.email = validated_data.get('email', instance.email)
+        password = validated_data.get('password', None)
+        if password:
+            instance.set_password(password)
+        instance.save()
+        return instance
+
+# ---------- EMPLEADOS ----------
+class EmpleadosSerializer(serializers.ModelSerializer):
+    user_info = serializers.SerializerMethodField()
+
     class Meta:
-        model = AuthUser  # ✅ CAMBIAR
-        fields = [
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'rol',
-            'is_active',
-            'permisos'
-        ]
-    
-    def get_permisos(self, obj):
-        """Retorna permisos del usuario"""
-        return {
-            'puede_caja': True if obj.is_superuser else False,
-            'puede_turnos': True if obj.is_superuser else False,
-            'puede_pacientes': True if obj.is_superuser else False,
-            'puede_fichas': True if obj.is_superuser else False,
-            'es_admin': True if obj.is_superuser else False
-        }
+        model = Empleados
+        fields = ['id_empleado', 'user', 'rol', 'user_info']
 
-class UsuarioCreateSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    password = serializers.CharField(write_only=True, min_length=6)
-    first_name = serializers.CharField(max_length=150)
-    last_name = serializers.CharField(max_length=150)
-    email = serializers.EmailField(required=False, allow_blank=True)
-    rol = serializers.ChoiceField(choices=[
-        ('admin', 'Administrador'),
-        ('odontologo', 'Odontólogo'),
-        ('recepcionista', 'Recepcionista'),
-        ('cajero', 'Cajero')
-    ])
-    permisos = serializers.DictField(required=False)
+    def get_user_info(self, obj):
+        if obj.user:
+            return {
+                "id": obj.user.id,
+                "username": getattr(obj.user, 'username', ''),
+                "first_name": getattr(obj.user, 'first_name', ''),
+                "last_name": getattr(obj.user, 'last_name', '')
+            }
+        return None
 
-class UsuarioUpdateSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
-    email = serializers.EmailField(required=False, allow_blank=True)
-    password = serializers.CharField(write_only=True, required=False, min_length=6)
-    rol = serializers.ChoiceField(
-        choices=[
-            ('admin', 'Administrador'),
-            ('odontologo', 'Odontólogo'),
-            ('recepcionista', 'Recepcionista'),
-            ('cajero', 'Cajero')
-        ],
-        required=False
-    )
-    is_active = serializers.BooleanField(required=False)
-    permisos = serializers.DictField(required=False)
+    def create(self, validated_data):
+        user = validated_data.pop('user', None)
+        if isinstance(user, int):
+            user = AuthUser.objects.get(pk=user)
+        empleado = Empleados.objects.create(user=user, **validated_data)
+        return empleado
 
+    def update(self, instance, validated_data):
+        instance.rol = validated_data.get('rol', instance.rol)
+        instance.save()
+        return instance
 
-# ===== DIENTES =====
-
-class DienteSerializer(serializers.ModelSerializer):
-    estado = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Dientes
-        fields = [
-            'id_diente',
-            'nombre_diente',
-            'eliminado',
-            'estado'
-        ]
-    
-    def get_estado(self, obj):
-        return "Activo" if not obj.eliminado else "Eliminado"
-
-# ===== TRATAMIENTOS =====
-
-class TratamientoSerializer(serializers.ModelSerializer):
-    estado = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Tratamientos
-        fields = [
-            'id_tratamiento',
-            'nombre_tratamiento',
-            'codigo',
-            'importe',
-            'eliminado',
-            'estado'
-        ]
-    
-    def get_estado(self, obj):
-        if obj.eliminado == 1:
-            return "Eliminado"
-        return "Activo"
-
-class TratamientoCreateUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tratamientos
-        fields = [
-            'nombre_tratamiento',
-            'codigo',
-            'importe'
-        ]
-
-# ===== OBRAS SOCIALES =====
-
-class ObraSocialSerializer(serializers.ModelSerializer):
-    estado = serializers.SerializerMethodField()
-    cantidad_pacientes = serializers.SerializerMethodField()
-    
+# ---------- OBRAS SOCIALES ----------
+class ObrasSocialesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObrasSociales
-        fields = [
-            'id_obra_social',
-            'nombre_os',
-            'eliminado',
-            'estado',
-            'cantidad_pacientes'
-        ]
-    
-    def get_estado(self, obj):
-        if obj.eliminado == 1:
-            return "Eliminado"
-        return "Activo"
-    
-    def get_cantidad_pacientes(self, obj):
-   
-        return PacientesXOs.objects.filter(
-        Q(id_obra_social=obj) &
-        (Q(eliminado__isnull=True) | Q(eliminado=0))
-    ).count()
+        fields = '__all__'
 
-class ObraSocialCreateUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ObrasSociales
-        fields = ['nombre_os']
-
-# ===== COBERTURAS =====
-
-class CoberturaSerializer(serializers.ModelSerializer):
-    obra_social_nombre = serializers.CharField(source='id_obra_social.nombre_os', read_only=True)
-    tratamiento_nombre = serializers.CharField(source='id_tratamiento.nombre_tratamiento', read_only=True)
-    tratamiento_codigo = serializers.CharField(source='id_tratamiento.codigo', read_only=True)
-    
-    class Meta:
-        model = CoberturasOs
-        fields = [
-            'id_cobertura',
-            'id_obra_social',
-            'obra_social_nombre',
-            'id_tratamiento',
-            'tratamiento_nombre',
-            'tratamiento_codigo',
-            'porcentaje'
-        ]
-
-class CoberturaCreateUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CoberturasOs
-        fields = [
-            'id_obra_social',
-            'id_tratamiento',
-            'porcentaje'
-        ]
-    
-    def validate_porcentaje(self, value):
-        if value < 0 or value > 100:
-            raise serializers.ValidationError("El porcentaje debe estar entre 0 y 100")
-        return value
-
-# ===== MÉTODOS DE COBRO =====
-
-class MetodoCobroSerializer(serializers.ModelSerializer):
-    estado = serializers.SerializerMethodField()
-    
+# ---------- MÉTODOS DE COBRO ----------
+class MetodosCobroSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetodosCobro
-        fields = [
-            'id_metodo_cobro',
-            'tipo_cobro',
-            'eliminado',
-            'estado'
-        ]
-    
-    def get_estado(self, obj):
-        if obj.eliminado == 1:
-            return "Eliminado"
-        return "Activo"
+        fields = '__all__'
 
-class MetodoCobroCreateUpdateSerializer(serializers.ModelSerializer):
+# ---------- TRATAMIENTOS ----------
+class TratamientosSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MetodosCobro
-        fields = ['tipo_cobro']
+        model = Tratamientos
+        fields = ['id_tratamiento', 'nombre_tratamiento', 'codigo', 'importe', 'eliminado']

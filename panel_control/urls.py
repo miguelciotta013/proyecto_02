@@ -1,51 +1,20 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
-    # Usuarios
-    UsuarioListCreateView,
-    UsuarioDetailView,
-    
-    # Dientes
-    DienteListView,
-    
-    # Tratamientos
-    TratamientoListCreateView,
-    TratamientoDetailView,
-    
-    # Obras Sociales
-    ObraSocialListCreateView,
-    ObraSocialDetailView,
-    
-    # Coberturas
-    CoberturaListCreateView,
-    CoberturaDetailView,
-    
-    # Métodos de Cobro
-    MetodoCobroListCreateView,
-    MetodoCobroDetailView
+    AuthUserViewSet,
+    EmpleadosViewSet,
+    ObrasSocialesViewSet,
+    MetodosCobroViewSet,
+    TratamientosViewSet
 )
 
+router = DefaultRouter()
+router.register(r'authuser', AuthUserViewSet, basename='authuser')
+router.register(r'empleados', EmpleadosViewSet, basename='empleados')
+router.register(r'obras_sociales', ObrasSocialesViewSet, basename='obras_sociales')
+router.register(r'metodos_cobro', MetodosCobroViewSet, basename='metodos_cobro')
+router.register(r'tratamientos', TratamientosViewSet, basename='tratamientos')
+
 urlpatterns = [
-    # ===== USUARIOS =====
-    path('usuarios/', UsuarioListCreateView.as_view(), name='usuarios-list-create'),
-    path('usuarios/<int:user_id>/', UsuarioDetailView.as_view(), name='usuarios-detail'),
-    
-    # ===== DIENTES =====
-    path('dientes/', DienteListView.as_view(), name='dientes-list'),
-    path('dientes/<int:id_diente>/', DienteListView.as_view(), name='dientes-update'),
-    
-    # ===== TRATAMIENTOS =====
-    path('tratamientos/', TratamientoListCreateView.as_view(), name='tratamientos-list-create'),
-    path('tratamientos/<int:id_tratamiento>/', TratamientoDetailView.as_view(), name='tratamientos-detail'),
-    
-    # ===== OBRAS SOCIALES =====
-    path('obras-sociales/', ObraSocialListCreateView.as_view(), name='obras-sociales-list-create'),
-    path('obras-sociales/<int:id_obra_social>/', ObraSocialDetailView.as_view(), name='obras-sociales-detail'),
-    
-    # ===== COBERTURAS =====
-    path('coberturas/', CoberturaListCreateView.as_view(), name='coberturas-list-create'),
-    path('coberturas/<int:id_cobertura>/', CoberturaDetailView.as_view(), name='coberturas-detail'),
-    
-    # ===== MÉTODOS DE COBRO =====
-    path('metodos-cobro/', MetodoCobroListCreateView.as_view(), name='metodos-cobro-list-create'),
-    path('metodos-cobro/<int:id_metodo_cobro>/', MetodoCobroDetailView.as_view(), name='metodos-cobro-detail'),
+    path('', include(router.urls)),
 ]

@@ -1,0 +1,155 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modalContent {
+  background: #fff;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+.modalTitle {
+  font-size: 1.4rem;
+  color: #2E7D9D;
+  font-weight: 600;
+}
+
+.modalClose {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  cursor: pointer;
+  color: #555;
+  transition: color 0.2s ease;
+}
+
+.modalClose:hover {
+  color: #000;
+}
+
+.infoCard {
+  background: #f9f9f9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #333;
+}
+
+.infoValue {
+  color: #555;
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 6px;
+}
+
+.tableContainer table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tableContainer th,
+.tableContainer td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+.tableContainer th {
+  background: #2E7D9D;
+  color: #fff;
+}
+
+.resumenCobro {
+  background: #f1f8fc;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.resumenItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.6rem;
+  color: #333;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.badgeSuccess {
+  background: #c8e6c9;
+  color: #256029;
+}
+
+.badgeWarning {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badgeInfo {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.btnSecondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btnSecondary:hover {
+  background: #5a6268;
+}
