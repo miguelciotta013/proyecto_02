@@ -2,9 +2,10 @@ from rest_framework import serializers
 from home.models import (
     Pacientes, FichasMedicas, PacientesXOs, FichasPatologicas,
     Dientes, CarasDiente, Parentesco, Tratamientos, 
-    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago, Cajas, MetodosCobro
+    DetallesConsulta, CoberturasOs, CobrosConsulta, EstadosPago, 
+    Cajas, MetodosCobro, ObrasSociales
 )
-#asdasd
+
 class PacienteFichaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pacientes
@@ -30,6 +31,29 @@ class TratamientosSerializer(serializers.ModelSerializer):
         model = Tratamientos
         fields = ['id_tratamiento', 'nombre_tratamiento', 'codigo', 'importe']
 
+class TratamientosConCoberturaSerializer(serializers.Serializer):
+    id_tratamiento = serializers.IntegerField()
+    nombre_tratamiento = serializers.CharField()
+    codigo = serializers.CharField()
+    importe_base = serializers.DecimalField(max_digits=10, decimal_places=2)
+    porcentaje_cobertura = serializers.IntegerField()
+    importe_paciente = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+class MetodosCobroSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MetodosCobro
+        fields = ['id_metodo_cobro', 'tipo_cobro']
+
+class EstadosPagoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EstadosPago
+        fields = ['id_estado_pago', 'nombre_estado']
+
+class ObraSocialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ObrasSociales
+        fields = ['id_obra_social', 'nombre_os']
+
 class DetalleConsultaSerializer(serializers.ModelSerializer):
     class Meta:
         model = DetallesConsulta
@@ -38,7 +62,6 @@ class DetalleConsultaSerializer(serializers.ModelSerializer):
             'id_diente',
             'id_cara'
         ]
-
 
 class FichaMedicaCreateSerializer(serializers.ModelSerializer):
     detalles_consulta = DetalleConsultaSerializer(many=True, write_only=True)
@@ -95,13 +118,9 @@ class FichaMedicaCreateSerializer(serializers.ModelSerializer):
         )
         
         print(f"✓ Cobro creado: ID={cobro.id_cobro_consulta}")
-        print(f"✓ Tipo de cobro: {type(cobro)}")
         
         for i, detalle_data in enumerate(detalles_data):
             print(f"→ Creando detalle {i+1}...")
-            print(f"  - Ficha: {ficha_medica.id_ficha_medica}")
-            print(f"  - Cobro: {cobro.id_cobro_consulta}")
-            print(f"  - Datos: {detalle_data}")
             
             detalle = DetallesConsulta.objects.create(
                 id_ficha_medica=ficha_medica,
@@ -132,7 +151,7 @@ class FichaMedicaCreateSerializer(serializers.ModelSerializer):
         print(f"✓ Cobro actualizado con montos")
         
         return ficha_medica
-        
+
 class FichaMedicaDetailSerializer(serializers.ModelSerializer):
     paciente_nombre = serializers.CharField(source='id_paciente_os.id_paciente.nombre_paciente', read_only=True)
     paciente_apellido = serializers.CharField(source='id_paciente_os.id_paciente.apellido_paciente', read_only=True)
@@ -161,7 +180,7 @@ class FichaMedicaDetailSerializer(serializers.ModelSerializer):
             })
         
         return data
-    
+
 class FichaPatologicaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FichasPatologicas
@@ -171,8 +190,6 @@ class FichaPatologicaCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FichasPatologicas
         exclude = ['id_ficha_patologica']
-
-# ficha_medica/serializers.py - Agregar
 
 class CobroDetailSerializer(serializers.ModelSerializer):
     metodo_cobro = serializers.SerializerMethodField()
@@ -204,6 +221,7 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
     paciente_nombre = serializers.CharField(source='id_paciente_os.id_paciente.nombre_paciente', read_only=True)
     paciente_apellido = serializers.CharField(source='id_paciente_os.id_paciente.apellido_paciente', read_only=True)
     empleado_nombre = serializers.SerializerMethodField()
+    obra_social = serializers.CharField(source='id_paciente_os.id_obra_social.nombre_os', read_only=True)
     detalles = serializers.SerializerMethodField()
     cobro = serializers.SerializerMethodField()
     
@@ -214,6 +232,7 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
             'paciente_nombre',
             'paciente_apellido',
             'empleado_nombre',
+            'obra_social',
             'fecha_creacion',
             'observaciones',
             'nro_autorizacion',
@@ -251,7 +270,6 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
     
     def get_cobro(self, obj):
         try:
-            # Obtener el cobro asociado a los detalles de esta ficha
             detalle = DetallesConsulta.objects.filter(
                 id_ficha_medica=obj
             ).first()
@@ -261,3 +279,13 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
             return None
         except:
             return None
+
+class OdontogramaSerializer(serializers.Serializer):
+    dientes_tratados = serializers.ListField()
+    ficha_patologica = FichaPatologicaSerializer()
+
+class PacienteObraSocialSerializer(serializers.Serializer):
+    id_paciente_os = serializers.IntegerField()
+    id_obra_social = serializers.IntegerField()
+    nombre_os = serializers.CharField()
+    credencial = serializers.IntegerField()

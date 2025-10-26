@@ -92,7 +92,7 @@ class Cajas(models.Model):
 
 
 class CarasDiente(models.Model):
-    id_cara = models.BigAutoField(primary_key=True) 
+    id_cara = models.BigAutoField(primary_key=True)
     nombre_cara = models.CharField(max_length=30)
     abreviatura = models.CharField(max_length=5)
 
@@ -140,6 +140,7 @@ class DetallesConsulta(models.Model):
     id_cara = models.BigIntegerField()
     eliminado = models.IntegerField(blank=True, null=True)
     fecha_eliminacion = models.DateTimeField(blank=True, null=True)
+    conformidad_paciente = models.IntegerField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -341,8 +342,6 @@ class ObrasSociales(models.Model):
     class Meta:
         managed = False
         db_table = 'obras_sociales'
-    def __str__(self):
-        return self.nombre_os
 
 
 class Pacientes(models.Model):
@@ -361,8 +360,6 @@ class Pacientes(models.Model):
     class Meta:
         managed = False
         db_table = 'pacientes'
-    def __str__(self):
-        return self.nombre_paciente and self.apellido_paciente
 
 
 class PacientesXOs(models.Model):
@@ -389,8 +386,6 @@ class Parentesco(models.Model):
     class Meta:
         managed = False
         db_table = 'parentesco'
-    def __str__(self):
-        return self.tipo_parentesco
 
 
 class Tratamientos(models.Model):
@@ -404,8 +399,6 @@ class Tratamientos(models.Model):
     class Meta:
         managed = False
         db_table = 'tratamientos'
-    def __str__(self):
-        return self.nombre_tratamiento
 
 
 class Turnos(models.Model):
