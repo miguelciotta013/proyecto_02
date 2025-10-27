@@ -1,0 +1,83 @@
+/* ListaPacientes.module.css */
+
+/* Contenedor principal */
+.container {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+/* Título de la página */
+.title {
+  color: #333;
+  margin-bottom: 16px;
+  font-size: clamp(22px, 3vw, 28px);
+  text-align: center;
+}
+
+/* Botón de nuevo paciente */
+.addButton {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: #4caf50;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover {
+  background-color: #45a049;
+}
+
+/* Mensajes de carga y error */
+.message {
+  color: #555;
+  font-size: 14px;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.error {
+  color: red;
+  font-weight: 500;
+}
+
+/* Contenedor de tabla */
+.tableContainer {
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+/* Contenedor de tarjetas y formularios */
+.cardWrapper {
+  margin-top: 20px;
+  background-color: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Grid responsive para tarjetas */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .title {
+    font-size: 20px;
+  }
+  .addButton {
+    width: 100%;
+    padding: 12px;
+  }
+}

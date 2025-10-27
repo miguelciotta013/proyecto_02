@@ -1,0 +1,82 @@
+/* PacienteCard.module.css */
+
+.card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 25px;
+  max-width: 450px;
+  margin: 20px auto;
+  font-family: 'Poppins', sans-serif;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.18);
+}
+
+.info {
+  margin-bottom: 20px;
+}
+
+.info h2 {
+  margin: 0;
+  color: #0d47a1;
+  font-size: 24px;
+}
+
+.info p {
+  margin: 4px 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.button {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.editButton {
+  background-color: #4caf50;
+}
+
+.editButton:hover {
+  background-color: #43a047;
+}
+
+.deleteButton {
+  background-color: #f44336;
+}
+
+.deleteButton:hover {
+  background-color: #d32f2f;
+}
+
+.assignButton {
+  background-color: #2196f3;
+}
+
+.assignButton:hover {
+  background-color: #1976d2;
+}
+
+.addButton {
+  background-color: #ff9800;
+}
+
+.addButton:hover {
+  background-color: #fb8c00;
+}

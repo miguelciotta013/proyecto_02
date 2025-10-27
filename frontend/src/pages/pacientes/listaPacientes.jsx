@@ -134,6 +134,7 @@ export default function ListaPacientes() {
             onAsignarObra={handleAsignarObra}
             onAgregarFicha={handleAgregarFicha}
             onEditar={handleEditar}
+            onObraRemoved={(updatedPaciente) => { setSelected(updatedPaciente); fetchPacientes(); }}
           />
         </div>
       )}

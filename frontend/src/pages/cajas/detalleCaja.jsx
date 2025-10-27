@@ -31,7 +31,10 @@ export default function DetalleCaja() {
   async function handleIngreso(payload) {
     try {
       const resp = await addIngreso(id, payload);
-      if (resp && resp.success) fetchDetalle();
+      if (resp && resp.success) {
+        await fetchDetalle();
+        try { window.dispatchEvent(new Event('cajasUpdated')); } catch (e) { /* ignore */ }
+      }
       else alert(resp.error || 'Error registrando ingreso');
     } catch (e) {
       console.error(e);
@@ -42,7 +45,10 @@ export default function DetalleCaja() {
   async function handleEgreso(payload) {
     try {
       const resp = await addEgreso(id, payload);
-      if (resp && resp.success) fetchDetalle();
+      if (resp && resp.success) {
+        await fetchDetalle();
+        try { window.dispatchEvent(new Event('cajasUpdated')); } catch (e) { /* ignore */ }
+      }
       else alert(resp.error || 'Error registrando egreso');
     } catch (e) {
       console.error(e);
@@ -55,7 +61,8 @@ export default function DetalleCaja() {
       const resp = await cierreCaja(id, payload);
       if (resp && resp.success) {
         alert('Caja cerrada');
-        fetchDetalle();
+        await fetchDetalle();
+        try { window.dispatchEvent(new Event('cajasUpdated')); } catch (e) { /* ignore */ }
       } else alert(resp.error || 'Error cerrando caja');
     } catch (e) {
       console.error(e);

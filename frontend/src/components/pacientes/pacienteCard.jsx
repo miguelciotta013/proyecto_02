@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { removeObraSocial } from '../../api/pacientesApi';
 
 export default function PacienteCard({
   paciente,
@@ -6,9 +7,11 @@ export default function PacienteCard({
   onEditar,
   onEliminar,
   onAsignarObra,
-  onAgregarFicha
+  onAgregarFicha,
+  onObraRemoved
 }) {
   const [closing, setClosing] = useState(false);
+  const [obras, setObras] = useState(paciente?.obras_sociales || []);
 
   if (!paciente) return null;
 
@@ -42,7 +45,7 @@ export default function PacienteCard({
         transition: "opacity 0.3s ease"
       }}
     >
-      <div
+        <div
         style={{
           backgroundColor: "#fff",
           padding: 30,
@@ -108,14 +111,43 @@ export default function PacienteCard({
             border: "1px solid #e0e0e0"
           }}
         >
-          {paciente.obras_sociales && paciente.obras_sociales.length ? (
+          {obras && obras.length ? (
             <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {paciente.obras_sociales.map(os => (
-                <li key={os.id_paciente_os} style={{ marginBottom: 6 }}>
-                  {os.obra_social_nombre} —{" "}
-                  <span style={{ color: "#555" }}>
-                    {os.credencial_paciente || "sin credencial"}
-                  </span>
+              {obras.map(os => (
+                <li key={os.id_paciente_os} style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    {os.obra_social_nombre} — <span style={{ color: '#555' }}>{os.credencial_paciente || 'sin credencial'}</span>
+                  </div>
+                  <div>
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm('¿Seguro que querés eliminar esta obra social del paciente?')) return;
+                        try {
+                          const resp = await removeObraSocial(paciente.id_paciente, os.id_paciente_os);
+                          if (resp && resp.success) {
+                            const updated = obras.filter(o => o.id_paciente_os !== os.id_paciente_os);
+                            setObras(updated);
+                            // notificar al padre que la obra fue removida con el paciente actualizado
+                            const updatedPaciente = { ...paciente, obras_sociales: updated };
+                            if (typeof onObraRemoved === 'function') onObraRemoved(updatedPaciente);
+                            else onClose && onClose();
+                          } else {
+                            alert(resp?.error || 'Error al eliminar obra social');
+                          }
+                        } catch (e) {
+                          alert(e.message || String(e));
+                        }
+                      }}
+                      style={{
+                        backgroundColor: '#d32f2f',
+                        color: '#fff',
+                        border: 'none',
+                        padding: '6px 10px',
+                        borderRadius: 8,
+                        cursor: 'pointer'
+                      }}
+                    >Eliminar</button>
+                  </div>
                 </li>
               ))}
             </ul>

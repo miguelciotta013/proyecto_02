@@ -17,6 +17,9 @@ export function AuthProvider({ children }) {
   }, [refreshToken]);
 
   const login = ({ access, refresh }) => {
+    // Guardar inmediatamente en localStorage para evitar race condition
+    if (access) localStorage.setItem('access_token', access);
+    if (refresh) localStorage.setItem('refresh_token', refresh);
     setAccessToken(access);
     setRefreshToken(refresh);
   };
