@@ -824,3 +824,36 @@ class EstadosPagoView(APIView):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UpdateConformidadView(APIView):
+    """Actualizar conformidad del paciente en un detalle"""
+    
+    def patch(self, request, id_detalle):
+        try:
+            detalle = DetallesConsulta.objects.get(id_detalle=id_detalle)
+            
+            if 'conformidad_paciente' in request.data:
+                detalle.conformidad_paciente = request.data['conformidad_paciente']
+                detalle.save()
+                
+                return Response({
+                    'success': True,
+                    'message': 'Conformidad actualizada'
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'error': 'Campo conformidad_paciente requerido'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except DetallesConsulta.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Detalle no encontrado'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

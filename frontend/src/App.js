@@ -20,6 +20,7 @@ import DetalleTurno from "./pages/turnos/DetalleTurno";
 
 import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
 import HistorialPage from "./pages/fichasMedicas/HistorialPage";
+import FichaMedicaDetailPage from "./pages/fichasMedicas/FichaMedicaDetailPage";
 
 import VistaPanel from "./pages/panel_control/vista_panel";
 
@@ -69,6 +70,13 @@ function App() {
                   </RequireAuth>
                 }
               />
+              <Route 
+                path="/historial/:idPaciente/ficha/:idFicha" 
+                element={
+                <FichaMedicaDetailPage />
+                } 
+              />
+
 
               <Route
                 path="/cajas"

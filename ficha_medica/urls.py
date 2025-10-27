@@ -15,6 +15,7 @@ from .views import (
     OdontogramaView,
     MetodosCobroView,
     EstadosPagoView,
+    UpdateConformidadView,
 )
 
 urlpatterns = [
@@ -85,4 +86,11 @@ urlpatterns = [
     # ============================================
     # Verificar si hay caja abierta
     path('caja/estado/', CajaEstadoView.as_view(), name='caja-estado'),
+
+    # ============================================
+    # DETALLE 
+    # ============================================
+    # permite la modificación de la conformidad del paciente
+
+    path('detalle/<int:id_detalle>/conformidad/', UpdateConformidadView.as_view(), name='update-conformidad'),
 ]

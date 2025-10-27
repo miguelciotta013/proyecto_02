@@ -218,10 +218,25 @@ class CobroDetailSerializer(serializers.ModelSerializer):
         return None
 
 class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
+    # Datos del paciente
     paciente_nombre = serializers.CharField(source='id_paciente_os.id_paciente.nombre_paciente', read_only=True)
     paciente_apellido = serializers.CharField(source='id_paciente_os.id_paciente.apellido_paciente', read_only=True)
+    paciente_dni = serializers.IntegerField(source='id_paciente_os.id_paciente.dni_paciente', read_only=True)
+    paciente_fecha_nacimiento = serializers.DateField(source='id_paciente_os.id_paciente.fecha_nacimiento', read_only=True)
+    paciente_telefono = serializers.CharField(source='id_paciente_os.id_paciente.telefono', read_only=True)
+    paciente_domicilio = serializers.CharField(source='id_paciente_os.id_paciente.domicilio', read_only=True)
+    paciente_localidad = serializers.CharField(source='id_paciente_os.id_paciente.localidad', read_only=True)
+    
+    # Datos del empleado
     empleado_nombre = serializers.SerializerMethodField()
+    
+    # Datos de obra social
     obra_social = serializers.CharField(source='id_paciente_os.id_obra_social.nombre_os', read_only=True)
+    obra_social_credencial = serializers.IntegerField(source='id_paciente_os.credencial_paciente', read_only=True)
+    obra_social_titular = serializers.CharField(source='id_paciente_os.titular', read_only=True)
+    parentesco = serializers.CharField(source='id_paciente_os.id_parentesco.tipo_parentesco', read_only=True)
+    
+    # Detalles y cobro
     detalles = serializers.SerializerMethodField()
     cobro = serializers.SerializerMethodField()
     
@@ -229,14 +244,27 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
         model = FichasMedicas
         fields = [
             'id_ficha_medica',
+            # Paciente
             'paciente_nombre',
             'paciente_apellido',
+            'paciente_dni',
+            'paciente_fecha_nacimiento',
+            'paciente_telefono',
+            'paciente_domicilio',
+            'paciente_localidad',
+            # Empleado
             'empleado_nombre',
+            # Obra Social
             'obra_social',
+            'obra_social_credencial',
+            'obra_social_titular',
+            'parentesco',
+            # Ficha
             'fecha_creacion',
             'observaciones',
             'nro_autorizacion',
             'nro_coseguro',
+            # Detalles y cobro
             'detalles',
             'cobro'
         ]
@@ -254,17 +282,17 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
         for d in detalles:
             try:
                 cara = CarasDiente.objects.get(id_cara=d.id_cara)
-                cara_nombre = cara.nombre_cara
+                cara_abreviatura = cara.abreviatura
             except CarasDiente.DoesNotExist:
-                cara_nombre = f"Cara {d.id_cara}"
+                cara_abreviatura = "?"
             
             data.append({
                 'id_detalle': d.id_detalle,
-                'tratamiento': d.id_tratamiento.nombre_tratamiento,
                 'codigo': d.id_tratamiento.codigo,
                 'importe': str(d.id_tratamiento.importe),
-                'diente': d.id_diente.nombre_diente if d.id_diente else None,
-                'cara': cara_nombre
+                'id_diente': d.id_diente.id_diente if d.id_diente else None,
+                'cara': cara_abreviatura,
+                'conformidad_paciente': getattr(d, 'conformidad_paciente', False)
             })
         return data
     
