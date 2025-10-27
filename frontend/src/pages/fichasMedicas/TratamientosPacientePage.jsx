@@ -7,7 +7,6 @@ import {
 } from '../../api/fichasApi';
 import TratamientosTable from '../../components/fichas/tratamientosTable';
 import NuevoTratamientoModal from '../../components/fichas/nuevoTratamientoModal';
-import FichaMedicaModal from '../../components/fichas/fichaMedicaModal';
 import OdontogramaModal from '../../components/fichas/odontogramaModal';
 import CobroModal from '../../components/fichas/cobroModal';
 import styles from '../../pages/fichasMedicas/Tratamientos.module.css';
@@ -72,8 +71,7 @@ function TratamientosPacientePage() {
   };
 
   const handleVerFicha = (ficha) => {
-    setFichaSeleccionada(ficha);
-    setModalFicha(true);
+    navigate(`/historial/${id}/ficha/${ficha.id_ficha_medica}`);
   };
 
   const handleVerOdontograma = (ficha) => {
@@ -164,13 +162,6 @@ function TratamientosPacientePage() {
           catalogos={catalogos}
           onClose={() => setModalNuevo(false)}
           onSuccess={handleTratamientoCreado}
-        />
-      )}
-
-      {modalFicha && fichaSeleccionada && (
-        <FichaMedicaModal
-          ficha={fichaSeleccionada}
-          onClose={() => setModalFicha(false)}
         />
       )}
 
