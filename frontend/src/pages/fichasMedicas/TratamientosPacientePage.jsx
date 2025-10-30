@@ -3,10 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   getPacienteDetalle, 
   getFichasPorPaciente,
-  getCatalogos 
+  getCatalogos,
+   getCajaEstado,      
+  getFichaPatologica 
 } from '../../api/fichasApi';
 import TratamientosTable from '../../components/fichas/tratamientosTable';
 import NuevoTratamientoModal from '../../components/fichas/nuevoTratamientoModal';
+import FichaPatologicaModal from '../../components/fichas/fichaPatologicaModal';
 import OdontogramaModal from '../../components/fichas/odontogramaModal';
 import CobroModal from '../../components/fichas/cobroModal';
 import styles from '../../pages/fichasMedicas/Tratamientos.module.css';
@@ -19,10 +22,12 @@ function TratamientosPacientePage() {
   const [tratamientos, setTratamientos] = useState([]);
   const [catalogos, setCatalogos] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cajaAbierta, setCajaAbierta] = useState(null);
+  const [fichaPatologicaId, setFichaPatologicaId] = useState(null);
   
   // Modales
   const [modalNuevo, setModalNuevo] = useState(false);
-  const [modalFicha, setModalFicha] = useState(false);
+  const [modalFichaPatologica, setModalFichaPatologica] = useState(false);
   const [modalOdontograma, setModalOdontograma] = useState(false);
   const [modalCobro, setModalCobro] = useState(false);
   
@@ -43,11 +48,6 @@ function TratamientosPacientePage() {
         getCatalogos()
       ]);
 
-      console.log('=== RESPUESTAS DEL BACKEND ===');
-      console.log('Paciente:', pacienteRes);
-      console.log('Fichas:', fichasRes);
-      console.log('Catálogos completos:', catalogosRes);
-
       if (pacienteRes.data.success) {
         setPaciente(pacienteRes.data.data);
       }
@@ -57,9 +57,6 @@ function TratamientosPacientePage() {
       }
 
       if (catalogosRes.data.success) {
-        // CORRECCIÓN: Acceder a catalogosRes.data.data
-        console.log('Datos de catálogos:', catalogosRes.data.data);
-        console.log('Dientes encontrados:', catalogosRes.data.data.dientes);
         setCatalogos(catalogosRes.data.data);
       }
     } catch (error) {
@@ -70,7 +67,51 @@ function TratamientosPacientePage() {
     }
   };
 
+  const handleAgregarTratamiento = async () => {
+    try {
+      // PASO 1: Verificar que hay caja abierta
+      const cajaRes = await getCajaEstado();
+      
+      if (!cajaRes.data.caja_abierta) {
+        alert('❌ No se puede crear una ficha médica.\n\nNo hay una caja abierta en este momento.\nPor favor, abra una caja antes de continuar.');
+        return;
+      }
+      
+      setCajaAbierta(cajaRes.data.data);
+      
+      // PASO 2: Verificar que el paciente tiene obra social
+      if (!paciente.obras_sociales || paciente.obras_sociales.length === 0) {
+        alert('❌ Este paciente no tiene obras sociales asociadas.\n\nPor favor, asocie una obra social al paciente antes de crear un tratamiento.');
+        return;
+      }
+      
+      // PASO 3: Verificar si tiene ficha patológica
+      const idPacienteOS = paciente.obras_sociales[0].id_paciente_os;
+      const fichaPatRes = await getFichaPatologica(idPacienteOS);
+      
+      if (!fichaPatRes.data.exists) {
+        // No tiene ficha patológica → Abrir modal para crearla
+        setModalFichaPatologica(true);
+      } else {
+        // Tiene ficha patológica → Abrir modal de tratamiento directamente
+        setFichaPatologicaId(fichaPatRes.data.data.id_ficha_patologica);
+        setModalNuevo(true);
+      }
+      
+    } catch (error) {
+      console.error('Error al verificar requisitos:', error);
+      alert('Error al verificar los requisitos para crear la ficha');
+    }
+  };
+
+  const handleFichaPatologicaCreada = (idFichaPatologica) => {
+    setFichaPatologicaId(idFichaPatologica);
+    setModalFichaPatologica(false);
+    setModalNuevo(true);
+  };
+
   const handleVerFicha = (ficha) => {
+    // Navegar a la página de detalle
     navigate(`/historial/${id}/ficha/${ficha.id_ficha_medica}`);
   };
 
@@ -129,7 +170,10 @@ function TratamientosPacientePage() {
             <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => navigate('/historial')}>
               ← Volver
             </button>
-            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setModalNuevo(true)}>
+            <button 
+              className={`${styles.btn} ${styles.btnPrimary}`} 
+              onClick={handleAgregarTratamiento}
+            >
               + Agregar Tratamiento
             </button>
           </div>
@@ -144,7 +188,18 @@ function TratamientosPacientePage() {
             <span className={styles.infoLabel}>Fecha de Nacimiento:</span>
             <span className={styles.infoValue}>{paciente.fecha_nacimiento}</span>
           </div>
-          {/* resto igual */}
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Teléfono:</span>
+            <span className={styles.infoValue}>{paciente.telefono || 'No registrado'}</span>
+          </div>
+          {paciente.obras_sociales && paciente.obras_sociales.length > 0 && (
+            <div className={styles.infoRow}>
+              <span className={styles.infoLabel}>Obras Sociales:</span>
+              <span className={styles.infoValue}>
+                {paciente.obras_sociales.map(os => os.nombre_os).join(', ')}
+              </span>
+            </div>
+          )}
         </div>
 
         <TratamientosTable
@@ -155,16 +210,29 @@ function TratamientosPacientePage() {
         />
       </div>
 
-      {/* Modales */}
+      {/* Modal Ficha Patológica */}
+      {modalFichaPatologica && paciente.obras_sociales?.[0] && (
+        <FichaPatologicaModal
+          paciente={paciente}
+          idPacienteOS={paciente.obras_sociales[0].id_paciente_os}
+          onClose={() => setModalFichaPatologica(false)}
+          onSuccess={handleFichaPatologicaCreada}
+        />
+      )}
+
+      {/* Modal Nuevo Tratamiento */}
       {modalNuevo && (
         <NuevoTratamientoModal
           paciente={paciente}
           catalogos={catalogos}
+          idCaja={cajaAbierta?.id_caja}
+          idFichaPatologica={fichaPatologicaId}
           onClose={() => setModalNuevo(false)}
           onSuccess={handleTratamientoCreado}
         />
       )}
 
+      {/* Modal Odontograma */}
       {modalOdontograma && fichaSeleccionada && (
         <OdontogramaModal
           ficha={fichaSeleccionada}
@@ -173,6 +241,7 @@ function TratamientosPacientePage() {
         />
       )}
 
+      {/* Modal Cobro */}
       {modalCobro && cobroSeleccionado && (
         <CobroModal
           cobro={cobroSeleccionado}

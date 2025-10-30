@@ -1,0 +1,251 @@
+/* Modal Overlay - Mejorado para evitar cierre accidental */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+/* Modal Content - Más ancho y compacto */
+.modalContent {
+  background: #fff;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 1100px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Header */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #1976d2;
+  color: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 12px 12px 0 0;
+}
+
+.modalTitle {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.modalClose:hover {
+  opacity: 0.8;
+}
+
+/* Body - Con scroll interno fijo */
+.modalBody {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  /* Scroll más visible y estable */
+  scrollbar-width: thin;
+  scrollbar-color: #1976d2 #e0e0e0;
+}
+
+.modalBody::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modalBody::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.modalBody::-webkit-scrollbar-thumb {
+  background: #1976d2;
+  border-radius: 10px;
+}
+
+.modalBody::-webkit-scrollbar-thumb:hover {
+  background: #115293;
+}
+
+/* Info Card */
+.infoCard {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.infoRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.infoLabel {
+  font-weight: 600;
+  color: #856404;
+}
+
+.infoValue {
+  color: #856404;
+}
+
+.warningText {
+  color: #856404;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Sections - Grid de 2 columnas */
+.section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e3f2fd;
+}
+
+/* Checkbox Grid - 2 columnas para aprovechar espacio horizontal */
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.checkboxLabel:hover {
+  background: #f5f9fb;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1976d2;
+  flex-shrink: 0;
+}
+
+.checkboxLabel span {
+  color: #333;
+  line-height: 1.2;
+}
+
+/* Textarea */
+.textarea {
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+/* Footer - Siempre visible */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-top: 2px solid #e0e0e0;
+  background: #f9f9f9;
+  border-radius: 0 0 12px 12px;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: #115293;
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background-color: #bdbdbd;
+}
+
+/* Responsive - En móvil volver a 1 columna */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 98%;
+    max-height: 95vh;
+  }
+  
+  .checkboxGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modalFooter {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
+}

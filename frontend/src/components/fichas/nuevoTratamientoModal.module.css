@@ -1,3 +1,5 @@
+/* nuevoTratamientoModal.module.css - LAYOUT DOS COLUMNAS */
+
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -6,188 +8,433 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  overflow-y: auto;
+  padding: 1rem 0;
 }
 
 .modalContent {
   background: #fff;
   border-radius: 12px;
   width: 90%;
-  max-width: 500px;
+  max-width: 1100px;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-  padding: 1.5rem;
-  animation: fadeIn 0.2s ease-in-out;
+  margin: auto;
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #2e7d9d;
+  background-color: #1976d2;
   color: #fff;
-  padding: 1rem;
-  border-radius: 8px 8px 0 0;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px 12px 0 0;
+  flex-shrink: 0;
 }
 
 .modalTitle {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: bold;
+  margin: 0;
 }
 
 .modalClose {
   background: transparent;
   border: none;
   color: white;
-  font-size: 1.5rem;
+  font-size: 2rem;
   cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalClose:hover {
+  opacity: 0.8;
 }
 
 .modalBody {
-  margin-top: 1rem;
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
 }
 
+/* Info Card - Compacta en una línea */
 .infoCard {
-  background: #f9f9f9;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.infoRow {
+  background: #f5f5f5;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
 }
 
 .infoLabel {
   font-weight: 600;
+  color: #555;
 }
 
+.infoValue {
+  color: #333;
+  font-weight: 500;
+}
+
+.infoDivider {
+  color: #ccc;
+}
+
+/* Layout de Dos Columnas */
+.twoColumnLayout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 1.5rem;
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Form Elements */
 .formGroup {
-  margin-bottom: 1rem;
   display: flex;
   flex-direction: column;
 }
 
 .formLabel {
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  color: #333;
+  font-size: 0.85rem;
 }
 
-.formInput, .formTextarea, .formSelect {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 0.5rem;
-  font-size: 1rem;
-}
+.formInput, 
+.formTextarea, 
 .formSelect {
-  width: 150px;  
-  padding: 0.3rem 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
   font-size: 0.9rem;
-  border: 1px solid #ced4da;
-  border-radius: 5px;
+  transition: border-color 0.2s ease;
+  width: 100%;
 }
 
+.formInput:focus,
+.formTextarea:focus,
+.formSelect:focus {
+  outline: none;
+  border-color: #1976d2;
+}
 
 .formTextarea {
-  min-height: 60px;
+  min-height: 70px;
   resize: vertical;
+  font-family: inherit;
 }
 
 .formRow {
-  display: flex;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
 }
 
-.tratamientoItem {
-  border: 1px solid #eee;
-  padding: 1rem;
+.formError {
+  color: #f44336;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.warningBox {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
   border-radius: 8px;
-  margin-bottom: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: #856404;
+  font-weight: 500;
+}
+
+.loadingText {
+  text-align: center;
+  color: #1976d2;
+  padding: 1rem;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Sección de Tratamientos */
+.tratamientosSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: calc(90vh - 350px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Scrollbar personalizado */
+.tratamientosSection::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tratamientosSection::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.tratamientosSection::-webkit-scrollbar-thumb {
+  background: #1976d2;
+  border-radius: 10px;
+}
+
+.tratamientosSection::-webkit-scrollbar-thumb:hover {
+  background: #115293;
+}
+
+.sectionTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e3f2fd;
+}
+
+/* Tratamiento Item - Más compacto */
+.tratamientoItem {
+  border: 1px solid #e0e0e0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #fafafa;
 }
 
 .tratamientoHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.tratamientoNumero {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 0.85rem;
 }
 
 .btnRemove {
-  background-color: #e53935;
+  background-color: #f44336;
   color: white;
   border: none;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
+  padding: 0.25rem;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
 }
 
 .btnRemove:hover {
-  background-color: #b71c1c;
+  background-color: #d32f2f;
 }
 
-.btn {
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-  font-weight: 600;
+/* Info del Tratamiento - Compacta */
+.tratamientoInfo {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+  font-size: 0.8rem;
+  gap: 0.5rem;
 }
 
-.btn-primary {
-  background-color: #2e7d9d;
-  color: white;
+.tratamientoInfo div {
+  color: #555;
+  white-space: nowrap;
 }
 
-.btn-primary:hover {
-  background-color: #25677e;
+.importePaciente {
+  color: #1976d2 !important;
+  font-weight: 700;
 }
 
-.btn-secondary {
-  background-color: #9e9e9e;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #7a7a7a;
-}
-
+/* Botón Agregar Tratamiento */
 .btnAddTratamiento {
   background-color: #4caf50;
   color: white;
-  margin-top: 0.5rem;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background 0.2s ease;
 }
 
 .btnAddTratamiento:hover {
   background-color: #3b8d3b;
 }
 
+/* Resumen del Cobro - Compacto */
 .resumenCobro {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: #f1f1f1;
-  border-radius: 8px;
+  padding: 0.70rem;
+  background: #e3f2fd;
+  border-radius: 6px;
+  border: 1px solid #1976d2;
+}
+
+.resumenTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0 0 0.65rem 0;
 }
 
 .resumenItem {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.resumenItem.total span:last-child {
-  font-weight: bold;
-  color: #2e7d9d;
-}
-
-.formError {
-  color: #e53935;
+  margin-bottom: 0.4rem;
   font-size: 0.85rem;
-  margin-top: 0.25rem;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+.resumenItem:last-child {
+  margin-bottom: 0;
+}
+
+.resumenItem span:first-child {
+  color: #555;
+}
+
+.resumenItem span:last-child {
+  font-weight: 600;
+  color: #333;
+}
+
+.resumenItem.total {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 2px solid #1976d2;
+  font-size: 1rem;
+}
+
+.resumenItem.total span {
+  color: #1976d2;
+  font-weight: 700;
+}
+
+.cobertura {
+  color: #4caf50 !important;
+}
+
+/* Footer */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.85rem 1.25rem;
+  border-top: 1px solid #e0e0e0;
+  background: #f9f9f9;
+  border-radius: 0 0 12px 12px;
+  flex-shrink: 0;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btnPrimary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background-color: #115293;
+}
+
+.btnSecondary {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background-color: #bdbdbd;
+}
+
+/* Responsive */
+@media (max-width: 968px) {
+  .twoColumnLayout {
+    grid-template-columns: 1fr;
+  }
+  
+  .leftColumn {
+    order: 1;
+  }
+  
+  .rightColumn {
+    order: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    max-height: 92vh;
+  }
+  
+  .modalBody {
+    padding: 1rem;
+  }
+  
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .tratamientoInfo {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  
+  .modalFooter {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+  }
 }
