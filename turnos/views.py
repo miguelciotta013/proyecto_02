@@ -23,11 +23,14 @@ class TurnoListCreateView(APIView):
             id_estado = request.query_params.get('id_estado')
             fecha_desde = request.query_params.get('fecha_desde')
             fecha_hasta = request.query_params.get('fecha_hasta')
+            proximos = request.query_params.get('proximos')  # "1" si quieren solo próximos
 
+            # base: no eliminados
             turnos = Turnos.objects.filter(
                 Q(eliminado__isnull=True) | Q(eliminado=0)
             )
 
+            # filtros
             if fecha:
                 turnos = turnos.filter(fecha_turno=fecha)
 
@@ -43,7 +46,7 @@ class TurnoListCreateView(APIView):
             if fecha_hasta:
                 turnos = turnos.filter(fecha_turno__lte=fecha_hasta)
 
-            if not any([fecha, fecha_desde, fecha_hasta]):
+            if proximos == "1" and not any([fecha, fecha_desde, fecha_hasta]):
                 hoy = timezone.now().date()
                 fecha_limite = hoy + timedelta(days=30)
                 turnos = turnos.filter(
@@ -102,7 +105,11 @@ class TurnoDetailView(APIView):
             serializer = TurnoCreateUpdateSerializer(turno, data=request.data, partial=True)
             if serializer.is_valid():
                 turno = serializer.save()
-                return Response({'success': True, 'message': 'Turno actualizado correctamente', 'data': TurnoDetailSerializer(turno).data})
+                return Response({
+                    'success': True,
+                    'message': 'Turno actualizado correctamente',
+                    'data': TurnoDetailSerializer(turno).data
+                })
             else:
                 return Response({'success': False, 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
         except Turnos.DoesNotExist:
@@ -188,4 +195,3 @@ class HorariosDisponiblesView(APIView):
             })
         except Exception as e:
             return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
