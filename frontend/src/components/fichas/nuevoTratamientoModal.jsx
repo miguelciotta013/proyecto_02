@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { createFichaMedica } from '../../api/fichasApi';
+import { createFichaMedica,getTratamientos} from '../../api/fichasApi';
+import styles from './nuevoTratamientoModal.module.css';
 
-function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
+function NuevoTratamientoModal({ paciente, catalogos, idCaja, idFichaPatologica, onClose, onSuccess }) {
+  const [obraSocialSeleccionada, setObraSocialSeleccionada] = useState('');
+  const [tratamientosConCobertura, setTratamientosConCobertura] = useState([]);
+  const [loadingTratamientos, setLoadingTratamientos] = useState(false);
+  
   const [formData, setFormData] = useState({
     observaciones: '',
     nro_autorizacion: '',
@@ -21,43 +26,65 @@ function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Usuario logueado (ajustar según tu contexto)
   const idEmpleado = localStorage.getItem('id_empleado') || 1;
-  const idCaja = localStorage.getItem('id_caja_abierta') || 1;
 
-  // DEBUG: Ver qué contiene catalogos
   useEffect(() => {
-    console.log('Catálogos recibidos:', catalogos);
-    if (catalogos) {
-      console.log('Tratamientos:', catalogos.tratamientos);
-      console.log('Dientes:', catalogos.dientes);
-      console.log('Caras:', catalogos.caras);
+    if (obraSocialSeleccionada) {
+      fetchTratamientosConCobertura(obraSocialSeleccionada);
+    } else {
+      setTratamientosConCobertura([]);
     }
-  }, [catalogos]);
+  }, [obraSocialSeleccionada]);
 
   useEffect(() => {
     calcularResumen();
-  }, [tratamientos]);
+  }, [tratamientos, tratamientosConCobertura]);
+
+  const fetchTratamientosConCobertura = async (idObraSocial) => {
+    try {
+      setLoadingTratamientos(true);
+      const response = await getTratamientos(idObraSocial);
+      
+      if (response.data.success) {
+        setTratamientosConCobertura(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error al cargar tratamientos:', error);
+      alert('Error al cargar los tratamientos con cobertura');
+    } finally {
+      setLoadingTratamientos(false);
+    }
+  };
 
   const calcularResumen = () => {
-    if (!catalogos?.tratamientos) return;
-
     let total = 0;
+    let cobertura = 0;
+    
     tratamientos.forEach(t => {
-      if (t.id_tratamiento) {
-        const tratamiento = catalogos.tratamientos.find(
+      if (t.id_tratamiento && tratamientosConCobertura.length > 0) {
+        const tratamiento = tratamientosConCobertura.find(
           tr => tr.id_tratamiento === parseInt(t.id_tratamiento)
         );
+        
         if (tratamiento) {
-          total += parseFloat(tratamiento.importe);
+          const importeBase = parseFloat(tratamiento.importe_base);
+          const importeObraSocial = parseFloat(tratamiento.importe_obra_social);
+          
+          total += importeBase;
+          cobertura += importeObraSocial;
         }
       }
     });
 
-    const cobertura = 0;
     const pacientePaga = total - cobertura;
 
     setResumen({ total, cobertura, pacientePaga });
+  };
+
+  const handleObraSocialChange = (e) => {
+    const idObraSocial = e.target.value;
+    setObraSocialSeleccionada(idObraSocial);
+    setTratamientos([{ id_tratamiento: '', id_diente: '', id_cara: '' }]);
   };
 
   const handleInputChange = (e) => {
@@ -90,6 +117,12 @@ function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
   const validate = () => {
     const newErrors = {};
 
+    if (!obraSocialSeleccionada) {
+      newErrors.obra_social = 'Debe seleccionar una obra social';
+      alert('Por favor seleccione una obra social');
+      return false;
+    }
+
     if (tratamientos.length === 0) {
       newErrors.tratamientos = 'Debe agregar al menos un tratamiento';
     }
@@ -121,23 +154,23 @@ function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
     try {
       setLoading(true);
 
-      const idPacienteOS = paciente.obras_sociales?.[0]?.id_paciente_os;
-      
-      if (!idPacienteOS) {
-        alert('El paciente no tiene obra social asignada');
+      const pacienteOS = paciente.obras_sociales.find(
+        os => os.id_obra_social === parseInt(obraSocialSeleccionada)
+      );
+
+      if (!pacienteOS) {
+        alert('Error: No se encontró la relación paciente-obra social');
         return;
       }
 
-      const idFichaPatologica = 1;
-
       const data = {
-        id_paciente_os: idPacienteOS,
+        id_paciente_os: pacienteOS.id_paciente_os,
         id_empleado: parseInt(idEmpleado),
-        id_ficha_patologica: idFichaPatologica,
+        id_ficha_patologica: parseInt(idFichaPatologica),
         id_caja: parseInt(idCaja),
-        observaciones: formData.observaciones,
-        nro_autorizacion: formData.nro_autorizacion || null,
-        nro_coseguro: formData.nro_coseguro || null,
+        observaciones: formData.observaciones || '',
+        nro_autorizacion: formData.nro_autorizacion ? parseInt(formData.nro_autorizacion) : null,
+        nro_coseguro: formData.nro_coseguro ? parseInt(formData.nro_coseguro) : null,
         detalles_consulta: tratamientos.map(t => ({
           id_tratamiento: parseInt(t.id_tratamiento),
           id_diente: parseInt(t.id_diente),
@@ -145,13 +178,15 @@ function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
         }))
       };
 
+      console.log('Datos a enviar:', data);
+
       const response = await createFichaMedica(data);
 
       if (response.data.success) {
-        alert('Tratamiento registrado correctamente');
+        alert('✅ Tratamiento registrado correctamente');
         onSuccess();
       } else {
-        alert('Error al registrar el tratamiento');
+        alert('❌ Error al registrar el tratamiento');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -161,183 +196,238 @@ function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
     }
   };
 
+  const getTratamientoInfo = (idTratamiento) => {
+    if (!idTratamiento || !tratamientosConCobertura.length) return null;
+    return tratamientosConCobertura.find(t => t.id_tratamiento === parseInt(idTratamiento));
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">Nuevo Tratamiento</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>Nuevo Tratamiento</h3>
+          <button className={styles.modalClose} onClick={onClose}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            {/* Paciente */}
-            <div className="info-card" style={{ marginBottom: '1.5rem' }}>
-              <div className="info-row">
-                <span className="info-label">Paciente:</span>
-                <span className="info-value">{paciente.nombre_completo}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">DNI:</span>
-                <span className="info-value">{paciente.dni}</span>
-              </div>
-              {paciente.obras_sociales && paciente.obras_sociales.length > 0 && (
-                <div className="info-row">
-                  <span className="info-label">Obra Social:</span>
-                  <span className="info-value">{paciente.obras_sociales[0].nombre_os}</span>
-                </div>
-              )}
+          <div className={styles.modalBody}>
+            {/* Info del Paciente - Compacta */}
+            <div className={styles.infoCard}>
+              <span className={styles.infoLabel}>Paciente:</span>
+              <span className={styles.infoValue}>{paciente.nombre_completo}</span>
+              <span className={styles.infoDivider}>|</span>
+              <span className={styles.infoLabel}>DNI:</span>
+              <span className={styles.infoValue}>{paciente.dni}</span>
             </div>
 
-            {/* Datos de la ficha */}
-            <div className="form-group">
-              <label className="form-label">Observaciones</label>
-              <textarea
-                className="form-textarea"
-                name="observaciones"
-                value={formData.observaciones}
-                onChange={handleInputChange}
-                placeholder="Detalles de la consulta..."
-              />
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Nro. Autorización</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  name="nro_autorizacion"
-                  value={formData.nro_autorizacion}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Nro. Coseguro</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  name="nro_coseguro"
-                  value={formData.nro_coseguro}
-                  onChange={handleInputChange}
-                />
-              </div>
-            </div>
-
-            {/* Tratamientos dinámicos */}
-            <h4 style={{ marginTop: '1.5rem', marginBottom: '1rem', color: '#2E7D9D' }}>
-              Tratamientos
-            </h4>
-
-            {tratamientos.map((tratamiento, index) => (
-              <div key={index} className="tratamiento-item">
-                <div className="tratamiento-header">
-                  <span style={{ fontWeight: '600' }}>Tratamiento {index + 1}</span>
-                  {tratamientos.length > 1 && (
-                    <button
-                      type="button"
-                      className="btn-remove"
-                      onClick={() => eliminarTratamiento(index)}
-                    >
-                      Eliminar
-                    </button>
+            {/* Layout de dos columnas */}
+            <div className={styles.twoColumnLayout}>
+              {/* COLUMNA IZQUIERDA */}
+              <div className={styles.leftColumn}>
+                {/* Obra Social */}
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Obra Social *</label>
+                  <select
+                    className={styles.formSelect}
+                    value={obraSocialSeleccionada}
+                    onChange={handleObraSocialChange}
+                    required
+                  >
+                    <option value="">-- Seleccionar --</option>
+                    {paciente.obras_sociales?.map(os => (
+                      <option key={os.id_obra_social} value={os.id_obra_social}>
+                        {os.nombre_os} - {os.credencial || 'S/C'}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.obra_social && (
+                    <span className={styles.formError}>{errors.obra_social}</span>
                   )}
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label className="form-label">Tratamiento *</label>
-                    <select
-                      className="form-select"
-                      value={tratamiento.id_tratamiento}
-                      onChange={(e) => handleTratamientoChange(index, 'id_tratamiento', e.target.value)}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {catalogos?.tratamientos?.map(t => (
-                        <option key={t.id_tratamiento} value={t.id_tratamiento}>
-                          {t.nombre_tratamiento} - ${parseFloat(t.importe).toLocaleString('es-AR')}
-                        </option>
-                      ))}
-                    </select>
-                    {errors[`tratamiento_${index}`] && (
-                      <span className="form-error">{errors[`tratamiento_${index}`]}</span>
-                    )}
-                  </div>
+                {/* Observaciones */}
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Observaciones</label>
+                  <textarea
+                    className={styles.formTextarea}
+                    name="observaciones"
+                    value={formData.observaciones}
+                    onChange={handleInputChange}
+                    placeholder="Detalles de la consulta..."
+                    rows={3}
+                  />
+                </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Diente * (Total: {catalogos?.dientes?.length || 0})</label>
-                    <select
-                      className="form-select"
-                      value={tratamiento.id_diente}
-                      onChange={(e) => handleTratamientoChange(index, 'id_diente', e.target.value)}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {catalogos?.dientes && catalogos.dientes.length > 0 ? (
-                        catalogos.dientes.map(d => (
-                          <option key={d.id_diente} value={d.id_diente}>
-                            {d.id_diente} - {d.nombre_diente}
-                          </option>
-                        ))
-                      ) : (
-                        <option value="" disabled>No hay dientes disponibles</option>
-                      )}
-                    </select>
-                    {errors[`diente_${index}`] && (
-                      <span className="form-error">{errors[`diente_${index}`]}</span>
-                    )}
-                  </div>
+                {/* Nro Autorización */}
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Nro. Autorización</label>
+                  <input
+                    type="number"
+                    className={styles.formInput}
+                    name="nro_autorizacion"
+                    value={formData.nro_autorizacion}
+                    onChange={handleInputChange}
+                    placeholder="Opcional"
+                  />
+                </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Cara *</label>
-                    <select
-                      className="form-select"
-                      value={tratamiento.id_cara}
-                      onChange={(e) => handleTratamientoChange(index, 'id_cara', e.target.value)}
-                    >
-                      <option value="">Seleccionar...</option>
-                      {catalogos?.caras?.map(c => (
-                        <option key={c.id_cara} value={c.id_cara}>
-                          {c.nombre_cara}
-                        </option>
-                      ))}
-                    </select>
-                    {errors[`cara_${index}`] && (
-                      <span className="form-error">{errors[`cara_${index}`]}</span>
-                    )}
-                  </div>
+                {/* Nro Coseguro */}
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Nro. Coseguro</label>
+                  <input
+                    type="number"
+                    className={styles.formInput}
+                    name="nro_coseguro"
+                    value={formData.nro_coseguro}
+                    onChange={handleInputChange}
+                    placeholder="Opcional"
+                  />
                 </div>
               </div>
-            ))}
 
-            <button
-              type="button"
-              className="btn btn-add-tratamiento"
-              onClick={agregarTratamiento}
-            >
-              + Agregar Otro Tratamiento
-            </button>
+              {/* COLUMNA DERECHA */}
+              <div className={styles.rightColumn}>
+                {!obraSocialSeleccionada ? (
+                  <div className={styles.warningBox}>
+                    ⚠️ Seleccione una obra social
+                  </div>
+                ) : (
+                  <>
+                    <h4 className={styles.sectionTitle}>Tratamientos</h4>
+                    
+                    {/* Tratamientos con scroll */}
+                    <div className={styles.tratamientosSection}>
+                      {loadingTratamientos ? (
+                        <p className={styles.loadingText}>Cargando...</p>
+                      ) : (
+                        <>
+                          {tratamientos.map((tratamiento, index) => {
+                            const tratamientoInfo = getTratamientoInfo(tratamiento.id_tratamiento);
+                            
+                            return (
+                              <div key={index} className={styles.tratamientoItem}>
+                                <div className={styles.tratamientoHeader}>
+                                  {tratamientos.length > 1 && (
+                                    <button
+                                      type="button"
+                                      className={styles.btnRemove}
+                                      onClick={() => eliminarTratamiento(index)}
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
 
-            {/* Resumen */}
-            <div className="resumen-cobro">
-              <div className="resumen-item">
-                <span>Subtotal:</span>
-                <span>${resumen.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="resumen-item">
-                <span>Cobertura Obra Social:</span>
-                <span>${resumen.cobertura.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="resumen-item total">
-                <span>Paciente Paga:</span>
-                <span>${resumen.pacientePaga.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                                <div className={styles.formGroup}>
+                                  
+                                  <label className={styles.formLabel}>#{index + 1} Tratamiento *</label>
+                                  <select
+                                    className={styles.formSelect}
+                                    value={tratamiento.id_tratamiento}
+                                    onChange={(e) => handleTratamientoChange(index, 'id_tratamiento', e.target.value)}
+                                  >
+                                    <option value="">Seleccionar...</option>
+                                    {tratamientosConCobertura.map(t => (
+                                      <option key={t.id_tratamiento} value={t.id_tratamiento}>
+                                        {t.nombre_tratamiento} (${parseFloat(t.importe_paciente).toLocaleString('es-AR')})
+                                      </option>
+                                    ))}
+                                  </select>
+                                  {errors[`tratamiento_${index}`] && (
+                                    <span className={styles.formError}>{errors[`tratamiento_${index}`]}</span>
+                                  )}
+                                </div>
+
+                                <div className={styles.formRow}>
+                                  <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>Diente *</label>
+                                    <select
+                                      className={styles.formSelect}
+                                      value={tratamiento.id_diente}
+                                      onChange={(e) => handleTratamientoChange(index, 'id_diente', e.target.value)}
+                                    >
+                                      <option value="">Sel...</option>
+                                      {catalogos?.dientes?.map(d => (
+                                        <option key={d.id_diente} value={d.id_diente}>
+                                          {d.id_diente}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {errors[`diente_${index}`] && (
+                                      <span className={styles.formError}>{errors[`diente_${index}`]}</span>
+                                    )}
+                                  </div>
+
+                                  <div className={styles.formGroup}>
+                                    <label className={styles.formLabel}>Cara *</label>
+                                    <select
+                                      className={styles.formSelect}
+                                      value={tratamiento.id_cara}
+                                      onChange={(e) => handleTratamientoChange(index, 'id_cara', e.target.value)}
+                                    >
+                                      <option value="">Sel...</option>
+                                      {catalogos?.caras?.map(c => (
+                                        <option key={c.id_cara} value={c.id_cara}>
+                                          {c.abreviatura}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    {errors[`cara_${index}`] && (
+                                      <span className={styles.formError}>{errors[`cara_${index}`]}</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {tratamientoInfo && (
+                                  <div className={styles.tratamientoInfo}>
+                                    <div>Base: ${parseFloat(tratamientoInfo.importe_base).toLocaleString('es-AR')}</div>
+                                    <div>Cob: ${parseFloat(tratamientoInfo.importe_obra_social).toLocaleString('es-AR')}</div>
+                                    <div className={styles.importePaciente}>
+                                      Paga: ${parseFloat(tratamientoInfo.importe_paciente).toLocaleString('es-AR')}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          <button
+                            type="button"
+                            className={styles.btnAddTratamiento}
+                            onClick={agregarTratamiento}
+                          >
+                            + Agregar
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Resumen */}
+                    <div className={styles.resumenCobro}>
+                      <h4 className={styles.resumenTitle}>Resumen</h4>
+                      <div className={styles.resumenItem}>
+                        <span>Subtotal:</span>
+                        <span>${resumen.total.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className={styles.resumenItem}>
+                        <span>Cobertura:</span>
+                        <span className={styles.cobertura}>- ${resumen.cobertura.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className={`${styles.resumenItem} ${styles.total}`}>
+                        <span>A Pagar:</span>
+                        <span>${resumen.pacientePaga.toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="modal-footer">
+          <div className={styles.modalFooter}>
             <button
               type="button"
-              className="btn btn-secondary"
+              className={`${styles.btn} ${styles.btnSecondary}`}
               onClick={onClose}
               disabled={loading}
             >
@@ -345,10 +435,10 @@ function NuevoTratamientoModal({ paciente, catalogos, onClose, onSuccess }) {
             </button>
             <button
               type="submit"
-              className="btn btn-primary"
-              disabled={loading}
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              disabled={loading || !obraSocialSeleccionada}
             >
-              {loading ? 'Guardando...' : 'Guardar'}
+              {loading ? 'Guardando...' : ' Guardar'}
             </button>
           </div>
         </form>

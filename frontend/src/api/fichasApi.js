@@ -148,8 +148,6 @@ export const getOdontograma = (idFicha) =>
  * @param {number} idPacienteOS - ID de la relación paciente-obra social
  * @returns {Promise} Response indicando si existe y sus datos
  */
-export const getFichaPatologica = (idPacienteOS) => 
-  apiClient.get(`/ficha_medica/patologia/?id_paciente_os=${idPacienteOS}`);
 
 /**
  * Crear nueva ficha patológica
@@ -240,6 +238,10 @@ export const getPacientesConOS = () =>
 export const getCajaEstado = () => 
   apiClient.get('/ficha_medica/caja/estado/');
 
+export const getFichaPatologica = (idPacienteOS) => 
+  apiClient.get(`/ficha_medica/patologia/?id_paciente_os=${idPacienteOS}`);
+
+
 // ============================================
 // HELPERS
 // ============================================
@@ -317,6 +319,7 @@ export default {
   getFichaPatologica,
   createFichaPatologica,
   updateFichaPatologica,
+  
   
   // Cobros
   updateCobro,
