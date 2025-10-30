@@ -1,56 +1,139 @@
-.listado-turnos-container {
-  padding: 12px;
+/* src/pages/turnos/ListadoTurnos.module.css */
+.container {
+  max-width: 830px;
+  margin: 0 auto;
+  margin-top: 6px;
 }
 
-.titulo-turnos {
-  margin: 6px 0 12px 0;
-  font-size: 1.25rem;
-  color: #0b63d6;
-}
-
-.controls-row {
+.headerBar {
   display: flex;
-  gap: 12px;
   align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  gap: 10px;
+  background: #1f78b4;
+  padding: 8px 16px;
+  border-radius: 10px 10px 0 0;
+  color: #fff;
 }
 
-.search-wrapper {
-  flex: 1 1 300px;
+.backBtn {
+  background: #0f5a8b;
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
 }
 
-.search-input {
-  width: 100%;
-  padding: 8px 10px;
+.searchBox {
+  background: #fff;
   border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 0.95rem;
-  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  flex: 0 0 170px;
 }
 
-.nuevo-turno-container {
-  flex: 0 0 auto;
+.searchBox input {
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  width: 100%;
 }
 
-.nuevo-turno-btn {
+.searchIcon {
+  font-size: 0.85rem;
+  opacity: 0.5;
+}
+
+.title {
+  flex: 1;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tableWrapper {
+  background: #fff;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.03);
+  border: 1px solid rgba(15, 23, 42, 0.03);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.table th,
+.table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #edf2f7;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table thead {
+  background: #f3f4f6;
+}
+
+.table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.verBtn {
+  background: #1f78b4;
+  border: none;
+  color: #fff;
+  width: 34px;
+  height: 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.12s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  background: #0b63d6;
-  color: white;
-  font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  justify-content: center;
 }
 
-.icono {
-  font-weight: 700;
+.verBtn:hover {
+  background: #186492;
 }
 
-.loading-text {
-  color: #666;
+.loading {
+  padding: 14px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.empty {
+  text-align: center;
+  padding: 16px;
+  color: #6b7280;
+}
+
+@media (max-width: 720px) {
+  .container {
+    margin: 0 10px;
+  }
+  .headerBar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .title {
+    order: 3;
+    width: 100%;
+  }
+  .table {
+    font-size: 0.78rem;
+  }
+  .table th,
+  .table td {
+    padding: 8px 10px;
+  }
 }

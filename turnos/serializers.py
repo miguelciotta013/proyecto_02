@@ -12,21 +12,30 @@ class EstadoTurnoSerializer(serializers.ModelSerializer):
 
 
 class TurnoListSerializer(serializers.ModelSerializer):
+    # Datos del paciente (para mostrar rápido en la lista)
     paciente_nombre = serializers.CharField(source='id_paciente.nombre_paciente', read_only=True)
     paciente_apellido = serializers.CharField(source='id_paciente.apellido_paciente', read_only=True)
+
+    # Mandamos id_paciente e id_turno_estado para que el frontend pueda emparejar bien
+    id_paciente = serializers.IntegerField(source='id_paciente.id_paciente', read_only=True)
+    id_turno_estado = serializers.IntegerField(source='id_turno_estado.id_estado_turno', read_only=True)
+
+    # Texto del estado
     estado = serializers.CharField(source='id_turno_estado.estado_turno', read_only=True)
 
     class Meta:
-        model = Turnos
-        fields = [
-            'id_turno',
-            'fecha_turno',
-            'hora_turno',
-            'paciente_nombre',
-            'paciente_apellido',
-            'asunto',
-            'estado'
-        ]
+      model = Turnos
+      fields = [
+          'id_turno',
+          'id_paciente',
+          'fecha_turno',
+          'hora_turno',
+          'asunto',
+          'estado',
+          'id_turno_estado',
+          'paciente_nombre',
+          'paciente_apellido',
+      ]
 
 
 class TurnoDetailSerializer(serializers.ModelSerializer):
@@ -59,22 +68,17 @@ class TurnoCreateUpdateSerializer(serializers.ModelSerializer):
     """
     Para crear y actualizar turnos.
 
-    - No es obligatorio que el frontend envíe `id_paciente`.
-    - Puede enviar `paciente_nombre` + `paciente_apellido` (se buscará o creará)
-    - Si se envía `id_paciente` como entero, se validará y utilizará.
+    - El frontend puede enviar id_paciente (pk) o bien paciente_nombre + paciente_apellido.
     """
-   
     paciente_nombre = serializers.CharField(write_only=True, required=False, allow_blank=True)
     paciente_apellido = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
-    
     id_paciente = serializers.PrimaryKeyRelatedField(
         queryset=Pacientes.objects.all(),
         required=False,
         allow_null=True
     )
 
-    
     id_turno_estado = serializers.PrimaryKeyRelatedField(
         queryset=EstadosTurno.objects.all(),
         required=False,
@@ -95,11 +99,12 @@ class TurnoCreateUpdateSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        # normalizar strings vacíos a None
         for k, v in list(data.items()):
             if isinstance(v, str) and v.strip() == '':
                 data[k] = None
 
-        
+        # fecha/hora para validar conflictos
         if self.instance:
             fecha = data.get('fecha_turno', self.instance.fecha_turno)
             hora = data.get('hora_turno', self.instance.hora_turno)
@@ -121,7 +126,7 @@ class TurnoCreateUpdateSerializer(serializers.ModelSerializer):
             if conflicto.exists():
                 raise serializers.ValidationError("Ya existe un turno programado para esa fecha y hora")
 
-        
+        # no permitir fechas pasadas
         hoy = timezone.now().date()
         if not self.instance:
             if fecha and fecha < hoy:
@@ -132,11 +137,9 @@ class TurnoCreateUpdateSerializer(serializers.ModelSerializer):
 
         
         id_paciente = data.get('id_paciente') or (self.instance and self.instance.id_paciente)
-
         nombre = data.get('paciente_nombre')
         apellido = data.get('paciente_apellido')
 
-        
         nombre = nombre.strip() if isinstance(nombre, str) else nombre
         apellido = apellido.strip() if isinstance(apellido, str) else apellido
 
@@ -154,35 +157,27 @@ class TurnoCreateUpdateSerializer(serializers.ModelSerializer):
         ).first()
         if paciente:
             return paciente
+
         
         paciente = Pacientes.objects.create(
             nombre_paciente=nombre,
             apellido_paciente=apellido,
-            dni_paciente=0,  
-            fecha_nacimiento=timezone.now().date()  
+            dni_paciente=0,
+            fecha_nacimiento=timezone.now().date()
         )
         return paciente
 
     def create(self, validated_data):
-        
         nombre = validated_data.pop('paciente_nombre', None)
         apellido = validated_data.pop('paciente_apellido', None)
         id_paciente = validated_data.pop('id_paciente', None)
 
-        
-        id_turno_estado = validated_data.get('id_turno_estado', None)
-
         if id_paciente:
-            
             validated_data['id_paciente'] = id_paciente
         elif nombre and apellido:
             paciente = self._get_or_create_paciente(nombre, apellido)
             validated_data['id_paciente'] = paciente
-        else:
-           
-            pass
 
-        
         turno = super().create(validated_data)
         return turno
 
@@ -191,11 +186,11 @@ class TurnoCreateUpdateSerializer(serializers.ModelSerializer):
         apellido = validated_data.pop('paciente_apellido', None)
         id_paciente = validated_data.get('id_paciente', None)
 
+        
         if nombre and apellido:
             paciente = self._get_or_create_paciente(nombre, apellido)
             validated_data['id_paciente'] = paciente
         elif id_paciente:
-            
             validated_data['id_paciente'] = id_paciente
 
         return super().update(instance, validated_data)

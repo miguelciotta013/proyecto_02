@@ -1,3 +1,4 @@
+// src/pages/turnos/EditarTurno.jsx
 import React, { useEffect, useState } from 'react';
 import TurnoForm from '../../components/turnos/TurnoForm';
 import { obtenerTurno, actualizarTurno } from '../../api/turnosApi';
@@ -11,25 +12,15 @@ export default function EditarTurno() {
 
   useEffect(() => {
     obtenerTurno(id).then(r => {
-      if (r && r.success) {
-        setInitial(r.data);
-      } else {
-        alert(r?.error || 'No se pudo cargar turno');
-        navigate('/turnos');
-      }
+      if (r && r.success) setInitial(r.data);
+      else { alert(r?.error || 'No se pudo cargar turno'); navigate('/turnos'); }
     }).finally(() => setLoading(false));
   }, [id, navigate]);
 
   async function handleSaved(form) {
     const resp = await actualizarTurno(id, form);
-    if (resp && resp.success) {
-      alert('Turno actualizado');
-
-      
-      navigate('/turnos');
-    } else {
-      throw new Error(resp?.errors || resp?.error || 'Error al actualizar');
-    }
+    if (resp && resp.success) { alert('Turno actualizado'); navigate('/turnos'); }
+    else throw new Error(resp?.errors || resp?.error || 'Error al actualizar');
   }
 
   if (loading) return <p>Cargando...</p>;
@@ -41,6 +32,8 @@ export default function EditarTurno() {
         initialData={initial}
         onSaved={handleSaved}
         onCancel={() => navigate('/turnos')}
+        mode="edit"
+        hidePatientFields={true}  // en editar NO se puede cambiar nombre/apellido del paciente
       />
     </div>
   );
