@@ -1,4 +1,5 @@
 import React from 'react';
+import { Eye } from 'lucide-react'; // 🔹 Usa ícono moderno (si usás lucide-react)
 
 export default function PacienteTable({ pacientes = [], onView }) {
   if (!pacientes.length) {
@@ -7,7 +8,8 @@ export default function PacienteTable({ pacientes = [], onView }) {
         textAlign: 'center',
         marginTop: '30px',
         fontFamily: 'Poppins, sans-serif',
-        color: '#666'
+        color: '#666',
+        fontSize: '18px'
       }}>
         No hay pacientes para mostrar.
       </p>
@@ -28,30 +30,29 @@ export default function PacienteTable({ pacientes = [], onView }) {
         width: '90%',
         maxWidth: '1000px',
         backgroundColor: '#fff',
-        borderRadius: '16px',
-        boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-        overflow: 'hidden'
+        borderRadius: '20px',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+        overflow: 'hidden',
+        transition: '0.3s'
       }}>
         <h2 style={{
           textAlign: 'center',
-          padding: '16px',
-          backgroundColor: '#1976d2',
+          padding: '18px',
+          background: 'linear-gradient(90deg, #1976d2, #1565c0)',
           color: '#fff',
           margin: 0,
-          fontWeight: 600
+          fontWeight: 700,
+          letterSpacing: '0.5px'
         }}>
-          Lista de Pacientes
+          🧾 Lista de Pacientes
         </h2>
 
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ backgroundColor: '#e3f2fd', textAlign: 'left' }}>
-              <th style={thStyle}>DNI</th>
-              <th style={thStyle}>Nombre</th>
-              <th style={thStyle}>Apellido</th>
-              <th style={thStyle}>Nacimiento</th>
-              <th style={thStyle}>Teléfono</th>
-              <th style={thStyle}>Acciones</th>
+              {['DNI', 'Nombre', 'Apellido', 'Nacimiento', 'Teléfono', 'Acciones'].map((h) => (
+                <th key={h} style={thStyle}>{h}</th>
+              ))}
             </tr>
           </thead>
 
@@ -61,10 +62,17 @@ export default function PacienteTable({ pacientes = [], onView }) {
                 key={p.id_paciente}
                 style={{
                   backgroundColor: index % 2 === 0 ? '#fafafa' : '#fff',
-                  transition: 'background-color 0.3s'
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e3f2fd'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fafafa' : '#fff'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e3f2fd';
+                  e.currentTarget.style.transform = 'scale(1.01)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fafafa' : '#fff';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
               >
                 <td style={tdStyle}>{p.dni_paciente}</td>
                 <td style={tdStyle}>{p.nombre_paciente}</td>
@@ -75,9 +83,10 @@ export default function PacienteTable({ pacientes = [], onView }) {
                   <button
                     onClick={() => onView && onView(p.id_paciente)}
                     style={btnVerStyle}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = '#1565c0'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = '#1976d2'}
+                    onMouseEnter={(e) => e.target.style.background = 'linear-gradient(90deg, #0049c7, #1565c0)'}
+                    onMouseLeave={(e) => e.target.style.background = 'linear-gradient(90deg, #1976d2, #2196f3)'}
                   >
+                    <Eye size={16} style={{ marginRight: '6px' }} />
                     Ver
                   </button>
                 </td>
@@ -91,25 +100,33 @@ export default function PacienteTable({ pacientes = [], onView }) {
 }
 
 const thStyle = {
-  padding: '12px 10px',
+  padding: '14px 12px',
   fontWeight: '600',
   color: '#333',
-  borderBottom: '2px solid #ddd'
+  borderBottom: '2px solid #ddd',
+  fontSize: '15px',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px'
 };
 
 const tdStyle = {
-  padding: '10px',
+  padding: '12px',
   color: '#555',
-  borderBottom: '1px solid #eee'
+  borderBottom: '1px solid #eee',
+  fontSize: '14px'
 };
 
 const btnVerStyle = {
-  padding: '6px 14px',
-  backgroundColor: '#1976d2',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '8px 14px',
+  background: 'linear-gradient(90deg, #1976d2, #2196f3)',
   color: '#fff',
   border: 'none',
-  borderRadius: '6px',
+  borderRadius: '8px',
   cursor: 'pointer',
-  fontWeight: '500',
-  transition: 'background-color 0.2s'
+  fontWeight: '600',
+  boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+  transition: 'all 0.3s ease'
 };
