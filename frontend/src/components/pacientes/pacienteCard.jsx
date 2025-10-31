@@ -7,7 +7,6 @@ export default function PacienteCard({
   onEditar,
   onEliminar,
   onAsignarObra,
-  onAgregarFicha,
   onObraRemoved
 }) {
   const [closing, setClosing] = useState(false);
@@ -66,8 +65,8 @@ export default function PacienteCard({
             top: 16,
             right: 16,
             border: "none",
-            backgroundColor: "#d63532ff",
-            color: "#ffffffff",
+            backgroundColor: "#d63532",
+            color: "#fff",
             padding: "8px 14px",
             borderRadius: 10,
             cursor: "pointer",
@@ -85,8 +84,8 @@ export default function PacienteCard({
         <h2
           style={{
             marginBottom: 10,
-            color: "#0b47a0ff",
-            borderBottom: "2px solid #03506eff",
+            color: "#0b47a0",
+            borderBottom: "2px solid #03506e",
             paddingBottom: 8,
             textAlign: "center",
             fontWeight: 700
@@ -98,13 +97,12 @@ export default function PacienteCard({
         {/* Información básica */}
         <div style={{
           marginBottom: 16,
-          color: "#000000ff",
+          color: "#000",
           lineHeight: "1.6",
           padding: "10px 15px",
-          backgroundColor: "#ffffffff",
+          backgroundColor: "#fff",
           borderRadius: 12,
           boxShadow: "inset 0 0 8px rgba(0,0,0,0.03)"
-          
         }}>
           <p><strong>DNI:</strong> {paciente.dni_paciente}</p>
           <p><strong>Fecha Nac.:</strong> {paciente.fecha_nacimiento}</p>
@@ -122,7 +120,7 @@ export default function PacienteCard({
             maxHeight: 150,
             overflowY: "auto",
             marginBottom: 20,
-            border: "1px solid #000000ff"
+            border: "1px solid #00000033"
           }}
         >
           {obras && obras.length ? (
@@ -161,7 +159,7 @@ export default function PacienteCard({
                       fontWeight: 600,
                       transition: "0.3s"
                     }}
-                    onMouseEnter={e => e.target.style.background = "linear-gradient(90deg, #ff0000ff, #860303ff)"}
+                    onMouseEnter={e => e.target.style.background = "linear-gradient(90deg, #ff0000, #860303)"}
                     onMouseLeave={e => e.target.style.background = "linear-gradient(90deg, #ef5350, #d32f2f)"}
                   >Eliminar</button>
                 </li>
@@ -180,10 +178,9 @@ export default function PacienteCard({
           justifyContent: "center"
         }}>
           {[
-            { text: "Editar", color: "#0b8cf6ff", hover: "#00529aff", action: () => onEditar(paciente.id_paciente) },
-            { text: "Dar de baja", color: "#c30c09ff", hover: "#d32f2f", action: handleEliminar },
-            { text: "Asignar Obra Social", color: "#020f75ff", hover: "#032987ff", action: () => onAsignarObra(paciente.id_paciente) },
-            { text: "Agregar Ficha Patológica", color: "#66bb6a", hover: "#2e7d32", action: () => onAgregarFicha(paciente.id_paciente) }
+            { text: "Editar", color: "#0b8cf6", hover: "#00529a", action: () => onEditar(paciente.id_paciente) },
+            { text: "Dar de baja", color: "#c30c09", hover: "#d32f2f", action: handleEliminar },
+            { text: "Asignar Obra Social", color: "#020f75", hover: "#032987", action: () => onAsignarObra(paciente.id_paciente) }
           ].map(btn => (
             <button
               key={btn.text}
