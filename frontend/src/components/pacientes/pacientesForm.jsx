@@ -15,11 +15,6 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  }
-
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -35,27 +30,28 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
     }
   }, [initialData]);
 
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      if (initialData && initialData.id_paciente) {
+      if (initialData?.id_paciente) {
         const resp = await updatePaciente(initialData.id_paciente, form);
-        if (resp && resp.success) {
+        if (resp?.success) {
           onUpdated && onUpdated(resp.data);
           onClose && onClose();
-        } else {
-          setError(resp?.errors || resp?.error || 'Error al actualizar paciente');
-        }
+        } else setError(resp?.errors || resp?.error || 'Error al actualizar paciente');
       } else {
         const resp = await createPaciente(form);
-        if (resp && resp.success) {
+        if (resp?.success) {
           onCreated && onCreated(resp.data);
           onClose && onClose();
-        } else {
-          setError(resp?.errors || resp?.error || 'Error al crear paciente');
-        }
+        } else setError(resp?.errors || resp?.error || 'Error al crear paciente');
       }
     } catch (e) {
       setError(e.message || String(e));
@@ -64,31 +60,61 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
     }
   }
 
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 14px',
+    borderRadius: 10,
+    border: '1px solid #ccc',
+    outline: 'none',
+    fontSize: 14,
+    transition: '0.3s',
+    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)'
+  };
+
+  const buttonStyle = (bg, hover) => ({
+    flex: 1,
+    padding: '12px',
+    borderRadius: 12,
+    border: 'none',
+    background: bg,
+    color: '#fff',
+    fontWeight: 600,
+    cursor: 'pointer',
+    boxShadow: '0 5px 12px rgba(0,0,0,0.15)',
+    transition: '0.3s'
+  });
+
   return (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100vw",
-      height: "100vh",
-      backgroundColor: "rgba(0,0,0,0.4)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 1000,
-      fontFamily: "'Poppins', sans-serif"
-    }}>
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+        backdropFilter: "blur(3px)",
+        fontFamily: "'Poppins', sans-serif"
+      }}
+    >
       <div
         style={{
-          backgroundColor: "#fff",
-          padding: 24,
-          borderRadius: 16,
-          boxShadow: "0 8px 20px rgba(0,0,0,0.25)",
+          background: "linear-gradient(145deg, #f5f7fa, #e3f2fd)",
+          padding: 30,
+          borderRadius: 20,
+          boxShadow: "0 15px 35px rgba(0,0,0,0.25)",
           width: "90%",
           maxWidth: 500,
-          animation: "fadeIn 0.3s ease"
+          position: "relative",
+          transform: "scale(1)",
+          transition: "transform 0.3s ease"
         }}
       >
+        {/* Botón cerrar */}
         <button
           onClick={onClose}
           style={{
@@ -96,31 +122,28 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
             top: 16,
             right: 16,
             border: "none",
-            backgroundColor: "#f44336",
+            backgroundColor: "#d63532",
             color: "#fff",
-            padding: "6px 12px",
-            borderRadius: 8,
+            padding: "8px 14px",
+            borderRadius: 10,
             cursor: "pointer",
-            transition: "background-color 0.2s",
-            fontWeight: "bold"
+            fontWeight: "bold",
+            boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+            transition: "0.3s"
           }}
           onMouseEnter={e => e.target.style.backgroundColor = "#d32f2f"}
-          onMouseLeave={e => e.target.style.backgroundColor = "#f44336"}
+          onMouseLeave={e => e.target.style.backgroundColor = "#ef5350"}
         >
-          Cerrar
+          ✕ Cerrar
         </button>
 
-        <h2 style={{ marginBottom: 16, color: "#333", textAlign: "center" }}>
+        <h2 style={{ textAlign: 'center', marginBottom: 20, color: '#0b47a0' }}>
           {initialData ? 'Editar paciente' : 'Nuevo paciente'}
         </h2>
 
-        {error && (
-          <div style={{ color: 'red', marginBottom: 12, textAlign: 'center' }}>
-            {JSON.stringify(error)}
-          </div>
-        )}
+        {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: 12 }}>{JSON.stringify(error)}</div>}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {[
             { label: 'DNI', name: 'dni_paciente' },
             { label: 'Nombre', name: 'nombre_paciente' },
@@ -132,44 +155,26 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
             { label: 'Localidad', name: 'localidad' }
           ].map(({ label, name, type = 'text' }) => (
             <div key={name}>
-              <label style={{ display: "block", marginBottom: 4, color: "#333" }}>{label}</label>
+              <label style={{ marginBottom: 6, display: 'block', fontWeight: 500, color: '#333' }}>{label}</label>
               <input
                 type={type}
                 name={name}
                 value={form[name]}
                 onChange={handleChange}
-                style={{
-                  width: '100%',
-                  padding: 10,
-                  borderRadius: 8,
-                  border: '1px solid #ccc',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                  fontSize: 14
-                }}
+                style={inputStyle}
                 onFocus={e => e.target.style.borderColor = "#1976d2"}
                 onBlur={e => e.target.style.borderColor = "#ccc"}
               />
             </div>
           ))}
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
             <button
               type="submit"
               disabled={loading}
-              style={{
-                flex: 1,
-                padding: 10,
-                borderRadius: 10,
-                border: 'none',
-                backgroundColor: '#1976d2',
-                color: '#fff',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={e => e.target.style.backgroundColor = '#1565c0'}
-              onMouseLeave={e => e.target.style.backgroundColor = '#1976d2'}
+              style={buttonStyle('linear-gradient(90deg, #1162e5ff, #1139caff)', 'linear-gradient(90deg, #0c74dbff, #0560a6ff)')}
+              onMouseEnter={e => e.target.style.background = 'linear-gradient(90deg, #1809e1ff, #0b32a6ff)'}
+              onMouseLeave={e => e.target.style.background = 'linear-gradient(90deg, #0849a4ff, #0768adff)'}
             >
               {loading ? 'Guardando...' : initialData ? 'Actualizar' : 'Crear'}
             </button>
@@ -177,19 +182,9 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
             <button
               type="button"
               onClick={onClose}
-              style={{
-                flex: 1,
-                padding: 10,
-                borderRadius: 10,
-                border: 'none',
-                backgroundColor: '#777',
-                color: '#fff',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={e => e.target.style.backgroundColor = '#555'}
-              onMouseLeave={e => e.target.style.backgroundColor = '#777'}
+              style={buttonStyle('#777', '#555')}
+              onMouseEnter={e => e.target.style.background = '#555'}
+              onMouseLeave={e => e.target.style.background = '#777'}
             >
               Cancelar
             </button>

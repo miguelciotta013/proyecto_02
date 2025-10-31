@@ -1,10 +1,10 @@
-# pacientes/serializers.py
 from rest_framework import serializers
 from home.models import (
     Pacientes, PacientesXOs, ObrasSociales, 
     FichasPatologicas, Parentesco
 )
 
+# --- LISTA PRINCIPAL ---
 class PacienteListSerializer(serializers.ModelSerializer):
     """Para la tabla principal de pacientes"""
     class Meta:
@@ -19,6 +19,7 @@ class PacienteListSerializer(serializers.ModelSerializer):
             'telefono'
         ]
 
+# --- CREAR / EDITAR PACIENTE ---
 class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
     """Para crear/editar datos personales del paciente"""
     class Meta:
@@ -34,15 +35,17 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
             'correo'
         ]
 
+# --- LISTADO DE OBRAS SOCIALES ---
 class ObraSocialSerializer(serializers.ModelSerializer):
     class Meta:
         model = ObrasSociales
         fields = ['id_obra_social', 'nombre_os']
 
+# --- RELACIÓN PACIENTE - OBRA SOCIAL ---
 class PacienteObraSocialSerializer(serializers.ModelSerializer):
     obra_social_nombre = serializers.CharField(source='id_obra_social.nombre_os', read_only=True)
     parentesco_tipo = serializers.CharField(source='id_parentesco.tipo_parentesco', read_only=True)
-    
+
     class Meta:
         model = PacientesXOs
         fields = [
@@ -55,11 +58,13 @@ class PacienteObraSocialSerializer(serializers.ModelSerializer):
             'parentesco_tipo'
         ]
 
+# --- FICHA PATOLOGICA DETALLE ---
 class FichaPatologicaDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = FichasPatologicas
         exclude = ['id_paciente_os']
 
+# --- DETALLE COMPLETO DE PACIENTE ---
 class PacienteDetailSerializer(serializers.ModelSerializer):
     """Para la card detallada del paciente"""
     obras_sociales = serializers.SerializerMethodField()
@@ -92,7 +97,6 @@ class PacienteDetailSerializer(serializers.ModelSerializer):
     
     def get_ficha_patologica(self, obj):
         try:
-            # Obtener la primera relación paciente-OS activa
             pac_os = PacientesXOs.objects.filter(
                 id_paciente=obj,
                 eliminado__isnull=True
@@ -115,10 +119,3 @@ class PacienteDetailSerializer(serializers.ModelSerializer):
             id_paciente_os__id_paciente=obj,
             eliminado__isnull=True
         ).count()
-    
-# pacientes/serializers.py - Agregar al final si no lo tienes
-
-class FichaPatologicaDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FichasPatologicas
-        exclude = ['id_paciente_os']
