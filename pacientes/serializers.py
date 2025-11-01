@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from home.models import (
     Pacientes, PacientesXOs, ObrasSociales, 
-    FichasPatologicas, Parentesco
+    FichasPatologicas, Parentesco, FichasMedicas
 )
 
 # --- LISTA PRINCIPAL ---
@@ -70,7 +70,8 @@ class PacienteDetailSerializer(serializers.ModelSerializer):
     obras_sociales = serializers.SerializerMethodField()
     ficha_patologica = serializers.SerializerMethodField()
     cantidad_fichas_medicas = serializers.SerializerMethodField()
-    
+    puede_eliminar = serializers.SerializerMethodField()
+
     class Meta:
         model = Pacientes
         fields = [
@@ -85,16 +86,17 @@ class PacienteDetailSerializer(serializers.ModelSerializer):
             'correo',
             'obras_sociales',
             'ficha_patologica',
-            'cantidad_fichas_medicas'
+            'cantidad_fichas_medicas',
+            'puede_eliminar'
         ]
-    
+
     def get_obras_sociales(self, obj):
         pacientes_os = PacientesXOs.objects.filter(
             id_paciente=obj,
             eliminado__isnull=True
         )
         return PacienteObraSocialSerializer(pacientes_os, many=True).data
-    
+
     def get_ficha_patologica(self, obj):
         try:
             pac_os = PacientesXOs.objects.filter(
@@ -112,10 +114,30 @@ class PacienteDetailSerializer(serializers.ModelSerializer):
             pass
         
         return {'existe': False}
-    
+
     def get_cantidad_fichas_medicas(self, obj):
-        from home.models import FichasMedicas
         return FichasMedicas.objects.filter(
             id_paciente_os__id_paciente=obj,
             eliminado__isnull=True
         ).count()
+
+    def get_puede_eliminar(self, obj):
+        """
+        Determina si el paciente se puede eliminar.
+        Regla: solo se puede eliminar si no tiene fichas médicas ni deudas ni obras activas.
+        """
+        tiene_fichas = FichasMedicas.objects.filter(
+            id_paciente_os__id_paciente=obj,
+            eliminado__isnull=True
+        ).exists()
+
+        tiene_obras = PacientesXOs.objects.filter(
+            id_paciente=obj,
+            eliminado__isnull=True
+        ).exists()
+
+        # Aquí podrías agregar chequeo de deudas si tienes un modelo de pagos
+        # ejemplo: tiene_deuda = Pagos.objects.filter(paciente=obj, estado='pendiente').exists()
+        tiene_deuda = False  # <- cambiar según tu modelo de pagos
+
+        return not (tiene_fichas or tiene_obras or tiene_deuda)
