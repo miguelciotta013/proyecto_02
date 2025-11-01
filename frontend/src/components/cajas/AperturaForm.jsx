@@ -8,14 +8,18 @@ export default function AperturaForm({ onSubmit }) {
 
   useEffect(() => {
     let mounted = true;
-    empleadosApi.listEmpleados().then((resp) => {
-      if (!mounted) return;
-      if (resp && resp.success) setEmpleados(resp.data || []);
-    }).catch(console.error);
-    return () => { mounted = false; };
+    empleadosApi
+      .listEmpleados()
+      .then((resp) => {
+        if (!mounted) return;
+        if (resp && resp.success) setEmpleados(resp.data || []);
+      })
+      .catch(console.error);
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  // Si hay empleados cargados y no hay seleccionado, seleccionar el primero por defecto
   useEffect(() => {
     if (empleados.length > 0 && !selectedEmpleado) {
       setSelectedEmpleado(String(empleados[0].id_empleado));
@@ -30,68 +34,117 @@ export default function AperturaForm({ onSubmit }) {
   }
 
   return (
-    <form 
-      onSubmit={handleSubmit} 
+    <form
+      onSubmit={handleSubmit}
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 16,
-        padding: 24,
-        backgroundColor: '#fff',
-        borderRadius: 12,
+        gap: 20,
+        padding: 30,
+        backgroundColor: '#ffffff',
+        borderRadius: 15,
         boxShadow: '0 6px 18px rgba(0,0,0,0.1)',
-        maxWidth: 400,
-        margin: '20px auto',
-        fontFamily: "'Poppins', sans-serif"
+        maxWidth: 450,
+        margin: '30px auto',
+        fontFamily: "'Poppins', sans-serif",
+        borderTop: '5px solid #2e7d9d',
       }}
     >
-      <label style={{ display: 'flex', flexDirection: 'column', fontWeight: 500, color: '#333' }}>
+      <h2
+        style={{
+          color: '#2e7d9d',
+          textAlign: 'center',
+          marginBottom: 10,
+          fontWeight: '600',
+        }}
+      >
+        Apertura de Caja
+      </h2>
+
+      {/* Campo monto */}
+      <label
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          fontWeight: 500,
+          color: '#333',
+        }}
+      >
         Monto apertura:
-        <input 
-          type="number" 
-          value={monto} 
-          onChange={(e) => setMonto(e.target.value)} 
+        <input
+          type="number"
+          step="0.01"
+          value={monto}
+          onChange={(e) => setMonto(e.target.value)}
           style={{
             marginTop: 6,
             padding: 10,
             borderRadius: 8,
-            border: '1px solid #ccc',
+            border: '1px solid #9e9e9e',
             outline: 'none',
-            transition: 'border 0.2s'
+            fontSize: 15,
+            transition: 'all 0.2s ease',
           }}
-          onFocus={e => e.target.style.borderColor = "#1976d2"}
-          onBlur={e => e.target.style.borderColor = "#ccc"}
+          onFocus={(e) => (e.target.style.borderColor = '#2e7d9d')}
+          onBlur={(e) => (e.target.style.borderColor = '#9e9e9e')}
         />
       </label>
 
+      {/* Selector de empleado */}
       {empleados.length > 0 && (
-        <label style={{ display: 'flex', flexDirection: 'column', fontWeight: 500, color: '#333' }}>
+        <label
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            fontWeight: 500,
+            color: '#333',
+          }}
+        >
           Empleado (opcional):
-          <select value={selectedEmpleado} onChange={e => setSelectedEmpleado(e.target.value)} style={{ marginTop: 6, padding: 10, borderRadius: 8 }}>
+          <select
+            value={selectedEmpleado}
+            onChange={(e) => setSelectedEmpleado(e.target.value)}
+            style={{
+              marginTop: 6,
+              padding: 10,
+              borderRadius: 8,
+              border: '1px solid #9e9e9e',
+              backgroundColor: '#fff',
+              fontSize: 15,
+              transition: 'border 0.2s',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = '#2e7d9d')}
+            onBlur={(e) => (e.target.style.borderColor = '#9e9e9e')}
+          >
             <option value="">-- Usar usuario autenticado --</option>
-            {empleados.map(emp => (
-              <option key={emp.id_empleado} value={emp.id_empleado}>{emp.nombre}</option>
+            {empleados.map((emp) => (
+              <option key={emp.id_empleado} value={emp.id_empleado}>
+                {emp.nombre}
+              </option>
             ))}
           </select>
         </label>
       )}
 
+      {/* Botón enviar */}
       <button
         type="submit"
         style={{
           padding: 12,
-          borderRadius: 8,
+          borderRadius: 10,
           border: 'none',
-          backgroundColor: '#1976d2',
-          color: '#fff',
+          backgroundColor: '#4caf50',
+          color: 'white',
           fontWeight: 'bold',
           cursor: 'pointer',
-          transition: 'background-color 0.2s'
+          fontSize: 16,
+          transition: 'background-color 0.25s ease',
+          boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
         }}
-        onMouseEnter={e => e.target.style.backgroundColor = '#1565c0'}
-        onMouseLeave={e => e.target.style.backgroundColor = '#1976d2'}
+        onMouseEnter={(e) => (e.target.style.backgroundColor = '#388e3c')}
+        onMouseLeave={(e) => (e.target.style.backgroundColor = '#4caf50')}
       >
-        Abrir caja
+        💰 Abrir caja
       </button>
     </form>
   );

@@ -2,11 +2,13 @@
   font-family: 'Poppins', sans-serif;
   padding: 40px;
   max-width: 1000px;
-  margin: 0 auto;
-  background: #f0f8ff;
+  margin: 40px auto;
+  background: linear-gradient(135deg, #f0f8ff, #e6f0ff);
   border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* ======= HEADER ======= */
 .header {
   display: flex;
   justify-content: space-between;
@@ -14,37 +16,43 @@
   margin-bottom: 25px;
 }
 
+/* Botón volver (azul institucional) */
 .backButton {
-  background-color: #2196f3;
-  color: #fff;
+  background-color: #1976d2;
+  color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .backButton:hover {
-  background-color: #1976d2;
+  background-color: #004aad;
 }
 
+/* ======= FORMULARIO ======= */
 .aperturaForm {
-  margin-bottom: 20px;
-  padding: 15px;
-  background: white;
+  margin-bottom: 25px;
+  padding: 20px;
+  background: #ffffff;
   border-radius: 15px;
   box-shadow: 0 4px 12px rgba(0, 50, 100, 0.1);
+  border-top: 4px solid #2e7d9d;
 }
 
+/* ======= ESTADOS ======= */
 .loading {
   text-align: center;
   font-size: 18px;
-  color: #004aad;
+  color: #2e7d9d;
   margin-top: 30px;
+  font-weight: 500;
 }
 
-/* Modal */
+/* ======= MODAL ======= */
 .modalOverlay {
   position: fixed;
   top: 0;
@@ -58,30 +66,113 @@
   z-index: 100;
 }
 
+/* Contenedor principal del modal */
 .modalContent {
   background: #ffffff;
-  padding: 30px;
   border-radius: 15px;
   width: 480px;
   max-width: 90%;
-  box-shadow: 0 4px 20px rgba(0, 50, 100, 0.2);
+  box-shadow: 0 6px 25px rgba(0, 50, 100, 0.2);
+  overflow: hidden;
+  animation: fadeIn 0.25s ease;
 }
 
+/* Franja azul superior */
+.modalHeader {
+  background-color: #2e7d9d;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 14px 20px;
+  border-radius: 15px 15px 0 0;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+/* Cuerpo del modal */
+.modalBody {
+  padding: 25px 30px;
+}
+
+/* Botones del modal */
 .modalActions {
-  margin-top: 16px;
+  margin-top: 20px;
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
-.modalActions button {
-  background: #d32f2f;
-  color: #fff;
+/* ======= BOTONES ======= */
+
+/* Botón gris: cerrar, cancelar, volver */
+.btn-gris {
+  background-color: #9e9e9e;
+  color: white;
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 10px 18px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-gris:hover {
+  background-color: #757575;
 }
 
-.modalActions button:hover {
-  background: #b71c1c;
+/* Botón verde: guardar, confirmar, agregar */
+.btn-verde {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-verde:hover {
+  background-color: #388e3c;
+}
+
+/* Botón azul: editar, ver */
+.btn-azul {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-azul:hover {
+  background-color: #004aad;
+}
+
+/* Botón rojo: eliminar o cerrar */
+.btn-rojo {
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+.btn-rojo:hover {
+  background-color: #b71c1c;
+}
+
+/* ======= ANIMACIONES ======= */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
