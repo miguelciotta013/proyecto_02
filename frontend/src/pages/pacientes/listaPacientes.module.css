@@ -3,33 +3,41 @@
 /* Contenedor principal */
 .container {
   font-family: 'Poppins', sans-serif;
-  background-color: #f0f2f5;
+  background-color: #f4f6f8;
   min-height: 100vh;
   padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 /* Título de la página */
 .title {
-  color: #333;
-  margin-bottom: 16px;
+  color: #0b47a0;
+  margin-bottom: 20px;
   font-size: clamp(22px, 3vw, 28px);
   text-align: center;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
 }
 
 /* Botón de nuevo paciente */
 .addButton {
-  padding: 10px 16px;
-  border-radius: 8px;
+  padding: 12px 18px;
+  border-radius: 12px;
   border: none;
-  background-color: #4caf50;
+  background: linear-gradient(90deg, #4caf50, #43a047);
   color: #fff;
   cursor: pointer;
   font-weight: 600;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .addButton:hover {
-  background-color: #45a049;
+  background: linear-gradient(90deg, #45a049, #388e3c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
 }
 
 /* Mensajes de carga y error */
@@ -37,31 +45,50 @@
   color: #555;
   font-size: 14px;
   text-align: center;
-  margin: 10px 0;
+  margin: 12px 0;
 }
 
 .error {
-  color: red;
-  font-weight: 500;
+  color: #c62828;
+  font-weight: 600;
+  background: #ffebee;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin: 10px 0;
+  text-align: center;
 }
 
 /* Contenedor de tabla */
 .tableContainer {
   background-color: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   overflow-x: auto;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 1100px;
+  transition: transform 0.3s ease;
+}
+
+.tableContainer:hover {
+  transform: scale(1.01);
 }
 
 /* Contenedor de tarjetas y formularios */
 .cardWrapper {
-  margin-top: 20px;
+  margin-top: 24px;
   background-color: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 1100px;
+  transition: transform 0.3s ease;
+}
+
+.cardWrapper:hover {
+  transform: scale(1.01);
 }
 
 /* Grid responsive para tarjetas */
@@ -78,6 +105,9 @@
   }
   .addButton {
     width: 100%;
-    padding: 12px;
+    padding: 14px;
+  }
+  .tableContainer, .cardWrapper {
+    padding: 16px;
   }
 }

@@ -176,3 +176,187 @@
     transform: scale(1);
   }
 }
+/* ======= CONTENEDOR PRINCIPAL ======= */
+.container {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #f0f8ff, #e6f0ff);
+  padding: 40px;
+  border-radius: 20px;
+  max-width: 1000px;
+  margin: 40px auto;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ======= HEADER ======= */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Botón volver / azul institucional */
+.backButton {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.backButton:hover { background-color: #004aad; }
+
+/* ======= FORMULARIOS ======= */
+.aperturaForm,
+.formSection {
+  background: #ffffff;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0, 50, 100, 0.1);
+  border-top: 4px solid #2e7d9d;
+}
+
+/* Inputs y selects */
+input, select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+input:focus, select:focus { border-color: #1976d2; }
+
+/* ======= ESTADOS / INDICADORES ======= */
+.loading,
+.error {
+  text-align: center;
+  font-size: 18px;
+  color: #2e7d9d;
+  margin-top: 40px;
+  font-weight: 500;
+}
+
+/* ======= MODAL ======= */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 15px;
+  width: 480px;
+  max-width: 90%;
+  box-shadow: 0 6px 25px rgba(0, 50, 100, 0.2);
+  overflow: hidden;
+  animation: fadeIn 0.25s ease;
+}
+
+.modalHeader {
+  background-color: #2e7d9d;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  padding: 14px 20px;
+  border-radius: 15px 15px 0 0;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.modalBody { padding: 25px 30px; }
+
+.modalActions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ======= BOTONES UNIFICADOS ======= */
+button {
+  font-family: 'Poppins', sans-serif;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* Botón gris: cerrar, cancelar, volver */
+.btn-gris { background-color: #9e9e9e; color: white; padding: 10px 18px; }
+.btn-gris:hover { background-color: #757575; }
+
+/* Botón verde: guardar, confirmar, agregar */
+.btn-verde { background-color: #4caf50; color: white; padding: 10px 18px; }
+.btn-verde:hover { background-color: #388e3c; }
+
+/* Botón azul: editar, ver */
+.btn-azul { background-color: #1976d2; color: white; padding: 10px 18px; }
+.btn-azul:hover { background-color: #004aad; }
+
+/* Botón rojo: eliminar / cerrar definitivo */
+.btn-rojo { background-color: #d32f2f; color: white; padding: 10px 18px; }
+.btn-rojo:hover { background-color: #b71c1c; }
+
+/* ======= TARJETAS / SECCIONES ======= */
+.card,
+.section {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0,50,100,0.1);
+  border-left: 6px solid #2e7d9d;
+}
+
+/* Resumen / totales */
+.resumen {
+  background: #e3f2fd;
+  border-radius: 15px;
+  padding: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2e7d9d;
+  box-shadow: 0 3px 10px rgba(0,50,100,0.1);
+  border: 1px solid #bbdefb;
+}
+
+/* Estados abiertos / cerrados */
+.abierta { color: #4caf50; font-weight: bold; }
+.cerrada { color: #d32f2f; font-weight: bold; }
+
+/* Listado de movimientos */
+.movimientos {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+}
+.movimientos ul { list-style: none; padding: 0; width: 100%; }
+.movimientos li {
+  background: #f5faff;
+  border: 1px solid #d0e2ff;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+.movimientos li:hover { background: #e3f2fd; }
+
+/* ======= ANIMACIONES ======= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

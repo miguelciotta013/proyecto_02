@@ -33,7 +33,7 @@ export default function PacienteCard({
         left: 0,
         width: "100vw",
         height: "100vh",
-        backgroundColor: "rgba(0,0,0,0.6)",
+        backgroundColor: "rgba(0,0,0,0.4)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -45,14 +45,15 @@ export default function PacienteCard({
     >
       <div
         style={{
-          background: "linear-gradient(145deg, #f5f7fa, #e3f2fd)",
+          background: "#fff",
           padding: 30,
-          borderRadius: 20,
-          boxShadow: "0 15px 35px rgba(0,0,0,0.25)",
+          borderRadius: 16,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
           maxWidth: 550,
           width: "90%",
           fontFamily: "'Poppins', sans-serif",
           position: "relative",
+          borderTop: "6px solid #2e7d9d", // franja azul superior
           transform: closing ? "scale(0.95)" : "scale(1)",
           transition: "transform 0.3s ease"
         }}
@@ -65,17 +66,17 @@ export default function PacienteCard({
             top: 16,
             right: 16,
             border: "none",
-            backgroundColor: "#d63532",
+            backgroundColor: "#9e9e9e", // gris: cerrar
             color: "#fff",
             padding: "8px 14px",
             borderRadius: 10,
             cursor: "pointer",
-            fontWeight: "bold",
-            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.2)",
+            fontWeight: 600,
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.15)",
             transition: "0.3s",
           }}
-          onMouseEnter={e => (e.target.style.backgroundColor = "#d32f2f")}
-          onMouseLeave={e => (e.target.style.backgroundColor = "#ef5350")}
+          onMouseEnter={e => e.target.style.backgroundColor = "#757575"}
+          onMouseLeave={e => e.target.style.backgroundColor = "#9e9e9e"}
         >
           ✕ Cerrar
         </button>
@@ -83,10 +84,10 @@ export default function PacienteCard({
         {/* Nombre del paciente */}
         <h2
           style={{
-            marginBottom: 10,
-            color: "#0b47a0",
-            borderBottom: "2px solid #03506e",
-            paddingBottom: 8,
+            marginBottom: 12,
+            color: "#2e7d9d",
+            borderBottom: "2px solid #90caf9",
+            paddingBottom: 6,
             textAlign: "center",
             fontWeight: 700
           }}
@@ -99,8 +100,8 @@ export default function PacienteCard({
           marginBottom: 16,
           color: "#000",
           lineHeight: "1.6",
-          padding: "10px 15px",
-          backgroundColor: "#fff",
+          padding: "12px 16px",
+          backgroundColor: "#f5f7fa",
           borderRadius: 12,
           boxShadow: "inset 0 0 8px rgba(0,0,0,0.03)"
         }}>
@@ -111,7 +112,7 @@ export default function PacienteCard({
         </div>
 
         {/* Obras Sociales */}
-        <h4 style={{ marginBottom: 8, color: "#0d47a1" }}>Obras Sociales</h4>
+        <h4 style={{ marginBottom: 8, color: "#2e7d9d" }}>Obras Sociales</h4>
         <div
           style={{
             backgroundColor: "#e3f2fd",
@@ -120,14 +121,14 @@ export default function PacienteCard({
             maxHeight: 150,
             overflowY: "auto",
             marginBottom: 20,
-            border: "1px solid #00000033"
+            border: "1px solid #90caf9"
           }}
         >
           {obras && obras.length ? (
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               {obras.map(os => (
                 <li key={os.id_paciente_os} style={{
-                  marginBottom: 6,
+                  marginBottom: 8,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
@@ -143,24 +144,24 @@ export default function PacienteCard({
                         if (resp && resp.success) {
                           const updated = obras.filter(o => o.id_paciente_os !== os.id_paciente_os);
                           setObras(updated);
-                          if (typeof onObraRemoved === 'function') onObraRemoved({ ...paciente, obras_sociales: updated });
+                          onObraRemoved?.({ ...paciente, obras_sociales: updated });
                         } else alert(resp?.error || 'Error al eliminar obra social');
                       } catch (e) {
                         alert(e.message || String(e));
                       }
                     }}
                     style={{
-                      background: "linear-gradient(90deg, #ef5350, #d32f2f)",
+                      backgroundColor: "#d32f2f", // rojo eliminar
                       color: "#fff",
                       border: "none",
                       padding: "6px 12px",
                       borderRadius: 8,
                       cursor: "pointer",
                       fontWeight: 600,
-                      transition: "0.3s"
+                      transition: "0.3s",
                     }}
-                    onMouseEnter={e => e.target.style.background = "linear-gradient(90deg, #ff0000, #860303)"}
-                    onMouseLeave={e => e.target.style.background = "linear-gradient(90deg, #ef5350, #d32f2f)"}
+                    onMouseEnter={e => e.target.style.backgroundColor = "#b71c1c"}
+                    onMouseLeave={e => e.target.style.backgroundColor = "#d32f2f"}
                   >Eliminar</button>
                 </li>
               ))}
@@ -178,9 +179,9 @@ export default function PacienteCard({
           justifyContent: "center"
         }}>
           {[
-            { text: "Editar", color: "#0b8cf6", hover: "#00529a", action: () => onEditar(paciente.id_paciente) },
-            { text: "Dar de baja", color: "#c30c09", hover: "#d32f2f", action: handleEliminar },
-            { text: "Asignar Obra Social", color: "#020f75", hover: "#032987", action: () => onAsignarObra(paciente.id_paciente) }
+            { text: "Editar", color: "#1976d2", hover: "#004aad", action: () => onEditar(paciente.id_paciente) },
+            { text: "Dar de baja", color: "#d32f2f", hover: "#b71c1c", action: handleEliminar },
+            { text: "Asignar Obra Social", color: "#4caf50", hover: "#388e3c", action: () => onAsignarObra(paciente.id_paciente) }
           ].map(btn => (
             <button
               key={btn.text}
@@ -189,17 +190,17 @@ export default function PacienteCard({
                 flex: "1",
                 minWidth: "45%",
                 padding: "12px",
-                borderRadius: 12,
+                borderRadius: 10,
                 border: "none",
-                background: btn.color,
+                backgroundColor: btn.color,
                 color: "#fff",
                 fontWeight: 600,
                 cursor: "pointer",
-                boxShadow: "0 5px 12px rgba(0,0,0,0.15)",
+                boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
                 transition: "0.3s"
               }}
-              onMouseEnter={e => e.target.style.background = btn.hover}
-              onMouseLeave={e => e.target.style.background = btn.color}
+              onMouseEnter={e => e.target.style.backgroundColor = btn.hover}
+              onMouseLeave={e => e.target.style.backgroundColor = btn.color}
             >
               {btn.text}
             </button>

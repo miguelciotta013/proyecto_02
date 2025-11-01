@@ -60,7 +60,7 @@ export default function PacienteCard({ paciente, onEditar, onEliminar, onAsignar
           onMouseEnter={(e) => e.target.style.backgroundColor = "#d32f2f"}
           onMouseLeave={(e) => e.target.style.backgroundColor = "#f44336"}
         >
-          Dar de baja
+          Dar de bajaaaaaaaaaa
         </button>
 
         <button
@@ -78,7 +78,7 @@ export default function PacienteCard({ paciente, onEditar, onEliminar, onAsignar
           onMouseEnter={(e) => e.target.style.backgroundColor = "#1976d2"}
           onMouseLeave={(e) => e.target.style.backgroundColor = "#2196f3"}
         >
-          Asignar obra social
+          Asignar obra sociaaaaal
         </button>
 
         <button

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye } from 'lucide-react'; // 🔹 Usa ícono moderno (si usás lucide-react)
+import { Eye } from 'lucide-react';
 
 export default function PacienteTable({ pacientes = [], onView }) {
   if (!pacientes.length) {
@@ -24,25 +24,27 @@ export default function PacienteTable({ pacientes = [], onView }) {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'start',
-      paddingTop: '40px'
+      paddingTop: '40px',
+      paddingBottom: '40px'
     }}>
       <div style={{
         width: '90%',
         maxWidth: '1000px',
         backgroundColor: '#fff',
         borderRadius: '20px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+        boxShadow: '0 15px 35px rgba(0,0,0,0.15)',
         overflow: 'hidden',
         transition: '0.3s'
       }}>
         <h2 style={{
           textAlign: 'center',
           padding: '18px',
-          background: 'linear-gradient(90deg, #1976d2, #1565c0)',
+          background: 'linear-gradient(90deg, #2e7d9d, #1565c0)',
           color: '#fff',
           margin: 0,
           fontWeight: 700,
-          letterSpacing: '0.5px'
+          letterSpacing: '0.5px',
+          borderBottom: '2px solid #1565c0'
         }}>
           🧾 Lista de Pacientes
         </h2>
@@ -66,12 +68,14 @@ export default function PacienteTable({ pacientes = [], onView }) {
                   cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#e3f2fd';
+                  e.currentTarget.style.backgroundColor = '#e0f2f1';
                   e.currentTarget.style.transform = 'scale(1.01)';
+                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = index % 2 === 0 ? '#fafafa' : '#fff';
                   e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 <td style={tdStyle}>{p.dni_paciente}</td>
@@ -83,7 +87,7 @@ export default function PacienteTable({ pacientes = [], onView }) {
                   <button
                     onClick={() => onView && onView(p.id_paciente)}
                     style={btnVerStyle}
-                    onMouseEnter={(e) => e.target.style.background = 'linear-gradient(90deg, #0049c7, #1565c0)'}
+                    onMouseEnter={(e) => e.target.style.background = 'linear-gradient(90deg, #1565c0, #0288d1)'}
                     onMouseLeave={(e) => e.target.style.background = 'linear-gradient(90deg, #1976d2, #2196f3)'}
                   >
                     <Eye size={16} style={{ marginRight: '6px' }} />
@@ -102,7 +106,7 @@ export default function PacienteTable({ pacientes = [], onView }) {
 const thStyle = {
   padding: '14px 12px',
   fontWeight: '600',
-  color: '#333',
+  color: '#2e7d9d',
   borderBottom: '2px solid #ddd',
   fontSize: '15px',
   textTransform: 'uppercase',
@@ -127,6 +131,6 @@ const btnVerStyle = {
   borderRadius: '8px',
   cursor: 'pointer',
   fontWeight: '600',
-  boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+  boxShadow: '0 4px 10px rgba(0,0,0,0.15)',
   transition: 'all 0.3s ease'
 };
