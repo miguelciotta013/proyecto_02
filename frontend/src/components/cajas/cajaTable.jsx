@@ -56,11 +56,10 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
       }}
     >
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
           <thead>
             <tr>
               <th style={thStyle}>ID</th>
-              <th style={thStyle}>Tipo</th>
               <th style={thStyle}>Apertura</th>
               <th style={thStyle}>Cierre</th>
               <th style={{ ...thStyle, textAlign: 'right' }}>Monto</th>
@@ -83,7 +82,6 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
                     }}
                   >
                     <td style={tdStyle}>{idCaja || '—'}</td>
-                    <td style={tdStyle}>{it.tipo || '—'}</td>
 
                     {/* Fecha de Apertura */}
                     <td style={tdStyle}>
@@ -165,7 +163,7 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
             ) : (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={6}
                   style={{
                     textAlign: 'center',
                     padding: 20,
@@ -186,7 +184,6 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
           items.map((c, i) => (
             <div key={c.id_caja || i} style={cardStyle}>
               <p><strong>ID:</strong> {c.id_caja}</p>
-              <p><strong>Tipo:</strong> {c.tipo || '—'}</p>
               <p><strong>Apertura:</strong> {c.fecha_hora_apertura ? new Date(c.fecha_hora_apertura).toLocaleString('es-AR') : '—'}</p>
               <p><strong>Cierre:</strong> {c.fecha_hora_cierre ? new Date(c.fecha_hora_cierre).toLocaleString('es-AR') : <span style={{ color: '#388e3c', fontWeight: 600 }}>Abierta</span>}</p>
               <p>
