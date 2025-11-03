@@ -30,7 +30,6 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
     }
   }, [initialData]);
 
-  // Validación de un campo específico
   function validateField(name, value) {
     switch (name) {
       case 'dni_paciente':
@@ -72,16 +71,13 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
     }
   }
 
-  // Validación en tiempo real al escribir
   function handleChange(e) {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
-
     const errorMsg = validateField(name, value);
     setErrors(prev => ({ ...prev, [name]: errorMsg }));
   }
 
-  // Validación general antes de enviar
   function validateForm() {
     const newErrors = {};
     Object.keys(form).forEach(key => {
@@ -103,12 +99,12 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
     try {
       if (initialData?.id_paciente) {
         const resp = await updatePaciente(initialData.id_paciente, form);
-        if (resp?.success) onUpdated && onUpdated(resp.data);
+        if (resp?.success) onUpdated?.(resp.data);
       } else {
         const resp = await createPaciente(form);
-        if (resp?.success) onCreated && onCreated(resp.data);
+        if (resp?.success) onCreated?.(resp.data);
       }
-      onClose && onClose();
+      onClose?.();
     } catch (e) {
       alert(e.message || String(e));
     } finally {
@@ -118,25 +114,24 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
 
   const inputStyle = {
     width: '100%',
-    padding: '12px 14px',
-    borderRadius: 10,
+    padding: '10px 12px',
+    borderRadius: 8,
     border: '1px solid #ccc',
-    outline: 'none',
     fontSize: 14,
-    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.05)'
+    boxSizing: 'border-box',
   };
 
-  const buttonStyle = (bg, hover) => ({
+  const buttonStyle = (bg) => ({
     flex: 1,
-    padding: '12px',
-    borderRadius: 12,
+    padding: '10px',
+    borderRadius: 10,
     border: 'none',
     background: bg,
     color: '#fff',
     fontWeight: 600,
     cursor: 'pointer',
-    boxShadow: '0 5px 12px rgba(0,0,0,0.15)',
-    transition: '0.3s'
+    boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
+    transition: '0.3s',
   });
 
   return (
@@ -147,24 +142,30 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
       backgroundColor: "rgba(0,0,0,0.5)",
       display: "flex", alignItems: "center", justifyContent: "center",
       zIndex: 1000, backdropFilter: "blur(3px)",
-      fontFamily: "'Poppins', sans-serif"
+      fontFamily: "'Poppins', sans-serif",
+      padding: 10
     }}>
       <div style={{
         background: "linear-gradient(145deg, #f5f7fa, #e3f2fd)",
-        padding: 30, borderRadius: 20, boxShadow: "0 15px 35px rgba(0,0,0,0.25)",
-        width: "90%", maxWidth: 500, position: "relative"
+        padding: 20, borderRadius: 16, boxShadow: "0 12px 30px rgba(0,0,0,0.25)",
+        width: "100%", maxWidth: 480, maxHeight: "95vh", overflowY: "auto",
+        position: "relative", boxSizing: "border-box"
       }}>
         <button onClick={onClose} style={{
-          position: "absolute", top: 16, right: 16, border: "none",
-          backgroundColor: "#d63532", color: "#fff", padding: "8px 14px",
-          borderRadius: 10, cursor: "pointer", fontWeight: "bold"
+          position: "absolute", top: 12, right: 12, border: "none",
+          backgroundColor: "#d63532", color: "#fff", padding: "6px 12px",
+          borderRadius: 8, cursor: "pointer", fontWeight: "bold"
         }}>✕ Cerrar</button>
 
-        <h2 style={{ textAlign: 'center', marginBottom: 20, color: '#0b47a0' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: 16, color: '#0b47a0', fontSize: '1.3rem' }}>
           {initialData ? 'Editar paciente' : 'Nuevo paciente'}
         </h2>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <form onSubmit={handleSubmit} style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: 10
+        }}>
           {[
             { label: 'DNI', name: 'dni_paciente' },
             { label: 'Nombre', name: 'nombre_paciente' },
@@ -175,8 +176,10 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
             { label: 'Domicilio', name: 'domicilio' },
             { label: 'Localidad', name: 'localidad' }
           ].map(({ label, name, type = 'text' }) => (
-            <div key={name}>
-              <label style={{ marginBottom: 6, display: 'block', fontWeight: 500, color: '#333' }}>{label}</label>
+            <div key={name} style={{ flex: '1 1 45%' }}>
+              <label style={{ marginBottom: 4, display: 'block', fontWeight: 500, color: '#333', fontSize: 14 }}>
+                {label}
+              </label>
               <input
                 type={type}
                 name={name}
@@ -188,11 +191,13 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
             </div>
           ))}
 
-          <div style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-            <button type="submit" disabled={loading} style={buttonStyle('#1162e5', '#0c74db')}>
+          <div style={{ display: 'flex', gap: 10, flex: '1 1 100%', marginTop: 8 }}>
+            <button type="submit" disabled={loading} style={buttonStyle('#1162e5')}>
               {loading ? 'Guardando...' : initialData ? 'Actualizar' : 'Crear'}
             </button>
-            <button type="button" onClick={onClose} style={buttonStyle('#777', '#555')}>Cancelar</button>
+            <button type="button" onClick={onClose} style={buttonStyle('#777')}>
+              Cancelar
+            </button>
           </div>
         </form>
       </div>
