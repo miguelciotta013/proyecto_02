@@ -31,8 +31,6 @@ const buttonBase = {
 const buttonColors = {
   ver: { backgroundColor: '#1976d2', color: 'white' },
   cerrar: { backgroundColor: '#d32f2f', color: 'white' },
-  agregar: { backgroundColor: '#4caf50', color: 'white' },
-  gris: { backgroundColor: '#9e9e9e', color: 'white' },
 };
 
 const cardStyle = {
@@ -58,25 +56,25 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
       }}
     >
       <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 700 }}>
           <thead>
             <tr>
               <th style={thStyle}>ID</th>
               <th style={thStyle}>Tipo</th>
-              <th style={thStyle}>Descripción</th>
+              <th style={thStyle}>Apertura</th>
+              <th style={thStyle}>Cierre</th>
               <th style={{ ...thStyle, textAlign: 'right' }}>Monto</th>
+              <th style={thStyle}>Estado</th>
               <th style={thStyle}>Acciones</th>
             </tr>
           </thead>
+
           <tbody>
             {items.length ? (
               items.map((it, i) => {
-                const idCaja =
-                  it.id_caja || it.id || (it.idCaja && it.idCaja.id) || null;
-                const isOpen =
-                  it.estado === 'Abierta' ||
-                  it.estado_caja === 1 ||
-                  (!it.fecha_hora_cierre && it.fecha_hora_cierre !== 0);
+                const idCaja = it.id_caja || it.id;
+                const abierta = it.estado_caja === 1 || !it.fecha_hora_cierre;
+
                 return (
                   <tr
                     key={idCaja || i}
@@ -85,23 +83,49 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
                     }}
                   >
                     <td style={tdStyle}>{idCaja || '—'}</td>
+                    <td style={tdStyle}>{it.tipo || '—'}</td>
+
+                    {/* Fecha de Apertura */}
                     <td style={tdStyle}>
-                      {it.tipo || it.tipo_movimiento || it.estado || '—'}
+                      {it.fecha_hora_apertura
+                        ? new Date(it.fecha_hora_apertura).toLocaleString('es-AR', {
+                            dateStyle: 'short',
+                            timeStyle: 'short',
+                          })
+                        : '—'}
                     </td>
+
+                    {/* Fecha de Cierre */}
                     <td style={tdStyle}>
-                      {it.descripcion ||
-                        it.descripcion_ingreso ||
-                        it.descripcion_egreso ||
-                        it.empleado_nombre ||
-                        '—'}
+                      {it.fecha_hora_cierre
+                        ? new Date(it.fecha_hora_cierre).toLocaleString('es-AR', {
+                            dateStyle: 'short',
+                            timeStyle: 'short',
+                          })
+                        : <span style={{ color: '#388e3c', fontWeight: 600 }}>Abierta</span>}
                     </td>
+
+                    {/* Monto */}
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      ${it.monto ||
-                        it.monto_ingreso ||
-                        it.monto_egreso ||
-                        it.monto_apertura ||
-                        0}
+                      ${it.monto_cierre || it.monto_apertura || it.monto || 0}
                     </td>
+
+                    {/* Estado */}
+                    <td style={tdStyle}>
+                      <span
+                        style={{
+                          padding: '4px 10px',
+                          borderRadius: '8px',
+                          fontWeight: 600,
+                          color: '#fff',
+                          backgroundColor: abierta ? '#4caf50' : '#d32f2f',
+                        }}
+                      >
+                        {abierta ? 'Abierta' : 'Cerrada'}
+                      </span>
+                    </td>
+
+                    {/* Botones */}
                     <td style={{ ...tdStyle, textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                         <button
@@ -116,7 +140,8 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
                         >
                           Ver
                         </button>
-                        {isOpen && (
+
+                        {abierta && (
                           <button
                             style={{ ...buttonBase, ...buttonColors.cerrar }}
                             onMouseEnter={(e) =>
@@ -140,7 +165,7 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
             ) : (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={7}
                   style={{
                     textAlign: 'center',
                     padding: 20,
@@ -161,9 +186,9 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
           items.map((c, i) => (
             <div key={c.id_caja || i} style={cardStyle}>
               <p><strong>ID:</strong> {c.id_caja}</p>
-              <p><strong>Empleado:</strong> {c.empleado || '—'}</p>
-              <p><strong>Apertura:</strong> {c.fecha_hora_apertura || '—'}</p>
-              <p><strong>Cierre:</strong> {c.fecha_hora_cierre || '—'}</p>
+              <p><strong>Tipo:</strong> {c.tipo || '—'}</p>
+              <p><strong>Apertura:</strong> {c.fecha_hora_apertura ? new Date(c.fecha_hora_apertura).toLocaleString('es-AR') : '—'}</p>
+              <p><strong>Cierre:</strong> {c.fecha_hora_cierre ? new Date(c.fecha_hora_cierre).toLocaleString('es-AR') : <span style={{ color: '#388e3c', fontWeight: 600 }}>Abierta</span>}</p>
               <p>
                 <strong>Estado:</strong>{' '}
                 <span
@@ -175,14 +200,28 @@ export default function CajaTable({ items = [], onView = () => {}, onClose = () 
                   {c.estado_caja === 1 ? 'Abierta' : 'Cerrada'}
                 </span>
               </p>
-              <p><strong>Monto apertura:</strong> ${c.monto_apertura || '0'}</p>
-              <p><strong>Monto cierre:</strong> ${c.monto_cierre || '0'}</p>
+              <p><strong>Monto:</strong> ${c.monto_cierre || c.monto_apertura || 0}</p>
               <button
                 onClick={() => onView(c.id_caja)}
                 style={{ ...buttonBase, ...buttonColors.ver, width: '100%' }}
               >
                 Ver
               </button>
+              {c.estado_caja === 1 && (
+                <button
+                  onClick={() => {
+                    if (window.confirm('¿Cerrar esta caja?')) onClose(c.id_caja);
+                  }}
+                  style={{
+                    ...buttonBase,
+                    ...buttonColors.cerrar,
+                    width: '100%',
+                    marginTop: 8,
+                  }}
+                >
+                  Cerrar
+                </button>
+              )}
             </div>
           ))
         ) : (
