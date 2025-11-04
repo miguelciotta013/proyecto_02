@@ -31,6 +31,8 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
   }, [initialData]);
 
   function validateField(name, value) {
+    // Convertir a string si no lo es
+    if (typeof value !== 'string') value = value ? String(value) : '';
     switch (name) {
       case 'dni_paciente':
         if (!value.trim()) return 'DNI es obligatorio';

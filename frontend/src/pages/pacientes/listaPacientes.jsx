@@ -19,6 +19,18 @@ export default function ListaPacientes() {
     fetchPacientes();
   }, []);
 
+  useEffect(() => {
+    const actualizarPacienteObra = async () => {
+      if (selected && selected.id) {
+        await handleView(selected.id);
+      }
+    };
+    window.addEventListener('pacienteObraActualizada', actualizarPacienteObra);
+    return () => {
+      window.removeEventListener('pacienteObraActualizada', actualizarPacienteObra);
+    };
+  }, [selected]);
+
   async function fetchPacientes() {
     setLoading(true);
     setError(null);
@@ -131,10 +143,11 @@ export default function ListaPacientes() {
             paciente={selected} 
             onClose={() => setSelected(null)} 
             onEliminar={handleEliminar}
-            onAsignarObra={handleAsignarObra}
+            onAsignarObra={(id) => setShowObraFor(id)}
             onAgregarFicha={handleAgregarFicha}
             onEditar={handleEditar}
             onObraRemoved={(updatedPaciente) => { setSelected(updatedPaciente); fetchPacientes(); }}
+            onObraAssigned={async () => { await handleView(selected.id); fetchPacientes(); }}
           />
         </div>
       )}
@@ -157,7 +170,7 @@ export default function ListaPacientes() {
 
       {showObraFor && (
         <div style={{ marginTop: 20, backgroundColor: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-          <ObraSocialForm id_paciente={showObraFor} onClose={() => setShowObraFor(null)} onAssigned={() => { setShowObraFor(null); fetchPacientes(); }} />
+          <ObraSocialForm id_paciente={showObraFor} onClose={() => setShowObraFor(null)} onAssigned={async () => { setShowObraFor(null); await handleView(showObraFor); fetchPacientes(); }} />
         </div>
       )}
 

@@ -39,6 +39,10 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
           obra_social_nombre: obras.find(o => o.id_obra_social == selected)?.nombre_os || 'Nombre desconocido'
         };
         onAssigned && onAssigned(obraCompleta);
+        // Actualizar el paciente en la vista inmediatamente si existe la función
+        if (window && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('pacienteObraActualizada'));
+        }
         onClose && onClose();
       } else setError(resp?.error || 'Error al asignar');
     } catch (e) {
