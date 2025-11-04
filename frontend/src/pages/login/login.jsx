@@ -66,6 +66,9 @@ export default function LoginPage() {
           <button type="submit" className={styles.button}>
             Ingresar
           </button>
+          <button type="button" className={styles.button + ' ' + styles.secondary} onClick={() => navigate('/recuperar-contraseña')} style={{marginTop: '10px'}}>
+            ¿Olvidaste tu contraseña?
+          </button>
         </form>
       </div>
     </div>

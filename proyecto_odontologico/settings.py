@@ -188,3 +188,17 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
 }
+
+# Configuración de email para desarrollo (puedes usar Gmail, Outlook, etc)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'TU_CORREO@gmail.com'
+EMAIL_HOST_PASSWORD = 'TU_CONTRASEÑA_O_APP_PASSWORD'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# Si usas otro proveedor, cambia los datos según corresponda
+# Para pruebas locales puedes usar: 'django.core.mail.backends.console.EmailBackend'
+# y los correos se mostrarán en la consola
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# DEFAULT_FROM_EMAIL = 'no-reply@tuapp.com'

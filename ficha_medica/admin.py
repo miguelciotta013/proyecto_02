@@ -1,4 +1,4 @@
-'''
+
 from django.contrib import admin
 from home.models import *
 # Register your models here.
@@ -54,4 +54,3 @@ class ListaCajasAdmin(admin.ModelAdmin):
     list_display = ('id_caja', 'fecha_hora_apertura','monto_apertura', 'fecha_hora_cierre', 'monto_cierre', 'estado_caja')
     search_fields = ('id_caja', 'fecha_papertura','monto_apertura', 'fecha_cierre', 'monto_cierre', 'estado_caja')
 admin.site.register(Cajas, ListaCajasAdmin)
-'''
