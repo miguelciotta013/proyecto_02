@@ -10,6 +10,7 @@ import RequireAuth from "./components/Auth/RequireAuth";
 import Home from "./pages/home/home";
 import ListaPacientes from "./pages/pacientes/listaPacientes";
 import LoginPage from "./pages/login/login";
+import RecuperarContrasenaPage from "./pages/login/RecuperarContrasenaPage";
 
 import ListaCajas from "./pages/cajas/listaCajas";
 import DetalleCaja from "./pages/cajas/detalleCaja";
@@ -46,6 +47,7 @@ function App() {
                 }
               />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/recuperar-contraseña" element={<RecuperarContrasenaPage />} />
 
               <Route
                 path="/pacientes"

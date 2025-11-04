@@ -23,6 +23,7 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     try {
       const payload = {
         id_obra_social: selected,
@@ -30,12 +31,21 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
         id_parentesco: Number(parentesco),
       };
       const resp = await addObraSocial(id_paciente, payload);
+
       if (resp && resp.success) {
-        onAssigned && onAssigned(resp.data);
+        // Aquí agregamos el nombre de la obra social
+        const obraCompleta = {
+          ...resp.data,
+          obra_social_nombre: obras.find(o => o.id_obra_social == selected)?.nombre_os || 'Nombre desconocido'
+        };
+        onAssigned && onAssigned(obraCompleta);
         onClose && onClose();
       } else setError(resp?.error || 'Error al asignar');
-    } catch (e) { setError(e.message || String(e)); }
-    finally { setLoading(false); }
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setLoading(false);
+    }
   }
 
   const inputStyle = {
@@ -50,54 +60,35 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
 
   return (
     <div style={{
-      position: 'fixed',
-      top: 0, left: 0, width: '100%', height: '100%',
+      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
       background: 'rgba(0, 0, 0, 0.4)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9999,
-      backdropFilter: 'blur(2px)',
+      zIndex: 9999, backdropFilter: 'blur(2px)',
     }}>
       <div style={{
-        background: '#fff',
-        borderRadius: '16px',
-        width: '100%',
-        maxWidth: '450px',
+        background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '450px',
         boxShadow: '0 8px 25px rgba(0,0,0,0.2)',
-        fontFamily: 'Poppins, sans-serif',
-        position: 'relative',
-        overflow: 'hidden',
-        borderTop: '6px solid #2e7d9d', // franja azul superior
-        padding: '30px 35px',
+        fontFamily: 'Poppins, sans-serif', position: 'relative', overflow: 'hidden',
+        borderTop: '6px solid #2e7d9d', padding: '30px 35px',
       }}>
-        {/* Encabezado */}
         <h3 style={{
-          textAlign: 'center',
-          color: '#2e7d9d',
-          fontSize: '1.7rem',
-          fontWeight: 700,
+          textAlign: 'center', color: '#2e7d9d', fontSize: '1.7rem', fontWeight: 700,
           marginBottom: 25,
         }}>
           <FaUsers style={{ marginRight: 8 }} /> Asignar Obra Social
         </h3>
 
-        {/* Error */}
         {error && (
           <div style={{
-            background: '#ffebee',
-            color: '#d32f2f',
-            padding: '10px 12px',
-            borderRadius: '10px',
-            fontSize: '0.95em',
-            textAlign: 'center',
-            fontWeight: 600,
-            marginBottom: '15px'
+            background: '#ffebee', color: '#d32f2f', padding: '10px 12px',
+            borderRadius: '10px', fontSize: '0.95em', textAlign: 'center',
+            fontWeight: 600, marginBottom: '15px'
           }}>
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Obra Social */}
           <div>
             <label style={{ fontWeight: 600, color: '#2e7d9d', display: 'flex', alignItems: 'center', gap: 6 }}>
               <FaUsers /> Obra Social
@@ -115,7 +106,6 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
             </select>
           </div>
 
-          {/* Credencial */}
           <div>
             <label style={{ fontWeight: 600, color: '#2e7d9d', display: 'flex', alignItems: 'center', gap: 6 }}>
               <FaIdCard /> Credencial
@@ -128,14 +118,13 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
             />
           </div>
 
-          {/* Parentesco */}
           <div>
             <label style={{ fontWeight: 600, color: '#2e7d9d', display: 'flex', alignItems: 'center', gap: 6 }}>
               <FaUser /> Parentesco
             </label>
             <select
               value={parentesco}
-              onChange={(e) => setParentesco(e.target.value)}
+              onChange={e => setParentesco(e.target.value)}
               required
               style={inputStyle}
             >
@@ -147,21 +136,14 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
             </select>
           </div>
 
-          {/* Botones */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: 10 }}>
             <button
               type="button"
               onClick={onClose}
               style={{
-                backgroundColor: '#9e9e9e', // gris: cancelar / cerrar
-                color: '#fff',
-                padding: '12px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: '0.3s',
-                boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
+                backgroundColor: '#9e9e9e', color: '#fff', padding: '12px 20px',
+                borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer',
+                transition: '0.3s', boxShadow: '0 3px 8px rgba(0,0,0,0.12)',
               }}
               onMouseEnter={e => e.target.style.backgroundColor = '#757575'}
               onMouseLeave={e => e.target.style.backgroundColor = '#9e9e9e'}
@@ -172,15 +154,9 @@ export default function ObraSocialForm({ id_paciente, onClose, onAssigned }) {
               type="submit"
               disabled={loading}
               style={{
-                backgroundColor: '#4caf50', // verde: agregar / guardar / confirmar
-                color: '#fff',
-                padding: '12px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: '0.3s',
-                boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
+                backgroundColor: '#4caf50', color: '#fff', padding: '12px 20px',
+                borderRadius: '10px', border: 'none', fontWeight: 600, cursor: 'pointer',
+                transition: '0.3s', boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
               }}
               onMouseEnter={e => e.target.style.backgroundColor = '#388e3c'}
               onMouseLeave={e => e.target.style.backgroundColor = '#4caf50'}

@@ -1,24 +1,18 @@
 import React, { useState } from 'react';
 
-export default function CierreForm({ onSubmit, initial = {} }) {
-  const [montoCierre, setMontoCierre] = useState(initial.monto_cierre || '');
+export default function CierreForm({ onSubmit, montoCalculado = 0, initial = {} }) {
   const [comentario, setComentario] = useState(initial.comentario || '');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!montoCierre || parseFloat(montoCierre) <= 0) {
-      alert('Debe ingresar un monto válido para el cierre.');
-      return;
-    }
     setLoading(true);
     try {
       if (onSubmit)
         await onSubmit({
-          monto_cierre: parseFloat(montoCierre),
+          monto_cierre: Number(montoCalculado),
           comentario: comentario.trim(),
         });
-      setMontoCierre('');
       setComentario('');
     } catch (err) {
       console.error('Error al cerrar caja:', err);
@@ -47,15 +41,14 @@ export default function CierreForm({ onSubmit, initial = {} }) {
 
       <input
         type="number"
-        step="0.01"
-        placeholder="Monto de cierre"
-        value={montoCierre}
-        onChange={(e) => setMontoCierre(e.target.value)}
+        value={montoCalculado}
+        readOnly
         style={{
           padding: 10,
           borderRadius: 8,
           border: '1px solid #ccc',
           fontSize: '0.95rem',
+          background: '#f0f0f0',
         }}
       />
 
