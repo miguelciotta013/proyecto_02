@@ -1,82 +1,109 @@
+/* src/components/turnos/TurnoList.module.css */
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
-  border-radius: 8px;
-  padding: 12px;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.03);
 }
 
 .title {
-  margin: 0 0 10px 0;
-  color: #0b63d6;
-  font-size: 1.15rem;
+  margin: 0;
+  padding: 14px 16px 6px;
+  color: #0f172a;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .table th,
 .table td {
-  padding: 10px 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #edf2f7;
   text-align: left;
-  border-bottom: 1px solid #eee;
-}
-
-.table th:nth-child(3),
-.table td:nth-child(3),
-.table th:nth-child(4),
-.table td:nth-child(4),
-.table th:nth-child(5),
-.table td:nth-child(5) {
-  min-width: 150px; 
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.table thead {
+  background: #f3f4f6;
+}
+
+.table th {
+  font-weight: 600;
+  color: #475569;
+  font-size: 0.78rem;
+}
+
 .empty {
-  color: #666;
-  padding: 20px;
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.actionsCell {
+  display: flex;
+  gap: 6px;
 }
 
 .button {
-  padding: 6px 10px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
   border: none;
-  cursor: pointer;
-  background: #0b63d6;
-  color: white;
+  background: #1f78b4;
+  color: #fff;
+  font-size: 0.7rem;
   font-weight: 500;
+  cursor: pointer;
+  transition: 0.12s ease;
 }
 
-.btnDanger {
-  background: #e03b3b;
+.button:hover {
+  background: #186492;
 }
 
 .estado {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 500;
   display: inline-block;
 }
 
+/* nombres de estado normalizados a lowerCase */
+.confirmado {
+  background: #e7f8f0;
+  color: #15803d;
+}
 
-.estado.agendado   { background: #e6f4ff; color: #0b63d6; }
-.estado.confirmado { background: #e8fff0; color: #17a34a; }
-.estado.cancelado  { background: #fff0f0; color: #c21b1b; }
-.estado.sin        { background: #f0f0f0; color: #666; }
-.estado.pendiente  { background: #e6f0ff; color: #0b3d99; } 
-.estado.atendido   { background: #e6f4ff; color: #0b63d6; } 
+.cancelado {
+  background: #fee2e2;
+  color: #b91c1c;
+}
 
+.pendiente,
+.agendado,
+.atendido {
+  background: #e6f4ff;
+  color: #1f78b4;
+}
 
-@media (max-width: 600px) {
-  .table th, .table td {
-    font-size: 0.85rem;
-    padding: 8px;
+.sin {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+@media (max-width: 720px) {
+  .table th,
+  .table td {
+    padding: 8px 10px;
+  }
+  .actionsCell {
+    flex-direction: column;
   }
 }

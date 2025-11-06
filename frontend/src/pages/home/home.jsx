@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { obtenerTurnos } from '../../api/turnosApi';
 
-// Función para formatear fecha YYYY-MM-DD
 function todayString(d = new Date()) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -53,29 +52,37 @@ export default function Home() {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        <h1 style={styles.title}>¡Bienvenida de vuelta!</h1>
-        <p style={styles.subtitle}>Agenda para: <strong>{selectedDate}</strong></p>
+        {/* Franja superior */}
+        <div style={styles.header}>
+          <h1 style={styles.headerTitle}>Agenda del Día 🗓️</h1>
+        </div>
 
-        {/* Selector de fecha */}
+        <p style={styles.subtitle}>
+          <span style={{ color: '#2e7d9d', fontWeight: 600 }}>
+            Seleccioná la fecha para ver los turnos programados
+          </span>
+        </p>
+
+        {/* Controles de fecha */}
         <div style={styles.dateControls}>
-          <DateButton onClick={() => changeDate(-1)}>Anterior</DateButton>
-          <DateButton onClick={goToday} type="primary">Hoy</DateButton>
-          <DateButton onClick={() => changeDate(1)}>Siguiente</DateButton>
+          <DateButton onClick={() => changeDate(-1)} type="gray">⬅️ Anterior</DateButton>
+          <DateButton onClick={goToday} type="blue">📅 Hoy</DateButton>
+          <DateButton onClick={() => changeDate(1)} type="gray">Siguiente ➡️</DateButton>
           <input
             type="date"
             value={selectedDate}
             onChange={e => setSelectedDate(e.target.value)}
             style={styles.dateInput}
           />
-          <DateButton onClick={openListadoTurnos} type="primary">Ver listado</DateButton>
+          <DateButton onClick={openListadoTurnos} type="green">📋 Ver listado</DateButton>
         </div>
 
         {loading ? (
-          <p style={styles.info}>Cargando información...</p>
+          <p style={styles.info}>🔄 Cargando información...</p>
         ) : error ? (
-          <p style={styles.error}>{error}</p>
+          <p style={styles.error}>⚠️ {error}</p>
         ) : (
-          <Section title="Turnos">
+          <Section title={`Turnos del ${selectedDate}`}>
             {turnos.length ? (
               <div style={{ overflowX: 'auto' }}>
                 <table style={styles.table}>
@@ -90,18 +97,20 @@ export default function Home() {
                     {turnos.map((t, i) => (
                       <tr key={t.id_turno || i} style={i % 2 === 0 ? styles.trEven : styles.trOdd}>
                         <td style={styles.td}>{t.fecha_turno || '-'}</td>
-                        <td style={styles.td}>{t.hora_turno ? String(t.hora_turno).slice(0,5) : (t.hora || '-')}</td>
-                        <td style={styles.td}>{t.paciente_nombre || t.nombre || '-'}</td>
-                        <td style={styles.td}>{t.paciente_apellido || t.apellido || '-'}</td>
+                        <td style={styles.td}>{t.hora_turno ? String(t.hora_turno).slice(0,5) : '-'}</td>
+                        <td style={styles.td}>{t.paciente_nombre || '-'}</td>
+                        <td style={styles.td}>{t.paciente_apellido || '-'}</td>
                         <td style={styles.td}>{t.asunto || '-'}</td>
-                        <td style={{...styles.td, fontWeight: 600, color: getEstadoColor(t.estado_nombre || t.estado)}}>{t.estado_nombre || t.estado || '-'}</td>
+                        <td style={{...styles.td, fontWeight: 600, color: getEstadoColor(t.estado_nombre || t.estado)}}>
+                          {t.estado_nombre || t.estado || '-'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p style={styles.info}>No hay turnos para esta fecha</p>
+              <p style={styles.info}>📭 No hay turnos registrados para esta fecha.</p>
             )}
           </Section>
         )}
@@ -110,44 +119,44 @@ export default function Home() {
   );
 }
 
-// Función para colorear el estado
 function getEstadoColor(estado) {
   switch ((estado || '').toLowerCase()) {
-    case 'confirmado': return '#2e7d32'; // verde
-    case 'cancelado': return '#d32f2f'; // rojo
-    case 'pendiente': return '#f9a825'; // amarillo
-    default: return '#1565c0'; // azul original
+    case 'confirmado': return '#4caf50';
+    case 'cancelado': return '#d32f2f';
+    case 'pendiente': return '#f9a825';
+    default: return '#2e7d9d';
   }
 }
 
-// Componentes auxiliares
 const Section = ({ title, children }) => (
-  <div style={{ marginBottom: 32, textAlign: 'left' }}>
-    <h3 style={{ color: "#0d47a1", marginBottom: 16 }}>{title}</h3>
+  <div style={{ marginBottom: 32 }}>
+    <h3 style={{ color: "#2e7d9d", marginBottom: 16, fontSize: 20 }}>{title}</h3>
     {children}
   </div>
 );
 
 const DateButton = ({ children, onClick, type }) => {
   const colors = {
-    default: { bg: '#f0f0f0', hover: '#e0e0e0', color: '#333' },
-    primary: { bg: '#1976d2', hover: '#0d47a1', color: 'white' }
+    blue: { bg: '#1976d2', color: 'white', hover: '#0d47a1' },
+    green: { bg: '#4caf50', color: 'white', hover: '#388e3c' },
+    gray: { bg: '#9e9e9e', color: 'white', hover: '#757575' },
+    red: { bg: '#d32f2f', color: 'white', hover: '#b71c1c' },
   };
-  const style = colors[type] || colors.default;
+  const style = colors[type] || colors.gray;
 
   return (
     <button
       onClick={onClick}
       style={{
         padding: '10px 18px',
-        borderRadius: 12,
+        borderRadius: 10,
         border: 'none',
         cursor: 'pointer',
         backgroundColor: style.bg,
         color: style.color,
         fontWeight: 600,
         transition: 'all 0.2s ease',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+        boxShadow: '0 3px 8px rgba(0,0,0,0.15)',
       }}
       onMouseEnter={e => e.currentTarget.style.backgroundColor = style.hover}
       onMouseLeave={e => e.currentTarget.style.backgroundColor = style.bg}
@@ -157,11 +166,10 @@ const DateButton = ({ children, onClick, type }) => {
   );
 };
 
-// Estilos mejorados manteniendo azul
 const styles = {
   page: {
     fontFamily: "Poppins, sans-serif",
-    background: "linear-gradient(135deg, #cce7ff, #bbdefb)",
+    background: "linear-gradient(135deg, #e1f5fe, #bbdefb)",
     minHeight: "100vh",
     padding: 40,
     display: 'flex',
@@ -169,18 +177,37 @@ const styles = {
   },
   container: {
     background: '#fff',
-    borderRadius: 24,
-    padding: 32,
+    borderRadius: 16,
+    padding: 0,
     width: '100%',
-    maxWidth: 1200,
-    boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+    maxWidth: 1100,
+    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
   },
-  title: { color: '#1565c0', marginBottom: 8, fontSize: 32 },
-  subtitle: { color: '#444', fontSize: 18, marginBottom: 24 },
-  dateControls: { display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 32, alignItems: 'center' },
-  dateInput: { padding: 10, borderRadius: 8, border: '1px solid #ccc', minWidth: 140 },
-  info: { color: '#777', fontSize: 16 },
-  error: { color: 'red', fontSize: 16 },
+  header: {
+    backgroundColor: '#2e7d9d',
+    padding: '18px 24px',
+    color: 'white',
+    textAlign: 'center',
+  },
+  headerTitle: {
+    margin: 0,
+    fontSize: 26,
+    fontWeight: 600,
+  },
+  subtitle: { color: '#444', fontSize: 18, margin: '24px 0', textAlign: 'center' },
+  dateControls: { display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 30, justifyContent: 'center' },
+  dateInput: {
+    padding: 10,
+    borderRadius: 10,
+    border: '1px solid #2e7d9d',
+    background: '#f7fbff',
+    color: '#2e7d9d',
+    fontWeight: 600,
+    minWidth: 140,
+  },
+  info: { color: '#555', fontSize: 16, textAlign: 'center', marginTop: 20 },
+  error: { color: '#d32f2f', fontSize: 16, textAlign: 'center', marginTop: 20 },
   table: {
     width: '100%',
     borderCollapse: 'separate',
@@ -189,7 +216,7 @@ const styles = {
   },
   th: {
     padding: '12px',
-    background: '#1976d2',
+    background: '#2e7d9d',
     color: 'white',
     textAlign: 'center',
     borderRadius: 6,
@@ -198,9 +225,9 @@ const styles = {
     padding: '12px',
     textAlign: 'center',
     background: 'white',
-    borderRadius: 6,
-    transition: 'all 0.2s',
+    borderRadius: 8,
+    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
   },
   trEven: { background: '#e3f2fd' },
-  trOdd: { background: '#bbdefb' },
+  trOdd: { background: '#f8fbff' },
 };

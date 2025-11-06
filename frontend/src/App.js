@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useContext } from "react";
 import "./App.css";
 import "tailwindcss/tailwind.css";
@@ -9,6 +10,7 @@ import RequireAuth from "./components/Auth/RequireAuth";
 import Home from "./pages/home/home";
 import ListaPacientes from "./pages/pacientes/listaPacientes";
 import LoginPage from "./pages/login/login";
+import RecuperarContrasenaPage from "./pages/login/RecuperarContrasenaPage";
 
 import ListaCajas from "./pages/cajas/listaCajas";
 import DetalleCaja from "./pages/cajas/detalleCaja";
@@ -17,6 +19,7 @@ import ListadoTurnos from "./pages/turnos/ListadoTurnos";
 import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
+import PacienteTurnos from "./pages/turnos/PacienteTurnos";   // 👈 NUEVA
 
 import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
 import HistorialPage from "./pages/fichasMedicas/HistorialPage";
@@ -44,6 +47,7 @@ function App() {
                 }
               />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/recuperar-contraseña" element={<RecuperarContrasenaPage />} />
 
               <Route
                 path="/pacientes"
@@ -70,13 +74,10 @@ function App() {
                   </RequireAuth>
                 }
               />
-              <Route 
-                path="/historial/:idPaciente/ficha/:idFicha" 
-                element={
-                <FichaMedicaDetailPage />
-                } 
+              <Route
+                path="/historial/:idPaciente/ficha/:idFicha"
+                element={<FichaMedicaDetailPage />}
               />
-
 
               <Route
                 path="/cajas"
@@ -95,11 +96,20 @@ function App() {
                 }
               />
 
+              {/* TURNOS */}
               <Route
                 path="/turnos"
                 element={
                   <RequireAuth>
                     <ListadoTurnos />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/turnos/paciente/:id"
+                element={
+                  <RequireAuth>
+                    <PacienteTurnos />
                   </RequireAuth>
                 }
               />
@@ -173,8 +183,8 @@ function Header() {
 
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <StyledNav to="/">Inicio</StyledNav>
-          <StyledNav to="/pacientes">Pacientes</StyledNav>
           <StyledNav to="/turnos">Turnos</StyledNav>
+          <StyledNav to="/pacientes">Pacientes</StyledNav>
           <StyledNav to="/historial">Fichas Médicas</StyledNav>
           <StyledNav to="/cajas">Cajas</StyledNav>
           <StyledNav to="/panel">Panel de</StyledNav>
@@ -182,12 +192,12 @@ function Header() {
             <button
               onClick={logout}
               style={{
-                background: 'transparent',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.18)',
-                padding: '6px 10px',
+                background: "transparent",
+                color: "#fff",
+                border: "1px solid rgba(255,255,255,0.18)",
+                padding: "6px 10px",
                 borderRadius: 8,
-                cursor: 'pointer',
+                cursor: "pointer",
                 fontWeight: 500,
               }}
             >
@@ -202,12 +212,10 @@ function Header() {
   );
 }
 
-// AuthGate: muestra Home si hay sesión, o redirige a /login si no
 function AuthGate() {
   const { accessToken } = useContext(AuthContext);
   if (!accessToken) return <Navigate to="/login" replace />;
   return <Home />;
-
 }
 
 function DetalleCajaWrapper() {

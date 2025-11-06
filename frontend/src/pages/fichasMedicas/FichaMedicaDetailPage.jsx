@@ -181,21 +181,21 @@ function FichaMedicaDetailPage() {
                   onClick={() => setEditMode(true)}
                   title="Editar conformidades"
                 >
-                  ✏️ Editar
+                   Editar
                 </button>
                 <button 
                   className={`${styles.btn} ${styles.btnSuccess}`}
                   onClick={handleDescargarPDF}
                   title="Descargar PDF"
                 >
-                  📄 PDF
+                   PDF
                 </button>
                 <button 
                   className={`${styles.btn} ${styles.btnDanger}`}
                   onClick={handleEliminar}
                   title="Eliminar ficha"
                 >
-                  🗑️ Eliminar
+                   Eliminar
                 </button>
               </>
             ) : (
@@ -210,7 +210,7 @@ function FichaMedicaDetailPage() {
                   className={`${styles.btn} ${styles.btnSuccess}`}
                   onClick={handleGuardarConformidades}
                 >
-                  💾 Guardar
+                   Guardar
                 </button>
               </>
             )}
@@ -297,15 +297,15 @@ function FichaMedicaDetailPage() {
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>Credencial:</span>
-                  <span className={styles.value}>-</span>
+                  <span className={styles.value}>{ficha.obra_social_credencial}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>Titular:</span>
-                  <span className={styles.value}>-</span>
+                  <span className={styles.value}>{ficha.obra_social_titular}</span>
                 </div>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>Parentesco:</span>
-                  <span className={styles.value}>-</span>
+                  <span className={styles.value}>{ficha.obra_social_parentesco}</span>
                 </div>
               </div>
             </div>

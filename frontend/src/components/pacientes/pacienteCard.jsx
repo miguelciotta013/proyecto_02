@@ -7,8 +7,6 @@ export default function PacienteCard({
   onEditar,
   onEliminar,
   onAsignarObra,
-  onAgregarFicha,
-  onObraRemoved
 }) {
   const [closing, setClosing] = useState(false);
   const [obras, setObras] = useState(paciente?.obras_sociales || []);
@@ -17,48 +15,62 @@ export default function PacienteCard({
 
   const handleEliminar = () => {
     if (window.confirm(`¿Seguro que querés dar de baja a ${paciente.nombre_paciente}?`)) {
-      onEliminar(paciente.id_paciente);
+      onEliminar && onEliminar(paciente.id_paciente);
     }
   };
 
   const handleClose = () => {
     setClosing(true);
-    setTimeout(() => {
-      onClose && onClose();
-    }, 300); // tiempo de animación
+    setTimeout(() => onClose && onClose(), 300);
+  };
+
+  const handleObraAssigned = (obra) => {
+    setObras((prev) => [...prev, obra]);
+  };
+
+  const handleObraRemoved = async (id_paciente_os) => {
+    if (!window.confirm('¿Seguro que querés eliminar esta obra social del paciente?')) return;
+    try {
+      const resp = await removeObraSocial(paciente.id_paciente, id_paciente_os);
+      if (resp && resp.success) {
+        setObras((prev) => prev.filter(o => o.id_paciente_os !== id_paciente_os));
+      } else alert(resp?.error || 'Error al eliminar obra social');
+    } catch (e) {
+      alert(e.message || String(e));
+    }
   };
 
   return (
     <div
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        backgroundColor: "rgba(0,0,0,0.5)",
+        top: 0, left: 0, width: "100vw", height: "100vh",
+        backgroundColor: "rgba(0,0,0,0.4)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         zIndex: 1000,
         opacity: closing ? 0 : 1,
-        transition: "opacity 0.3s ease"
+        transition: "opacity 0.3s ease",
+        backdropFilter: "blur(3px)"
       }}
     >
-        <div
+      <div
         style={{
-          backgroundColor: "#fff",
+          background: "#fff",
           padding: 30,
-          borderRadius: 20,
-          boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+          borderRadius: 16,
+          boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
           maxWidth: 550,
           width: "90%",
           fontFamily: "'Poppins', sans-serif",
           position: "relative",
-          transform: closing ? "scale(0.9)" : "scale(1)",
+          borderTop: "6px solid #2e7d9d",
+          transform: closing ? "scale(0.95)" : "scale(1)",
           transition: "transform 0.3s ease"
         }}
       >
+        {/* Botón cerrar */}
         <button
           onClick={handleClose}
           style={{
@@ -66,187 +78,145 @@ export default function PacienteCard({
             top: 16,
             right: 16,
             border: "none",
-            backgroundColor: "#f44336",
+            backgroundColor: "#9e9e9e",
             color: "#fff",
             padding: "8px 14px",
-            borderRadius: 8,
+            borderRadius: 10,
             cursor: "pointer",
-            fontWeight: "bold",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-            transition: "background-color 0.2s"
+            fontWeight: 600,
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.15)",
+            transition: "0.3s",
           }}
-          onMouseEnter={e => (e.target.style.backgroundColor = "#d32f2f")}
-          onMouseLeave={e => (e.target.style.backgroundColor = "#f44336")}
+          onMouseEnter={e => e.target.style.backgroundColor = "#757575"}
+          onMouseLeave={e => e.target.style.backgroundColor = "#9e9e9e"}
         >
           ✕ Cerrar
         </button>
 
         <h2
           style={{
-            marginBottom: 10,
-            color: "#1976d2",
-            borderBottom: "2px solid #e0e0e0",
-            paddingBottom: 8
+            marginBottom: 12,
+            color: "#2e7d9d",
+            borderBottom: "2px solid #90caf9",
+            paddingBottom: 6,
+            textAlign: "center",
+            fontWeight: 700
           }}
         >
           {paciente.nombre_paciente} {paciente.apellido_paciente}
         </h2>
 
-        <div style={{ marginBottom: 16, color: "#555", lineHeight: "1.6" }}>
+        {/* Información básica */}
+        <div style={{
+          marginBottom: 16,
+          color: "#000",
+          lineHeight: "1.6",
+          padding: "12px 16px",
+          backgroundColor: "#f5f7fa",
+          borderRadius: 12,
+          boxShadow: "inset 0 0 8px rgba(0,0,0,0.03)"
+        }}>
           <p><strong>DNI:</strong> {paciente.dni_paciente}</p>
           <p><strong>Fecha Nac.:</strong> {paciente.fecha_nacimiento}</p>
           <p><strong>Teléfono:</strong> {paciente.telefono}</p>
           <p><strong>Correo:</strong> {paciente.correo}</p>
         </div>
 
-        <h4 style={{ marginBottom: 8, color: "#333" }}>Obras Sociales</h4>
+        {/* Obras Sociales */}
+        <h4 style={{ marginBottom: 8, color: "#2e7d9d" }}>Obras Sociales</h4>
         <div
           style={{
-            backgroundColor: "#f8f9fa",
+            backgroundColor: "#e3f2fd",
             padding: 12,
-            borderRadius: 10,
-            maxHeight: 130,
+            borderRadius: 12,
+            maxHeight: 150,
             overflowY: "auto",
             marginBottom: 20,
-            border: "1px solid #e0e0e0"
+            border: "1px solid #90caf9"
           }}
         >
-          {obras && obras.length ? (
+          {obras.length ? (
             <ul style={{ margin: 0, paddingLeft: 20 }}>
               {obras.map(os => (
-                <li key={os.id_paciente_os} style={{ marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <li key={os.id_paciente_os} style={{
+                  marginBottom: 8,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
                   <div>
                     {os.obra_social_nombre} — <span style={{ color: '#555' }}>{os.credencial_paciente || 'sin credencial'}</span>
                   </div>
-                  <div>
-                    <button
-                      onClick={async () => {
-                        if (!window.confirm('¿Seguro que querés eliminar esta obra social del paciente?')) return;
-                        try {
-                          const resp = await removeObraSocial(paciente.id_paciente, os.id_paciente_os);
-                          if (resp && resp.success) {
-                            const updated = obras.filter(o => o.id_paciente_os !== os.id_paciente_os);
-                            setObras(updated);
-                            // notificar al padre que la obra fue removida con el paciente actualizado
-                            const updatedPaciente = { ...paciente, obras_sociales: updated };
-                            if (typeof onObraRemoved === 'function') onObraRemoved(updatedPaciente);
-                            else onClose && onClose();
-                          } else {
-                            alert(resp?.error || 'Error al eliminar obra social');
-                          }
-                        } catch (e) {
-                          alert(e.message || String(e));
-                        }
-                      }}
-                      style={{
-                        backgroundColor: '#d32f2f',
-                        color: '#fff',
-                        border: 'none',
-                        padding: '6px 10px',
-                        borderRadius: 8,
-                        cursor: 'pointer'
-                      }}
-                    >Eliminar</button>
-                  </div>
+                  <button
+                    onClick={() => handleObraRemoved(os.id_paciente_os)}
+                    style={{
+                      backgroundColor: "#d32f2f",
+                      color: "#fff",
+                      border: "none",
+                      padding: "6px 12px",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      fontWeight: 600,
+                      transition: "0.3s",
+                    }}
+                    onMouseEnter={e => e.target.style.backgroundColor = "#b71c1c"}
+                    onMouseLeave={e => e.target.style.backgroundColor = "#d32f2f"}
+                  >Eliminar</button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p style={{ margin: 0, color: "#777" }}>
-              Sin obras sociales registradas
-            </p>
+            <p style={{ margin: 0, color: "#555" }}>Sin obras sociales registradas</p>
           )}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "10px",
-            justifyContent: "center"
-          }}
-        >
+        {/* Botones de acción */}
+        <div style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "12px",
+          justifyContent: "center"
+        }}>
           <button
-            onClick={() => onEditar(paciente.id_paciente)}
-            style={{
-              flex: "1",
-              minWidth: "45%",
-              padding: "10px",
-              borderRadius: 8,
-              border: "none",
-              backgroundColor: "#1976d2",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              transition: "background-color 0.2s"
-            }}
-            onMouseEnter={e => (e.target.style.backgroundColor = "#1565c0")}
-            onMouseLeave={e => (e.target.style.backgroundColor = "#1976d2")}
+            onClick={() => onEditar && onEditar(paciente.id_paciente)}
+            style={buttonStyle("#1976d2", "#004aad")}
           >
             Editar
           </button>
-
           <button
             onClick={handleEliminar}
-            style={{
-              flex: "1",
-              minWidth: "45%",
-              padding: "10px",
-              borderRadius: 8,
-              border: "none",
-              backgroundColor: "#d32f2f",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              transition: "background-color 0.2s"
-            }}
-            onMouseEnter={e => (e.target.style.backgroundColor = "#b71c1c")}
-            onMouseLeave={e => (e.target.style.backgroundColor = "#d32f2f")}
+            style={buttonStyle("#d32f2f", "#b71c1c")}
           >
             Dar de baja
           </button>
-
           <button
-            onClick={() => onAsignarObra(paciente.id_paciente)}
-            style={{
-              flex: "1",
-              minWidth: "45%",
-              padding: "10px",
-              borderRadius: 8,
-              border: "none",
-              backgroundColor: "#0288d1",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              transition: "background-color 0.2s"
-            }}
-            onMouseEnter={e => (e.target.style.backgroundColor = "#0277bd")}
-            onMouseLeave={e => (e.target.style.backgroundColor = "#0288d1")}
+            onClick={() => onAsignarObra && onAsignarObra(paciente.id_paciente, handleObraAssigned)}
+            style={buttonStyle("#4caf50", "#388e3c")}
           >
             Asignar Obra Social
-          </button>
-
-          <button
-            onClick={() => onAgregarFicha(paciente.id_paciente)}
-            style={{
-              flex: "1",
-              minWidth: "45%",
-              padding: "10px",
-              borderRadius: 8,
-              border: "none",
-              backgroundColor: "#2e7d32",
-              color: "#fff",
-              fontWeight: "bold",
-              cursor: "pointer",
-              transition: "background-color 0.2s"
-            }}
-            onMouseEnter={e => (e.target.style.backgroundColor = "#1b5e20")}
-            onMouseLeave={e => (e.target.style.backgroundColor = "#2e7d32")}
-          >
-            Agregar Ficha Patológica
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+// Helper para estilos de botón
+function buttonStyle(color, hover) {
+  return {
+    flex: "1",
+    minWidth: "45%",
+    padding: "12px",
+    borderRadius: 10,
+    border: "none",
+    backgroundColor: color,
+    color: "#fff",
+    fontWeight: 600,
+    cursor: "pointer",
+    boxShadow: "0 3px 10px rgba(0,0,0,0.15)",
+    transition: "0.3s",
+    marginBottom: 8,
+    onMouseEnter: e => e.target.style.backgroundColor = hover,
+    onMouseLeave: e => e.target.style.backgroundColor = color,
+  };
 }

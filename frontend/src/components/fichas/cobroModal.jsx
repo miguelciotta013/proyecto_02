@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateCobro, getMetodosCobro } from '../../api/fichasApi';
-//algo
+import styles from './cobroModal.module.css';
 
 function CobroModal({ cobro, onClose, onUpdate }) {
   const [metodosCobro, setMetodosCobro] = useState([]);
@@ -13,12 +13,15 @@ function CobroModal({ cobro, onClose, onUpdate }) {
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
+    console.log('Cobro recibido:', cobro);
     fetchMetodosCobro();
   }, []);
 
   const fetchMetodosCobro = async () => {
     try {
       const response = await getMetodosCobro();
+      console.log('Respuesta métodos de cobro:', response.data);
+      
       if (response.data.success) {
         setMetodosCobro(response.data.data);
         
@@ -37,13 +40,16 @@ function CobroModal({ cobro, onClose, onUpdate }) {
       }
     } catch (error) {
       console.error('Error al cargar métodos de cobro:', error);
+      alert('Error al cargar los métodos de cobro');
     }
   };
 
   const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    console.log('Cambio en campo:', name, 'Valor:', value);
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     });
   };
 
@@ -55,18 +61,20 @@ function CobroModal({ cobro, onClose, onUpdate }) {
       return;
     }
 
+    console.log('Datos a enviar:', formData);
+
     try {
       setLoading(true);
 
       const response = await updateCobro(cobro.id_cobro_consulta, formData);
 
       if (response.data.success) {
-        alert('Cobro actualizado correctamente');
+        alert('✅ Cobro actualizado correctamente');
         onUpdate();
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al actualizar el cobro');
+      alert('❌ Error al actualizar el cobro: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -83,50 +91,51 @@ function CobroModal({ cobro, onClose, onUpdate }) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3 className="modal-title">Detalle del Cobro</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>Detalle del Cobro</h3>
+          <button className={styles.modalClose} onClick={onClose}>×</button>
         </div>
 
-        <div className="modal-body">
+        <div className={styles.modalBody}>
           {/* Información del cobro */}
-          <div className="resumen-cobro">
-            <div className="resumen-item">
+          <div className={styles.resumenCobro}>
+            <h4 className={styles.resumenTitle}>Resumen del Cobro</h4>
+            <div className={styles.resumenItem}>
               <span>Monto Total:</span>
               <span>${parseFloat(cobro.monto_total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
-            <div className="resumen-item">
+            <div className={styles.resumenItem}>
               <span>Cobertura Obra Social:</span>
-              <span>${parseFloat(cobro.monto_obra_social).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span className={styles.cobertura}>-${parseFloat(cobro.monto_obra_social).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
-            <div className="resumen-item">
+            <div className={styles.resumenItem}>
               <span>Monto Paciente:</span>
               <span>${parseFloat(cobro.monto_paciente).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
-            <div className="resumen-item">
+            <div className={styles.resumenItem}>
               <span>Monto Pagado:</span>
-              <span>${parseFloat(cobro.monto_pagado).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span className={styles.montoPagado}>${parseFloat(cobro.monto_pagado).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
             </div>
-            <div className="resumen-item">
+            <div className={styles.resumenItem}>
               <span>Estado:</span>
-              <span className={`badge ${
-                cobro.estado_pago === 'pagado' ? 'badge-success' :
-                cobro.estado_pago === 'pendiente' ? 'badge-warning' :
-                'badge-info'
+              <span className={`${styles.badge} ${
+                cobro.estado_pago === 'pagado' ? styles.badgeSuccess :
+                cobro.estado_pago === 'pendiente' ? styles.badgeWarning :
+                styles.badgeInfo
               }`}>
                 {cobro.estado_pago}
               </span>
             </div>
             {cobro.metodo_cobro && (
-              <div className="resumen-item">
+              <div className={styles.resumenItem}>
                 <span>Método de Cobro:</span>
                 <span>{cobro.metodo_cobro}</span>
               </div>
             )}
             {cobro.fecha_hora_cobro && (
-              <div className="resumen-item">
+              <div className={styles.resumenItem}>
                 <span>Fecha de Cobro:</span>
                 <span>{new Date(cobro.fecha_hora_cobro).toLocaleString('es-AR')}</span>
               </div>
@@ -134,24 +143,22 @@ function CobroModal({ cobro, onClose, onUpdate }) {
           </div>
 
           {/* Formulario de actualización */}
-          <div style={{ marginTop: '2rem' }}>
+          <div className={styles.formSection}>
             {!editMode ? (
               <button
-                className="btn btn-primary"
+                className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={() => setEditMode(true)}
               >
-                {cobro.estado_pago === 'pendiente' ? 'Registrar Pago' : 'Modificar Cobro'}
+                {cobro.estado_pago === 'pendiente' ? '💰 Registrar Pago' : '✏️ Modificar Cobro'}
               </button>
             ) : (
               <form onSubmit={handleSubmit}>
-                <h4 style={{ marginBottom: '1rem', color: '#2E7D9D' }}>
-                  Actualizar Cobro
-                </h4>
+                <h4 className={styles.formTitle}>Actualizar Cobro</h4>
 
-                <div className="form-group">
-                  <label className="form-label">Estado de Pago *</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Estado de Pago *</label>
                   <select
-                    className="form-select"
+                    className={styles.formSelect}
                     name="id_estado_pago"
                     value={formData.id_estado_pago}
                     onChange={handleInputChange}
@@ -164,44 +171,53 @@ function CobroModal({ cobro, onClose, onUpdate }) {
                   </select>
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Método de Cobro *</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Método de Cobro *</label>
                   <select
-                    className="form-select"
+                    className={styles.formSelect}
                     name="id_metodo_cobro"
                     value={formData.id_metodo_cobro}
                     onChange={handleInputChange}
                     required
                   >
                     <option value="">Seleccionar...</option>
-                    {metodosCobro.map(metodo => (
-                      <option key={metodo.id_metodo_cobro} value={metodo.id_metodo_cobro}>
-                        {metodo.tipo_cobro}
-                      </option>
-                    ))}
+                    {metodosCobro.length === 0 ? (
+                      <option value="" disabled>Cargando métodos...</option>
+                    ) : (
+                      metodosCobro.map(metodo => (
+                        <option key={metodo.id_metodo_cobro} value={metodo.id_metodo_cobro}>
+                          {metodo.tipo_cobro}
+                        </option>
+                      ))
+                    )}
                   </select>
+                  {metodosCobro.length === 0 && (
+                    <small className={styles.hint}>
+                      ⚠️ No se pudieron cargar los métodos de cobro
+                    </small>
+                  )}
                 </div>
 
-                <div className="form-group">
-                  <label className="form-label">Monto Pagado *</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Monto Pagado *</label>
                   <input
                     type="number"
                     step="0.01"
-                    className="form-input"
+                    className={styles.formInput}
                     name="monto_pagado"
                     value={formData.monto_pagado}
                     onChange={handleInputChange}
                     required
                   />
-                  <small style={{ color: '#6c757d', display: 'block', marginTop: '0.25rem' }}>
+                  <small className={styles.hint}>
                     Monto que debe pagar el paciente: ${parseFloat(cobro.monto_paciente).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
                   </small>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <div className={styles.buttonsRow}>
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className={`${styles.btn} ${styles.btnSecondary}`}
                     onClick={handleCancelarEdicion}
                     disabled={loading}
                   >
@@ -209,10 +225,10 @@ function CobroModal({ cobro, onClose, onUpdate }) {
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-success"
+                    className={`${styles.btn} ${styles.btnSuccess}`}
                     disabled={loading}
                   >
-                    {loading ? 'Guardando...' : 'Confirmar Cambios'}
+                    {loading ? 'Guardando...' : '✓ Confirmar Cambios'}
                   </button>
                 </div>
               </form>
@@ -220,12 +236,38 @@ function CobroModal({ cobro, onClose, onUpdate }) {
           </div>
         </div>
 
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={onClose}>
+        <div className={styles.modalFooter}>
+          <button 
+            className={`${styles.btn} ${styles.btnSecondary}`} 
+            onClick={onClose}
+          >
             Cerrar
           </button>
         </div>
       </div>
+
+      {/* Debug info - remover en producción */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'fixed',
+          bottom: '10px',
+          right: '10px',
+          background: 'black',
+          color: 'white',
+          padding: '10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+          maxWidth: '300px',
+          zIndex: 10000
+        }}>
+          <strong>Debug:</strong><br/>
+          Métodos cargados: {metodosCobro.length}<br/>
+          ID seleccionado: {formData.id_metodo_cobro}<br/>
+          {metodosCobro.length > 0 && (
+            <>Métodos: {metodosCobro.map(m => m.tipo_cobro).join(', ')}</>
+          )}
+        </div>
+      )}
     </div>
   );
 }

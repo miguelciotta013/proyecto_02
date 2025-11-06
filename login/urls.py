@@ -1,6 +1,6 @@
 # login/urls.py
 from django.urls import path
-from .views import LoginView, LogoutView, VerifyTokenView
+from .views import LoginView, LogoutView, VerifyTokenView, RecuperarContrasenaView, CambiarContrasenaView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
@@ -8,4 +8,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('verify/', VerifyTokenView.as_view(), name='verify-token'),
     path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('recuperar-contrasena/', RecuperarContrasenaView.as_view(), name='recuperar-contrasena'),
+    path('cambiar-contrasena/', CambiarContrasenaView.as_view(), name='cambiar-contrasena'),
 ]

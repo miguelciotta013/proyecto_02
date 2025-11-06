@@ -9,7 +9,11 @@ from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from home.models import AuthUser, Empleados
 from .serializers import LoginSerializer, UsuarioAuthSerializer
-
+from django.core.mail import send_mail
+from django.contrib.auth import get_user_model
+from .models import CodigoRecuperacion
+import random
+from django.contrib.auth.hashers import make_password
 
 class LoginView(APIView):
     def post(self, request):
@@ -135,3 +139,45 @@ class VerifyTokenView(APIView):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class RecuperarContrasenaView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        User = get_user_model()
+        try:
+            user = User.objects.get(email=email)
+            codigo = str(random.randint(100000, 999999))
+            CodigoRecuperacion.objects.create(user=user, codigo=codigo)
+            send_mail(
+                'Recuperación de contraseña',
+                f'Tu código de recuperación es: {codigo}',
+                'no-reply@tuapp.com',
+                [email],
+                fail_silently=False,
+            )
+            return Response({'success': True, 'message': 'Código enviado'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'success': False, 'error': 'Correo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CambiarContrasenaView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        codigo = request.data.get('codigo')
+        nueva_contrasena = request.data.get('nuevaContrasena')
+        User = get_user_model()
+        try:
+            user = User.objects.get(email=email)
+            cod = CodigoRecuperacion.objects.filter(user=user, codigo=codigo, usado=False).order_by('-creado').first()
+            if not cod:
+                return Response({'success': False, 'error': 'Código inválido'}, status=status.HTTP_400_BAD_REQUEST)
+            user.password = make_password(nueva_contrasena)
+            user.save()
+            cod.usado = True
+            cod.save()
+            return Response({'success': True, 'message': 'Contraseña cambiada exitosamente'}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({'success': False, 'error': 'Correo no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

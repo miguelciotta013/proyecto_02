@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
-export default function CierreForm({ onSubmit, initial = {} }) {
-  const [montoCierre, setMontoCierre] = useState(initial.monto_cierre || '');
+export default function CierreForm({ onSubmit, montoCalculado = 0, initial = {} }) {
   const [comentario, setComentario] = useState(initial.comentario || '');
   const [loading, setLoading] = useState(false);
 
@@ -9,21 +8,79 @@ export default function CierreForm({ onSubmit, initial = {} }) {
     e.preventDefault();
     setLoading(true);
     try {
-      if (onSubmit) await onSubmit({ monto_cierre: parseFloat(montoCierre || 0), comentario });
+      if (onSubmit)
+        await onSubmit({
+          monto_cierre: Number(montoCalculado),
+          comentario: comentario.trim(),
+        });
       setComentario('');
-      setMontoCierre('');
+    } catch (err) {
+      console.error('Error al cerrar caja:', err);
+      alert('Ocurrió un error al cerrar la caja.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <input placeholder="Monto de cierre" type="number" step="0.01" value={montoCierre} onChange={(e) => setMontoCierre(e.target.value)} />
-      <input placeholder="Comentario (opcional)" value={comentario} onChange={(e) => setComentario(e.target.value)} />
-      <div style={{ display: 'flex', gap: 8 }}>
-        <button type="submit" disabled={loading}>{loading ? 'Cerrando...' : 'Cerrar caja'}</button>
-      </div>
+    <form
+      onSubmit={handleSubmit}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 12,
+        background: '#fff',
+        padding: 20,
+        borderRadius: 12,
+        boxShadow: '0 4px 10px rgba(0,0,0,0.08)',
+        maxWidth: 400,
+        margin: '20px auto',
+      }}
+    >
+      <h3 style={{ marginBottom: 10, color: '#1976d2' }}>Cierre de Caja</h3>
+
+      <input
+        type="number"
+        value={montoCalculado}
+        readOnly
+        style={{
+          padding: 10,
+          borderRadius: 8,
+          border: '1px solid #ccc',
+          fontSize: '0.95rem',
+          background: '#f0f0f0',
+        }}
+      />
+
+      <input
+        type="text"
+        placeholder="Comentario (opcional)"
+        value={comentario}
+        onChange={(e) => setComentario(e.target.value)}
+        style={{
+          padding: 10,
+          borderRadius: 8,
+          border: '1px solid #ccc',
+          fontSize: '0.95rem',
+        }}
+      />
+
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          background: loading ? '#ccc' : '#1976d2',
+          color: '#fff',
+          border: 'none',
+          padding: '10px 16px',
+          borderRadius: 8,
+          cursor: loading ? 'not-allowed' : 'pointer',
+          fontSize: '0.95rem',
+          transition: '0.3s',
+        }}
+      >
+        {loading ? 'Cerrando...' : 'Cerrar Caja'}
+      </button>
     </form>
   );
 }

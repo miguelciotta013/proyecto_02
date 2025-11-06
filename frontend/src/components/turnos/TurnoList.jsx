@@ -1,44 +1,78 @@
+// src/components/turnos/TurnoList.jsx
 import React from 'react';
 import styles from './TurnoList.module.css';
 
-export default function TurnoList({ turnos = [], onVer }) {
-  if (!turnos.length) return <p className={styles.empty}>No hay turnos para mostrar. 😔</p>;
+export default function TurnoList({ pacientesConTurno = [], onAgregarTurno, onVerTurno }) {
+  if (!pacientesConTurno.length) return <p className={styles.empty}>No hay pacientes para mostrar. 😔</p>;
+
+  function formatFecha(t) {
+    if (!t) return '-';
+    const f = t.fecha_turno ?? t.raw?.fecha_turno ?? t.raw?.fecha ?? t.raw?.date ?? null;
+    return f ? String(f).slice(0,10) : '-';
+  }
+  function formatHora(t) {
+    if (!t) return '-';
+    const h = t.hora_turno ?? t.raw?.hora_turno ?? t.raw?.hora ?? t.raw?.time ?? null;
+    return h ? String(h).slice(0,5) : '-';
+  }
+  function displayEstado(t) {
+    if (!t) return 'Sin estado';
+    return t.estado ?? t.raw?.estado ?? t.raw?.estado_turno ?? (t.id_turno_estado ? 'Confirmado' : 'Sin estado');
+  }
+  function displayAsunto(t) {
+    if (!t) return '-';
+    return t.asunto ?? t.raw?.asunto ?? t.raw?.subject ?? '-';
+  }
 
   return (
     <div className={styles.tableWrapper}>
-      <h2 className={styles.title}>Lista de Turnos</h2>
+      <h2 className={styles.title}>Pacientes y Turnos</h2>
       <table className={styles.table}>
         <thead>
           <tr>
-            <th scope="col">Fecha</th>
-            <th scope="col">Hora</th>
-            <th scope="col">Nombre</th>
-            <th scope="col">Apellido</th>
-            <th scope="col">Asunto</th>
-            <th scope="col">Estado</th>
-            <th scope="col">Acciones</th>
+            <th>DNI</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Fecha turno</th>
+            <th>Hora</th>
+            <th>Asunto</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {turnos.map(t => (
-            <tr key={t.id_turno}>
-              <td data-label="Fecha">{t.fecha_turno}</td>
-              <td data-label="Hora">{t.hora_turno?.slice(0, 5)}</td>
-              <td data-label="Nombre">{t.paciente_nombre || '-'}</td>
-              <td data-label="Apellido">{t.paciente_apellido || '-'}</td>
-              <td data-label="Asunto">{t.asunto || '-'}</td>
-              <td data-label="Estado">
-                <span className={`${styles.estado} ${styles[t.estado?.toLowerCase() || 'sin']}`}>
-                  {t.estado || 'Sin estado'}
-                </span>
-              </td>
-              <td data-label="Acciones">
-                <button className={styles.button} onClick={() => onVer(t.id_turno)}>
-                  Ver
-                </button>
-              </td>
-            </tr>
-          ))}
+          {pacientesConTurno.map(({ paciente, turno }) => {
+            const dni = paciente.dni_paciente ?? paciente.dni ?? '';
+            const nombre = paciente.nombre_paciente ?? paciente.nombre ?? '-';
+            const apellido = paciente.apellido_paciente ?? paciente.apellido ?? '-';
+            const fecha = formatFecha(turno);
+            const hora = formatHora(turno);
+            const asunto = displayAsunto(turno);
+            const estado = displayEstado(turno);
+
+            return (
+              <tr key={paciente.id_paciente ?? paciente.id}>
+                <td>{dni}</td>
+                <td>{nombre}</td>
+                <td>{apellido}</td>
+                <td>{fecha}</td>
+                <td>{hora}</td>
+                <td>{asunto}</td>
+                <td>
+                  <span className={`${styles.estado} ${styles[(estado || '').toLowerCase()] || styles.sin}`}>
+                    {estado}
+                  </span>
+                </td>
+                <td className={styles.actionsCell}>
+                  {!turno ? (
+                    <button className={styles.button} onClick={() => onAgregarTurno(paciente)}>Agregar turno</button>
+                  ) : (
+                    <button className={styles.button} onClick={() => onVerTurno(turno.id_turno)}>Ver</button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
