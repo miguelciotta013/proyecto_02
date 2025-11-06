@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ListaUsuarios from "./ListaUsuarios";
 import ListaEmpleados from "./ListaEmpleados";
 import ListaObras from "./ListaObras";
@@ -7,6 +7,14 @@ import ListaTratamientos from "./ListaTratamientos";
 
 function PanelControl() {
   const [seccion, setSeccion] = useState("");
+
+  // 🔹 Bloquear el scroll del body al montar el componente
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto"; // restaurar al salir
+    };
+  }, []);
 
   return (
     <div className="panel-root">
@@ -39,46 +47,50 @@ function PanelControl() {
       </div>
 
       <style>{`
+        /* 🔹 Fondo fijo y centrado */
         .panel-root {
-          min-height: 100vh;
+          height: 100vh;
+          width: 100vw;
+          overflow: hidden;
           display: flex;
           align-items: center;
           justify-content: center;
-          background-image: url("fondo.jpg"); /* Cambia por tu imagen */
+          background-image: url("fondo.jpg");
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
-          padding: 30px;
+          margin: 0;
+          
         }
 
+        /* 🔹 Contenedor centrado */
         .panel-container {
-          background: rgba(255,255,255,0.95);
+          background: rgba(255, 255, 255, 0.95);
           border-radius: 16px;
-          padding: 0;
-          width: 94%;
+          width: 90%;
           max-width: 1200px;
-          margin: 0 3%;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
           overflow: hidden;
           transition: all 0.3s ease;
+          transform: translateY(-10vh);
         }
 
         .panel-title {
-          background-color: #1E56A8;
+          background-color: #1976d2;
           color: white;
           font-size: 26px;
           font-weight: 700;
           margin: 0;
           padding: 20px 0;
           text-align: center;
-          letter-spacing: 0.5px;
         }
 
-        /* 🔹 Botones en columna (vertical) */
+        /* 🔹 Botones centrados */
         .panel-cards {
           display: flex;
-          flex-direction: column; /* ← ahora están uno debajo del otro */
+          flex-direction: column;
           align-items: center;
+          justify-content: center;
           gap: 20px;
           padding: 40px 0;
         }
@@ -90,27 +102,28 @@ function PanelControl() {
           padding: 18px 26px;
           font-size: 17px;
           border-radius: 12px;
-          box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
           cursor: pointer;
           font-weight: 600;
           transition: all 0.2s ease;
-          width: 80%; /* mismos márgenes laterales */
+          width: 80%;
           max-width: 400px;
         }
 
         .panel-cards button:hover {
           background: #e9f2ff;
           transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .panel-seccion {
           text-align: left;
           padding: 30px 50px;
+          overflow: hidden;
         }
 
         .volver-btn {
-          background: #1E56A8;
+          background: #1976d2;
           color: white;
           border: none;
           padding: 10px 18px;
@@ -122,13 +135,12 @@ function PanelControl() {
         }
 
         .volver-btn:hover {
-          background: #174b94;
+          background: #1565c0;
         }
 
         @media (max-width: 768px) {
           .panel-container {
-            width: 96%;
-            margin: 0 2%;
+            width: 95%;
           }
           .panel-cards button {
             width: 90%;
