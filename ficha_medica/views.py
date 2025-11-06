@@ -4,6 +4,13 @@ from rest_framework import status
 from django.utils import timezone
 from django.http import HttpResponse
 from django.db.models import Q
+from io import BytesIO
+from decimal import Decimal
+from datetime import date
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib import colors
+from reportlab.lib.units import cm
 from home.models import (
     Pacientes, FichasMedicas, PacientesXOs, FichasPatologicas,
     Dientes, CarasDiente, Tratamientos, DetallesConsulta, 
@@ -377,118 +384,155 @@ class FichaMedicaDetailView(APIView):
 
 
 class FichaMedicaPDFView(APIView):
-    """Generar y descargar PDF de ficha médica"""
-    
+    """Genera PDF con formato similar al formulario odontológico oficial"""
+
     def get(self, request, id_ficha):
         try:
-            from reportlab.lib.pagesizes import A4
-            from reportlab.pdfgen import canvas
-            from reportlab.lib.units import inch
-            from io import BytesIO
-            
-            ficha = FichasMedicas.objects.get(
-                id_ficha_medica=id_ficha,
-                eliminado__isnull=True
-            )
-            
-            buffer = BytesIO()
-            p = canvas.Canvas(buffer, pagesize=A4)
-            width, height = A4
-            
-            # Título
-            p.setFont("Helvetica-Bold", 16)
-            p.drawString(1*inch, height - 1*inch, f"Ficha Medica #{id_ficha}")
-            
-            # Datos del paciente
-            p.setFont("Helvetica-Bold", 12)
-            p.drawString(1*inch, height - 1.5*inch, "Datos del Paciente:")
-            
-            p.setFont("Helvetica", 10)
+            ficha = FichasMedicas.objects.select_related(
+                'id_paciente_os__id_paciente',
+                'id_paciente_os__id_obra_social'
+            ).get(id_ficha_medica=id_ficha, eliminado__isnull=True)
+
             paciente = ficha.id_paciente_os.id_paciente
-            p.drawString(1*inch, height - 1.8*inch, 
-                        f"Nombre: {paciente.nombre_paciente} {paciente.apellido_paciente}")
-            p.drawString(1*inch, height - 2.0*inch, f"DNI: {paciente.dni_paciente}")
-            
-            # Obra Social
-            p.drawString(1*inch, height - 2.2*inch, 
-                        f"Obra Social: {ficha.id_paciente_os.id_obra_social.nombre_os}")
-            
-            # Fecha
-            p.drawString(1*inch, height - 2.4*inch, 
-                        f"Fecha: {ficha.fecha_creacion}")
-            
-            # Observaciones
-            if ficha.observaciones:
-                p.setFont("Helvetica-Bold", 12)
-                p.drawString(1*inch, height - 2.8*inch, "Observaciones:")
-                p.setFont("Helvetica", 10)
-                p.drawString(1*inch, height - 3.0*inch, str(ficha.observaciones)[:80])
-            
-            # Detalles de tratamientos
-            p.setFont("Helvetica-Bold", 12)
-            p.drawString(1*inch, height - 3.4*inch, "Tratamientos Realizados:")
-            
+            paciente_os = ficha.id_paciente_os
+            obra_social = paciente_os.id_obra_social.nombre_obra_social if paciente_os.id_obra_social else ''
+            parentesco = getattr(paciente_os.id_parentesco, 'tipo_parentesco', '')
+            titular = "Sí" if paciente_os.titular else "No"
+
             detalles = DetallesConsulta.objects.filter(
-                id_ficha_medica=ficha,
-                eliminado__isnull=True
-            )
-            
-            y_position = height - 3.7*inch
+                id_ficha_medica=ficha, eliminado__isnull=True
+            ).select_related('id_tratamiento', 'id_diente')
+
+            total_importe = Decimal('0.00')
+            filas = []
+            for d in detalles:
+                importe = Decimal(d.id_tratamiento.importe or 0)
+                total_importe += importe
+                cara = ""
+                try:
+                    cara = CarasDiente.objects.get(id_cara=d.id_cara).abreviatura
+                except:
+                    cara = str(d.id_cara or "")
+                filas.append({
+                    'diente': d.id_diente.id_diente if d.id_diente else '',
+                    'cara': cara,
+                    'codigo': d.id_tratamiento.codigo,
+                    'fecha': d.fecha_realizacion.strftime("%d/%m/%Y") if hasattr(d, 'fecha_realizacion') else '',
+                    'conf': 'Sí' if d.conformidad_paciente else 'No',
+                    'importe': importe
+                })
+
+            # Crear PDF
+            buffer = BytesIO()
+            p = canvas.Canvas(buffer, pagesize=landscape(A4))
+            width, height = landscape(A4)
+
+            # Encabezado principal
+            p.setFont("Helvetica-Bold", 14)
+            p.drawString(2*cm, height - 2*cm, "REGISTRO DE PRESTACIONES")
+            p.setFont("Helvetica", 10)
+            p.drawString(2*cm, height - 2.6*cm, "ASOCIACIÓN ODONTOLÓGICA SALTEÑA")
+
+            # Logo simulado (cuando tengas la imagen, se puede usar drawImage)
+
+            # Entidad y obra social
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(13*cm, height - 2*cm, "ENTIDAD PRIMARIA: A.O.S")
+            p.drawString(13*cm, height - 2.6*cm, f"OBRA SOCIAL: {obra_social}")
+
+            # Fecha
+            p.setFont("Helvetica", 10)
+            hoy = date.today()
+            p.drawString(2*cm, height - 3.6*cm, f"FECHA: {hoy.day:02d}/{hoy.month:02d}/{hoy.year}")
+
+            # Datos del paciente
+            y = height - 4.5*cm
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(2*cm, y, "PACIENTE:")
+            p.setFont("Helvetica", 10)
+            p.drawString(5*cm, y, f"{paciente.apellido_paciente}, {paciente.nombre_paciente}")
+            p.drawString(13*cm, y, f"Edad: {paciente.get_edad() if hasattr(paciente, 'get_edad') else ''}")
+            p.drawString(17*cm, y, f"Credencial: {paciente_os.credencial_paciente or ''}")
+            y -= 0.5*cm
+            p.drawString(2*cm, y, f"Titular: {titular}")
+            p.drawString(8*cm, y, f"Parentesco: {parentesco}")
+            p.drawString(14*cm, y, f"Fecha nac.: {paciente.fecha_nacimiento}")
+            y -= 0.5*cm
+            p.drawString(2*cm, y, f"Domicilio: {paciente.domicilio or ''}")
+            p.drawString(12*cm, y, f"Localidad: {paciente.localidad or ''}")
+            p.drawString(18*cm, y, f"Tel: {paciente.telefono or ''}")
+
+            # Línea separadora
+            y -= 0.6*cm
+            p.line(2*cm, y, width - 2*cm, y)
+            y -= 0.4*cm
+
+            # Odontólogo (de momento fijo, se puede reemplazar dinámico)
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(2*cm, y, "ODONTÓLOGO: GISELA ALEJANDRA FLORES   Matrícula Profesional: 1802")
+            y -= 0.6*cm
+
+            # Encabezado de tabla
+            p.setFont("Helvetica-Bold", 9)
+            columnas = ["DIENTE Nº", "CARA", "CÓDIGO", "FECHA REALIZACIÓN", "CONFORMIDAD PACIENTE", "IMPORTE"]
+            x_cols = [2*cm, 4*cm, 6*cm, 9*cm, 13*cm, 18*cm]
+            for i, col in enumerate(columnas):
+                p.drawString(x_cols[i], y, col)
+            y -= 0.3*cm
+            p.line(2*cm, y, width - 2*cm, y)
+            y -= 0.3*cm
+
+            # Filas
             p.setFont("Helvetica", 9)
-            
-            for detalle in detalles:
-                tratamiento_text = f"- {detalle.id_tratamiento.nombre_tratamiento}"
-                if detalle.id_diente:
-                    tratamiento_text += f" - Diente: {detalle.id_diente.nombre_diente}"
-                p.drawString(1.2*inch, y_position, tratamiento_text)
-                y_position -= 0.2*inch
-                
-                if y_position < 1*inch:
+            for fila in filas:
+                if y < 3*cm:
                     p.showPage()
-                    y_position = height - 1*inch
-            
-            # Obtener cobro
-            if detalles.exists():
-                cobro = detalles.first().id_cobro_consulta
-                if cobro:
-                    p.setFont("Helvetica-Bold", 12)
-                    p.drawString(1*inch, y_position - 0.3*inch, "Informacion de Cobro:")
-                    
-                    p.setFont("Helvetica", 10)
-                    p.drawString(1*inch, y_position - 0.6*inch, 
-                                f"Monto Total: ${cobro.monto_total}")
-                    p.drawString(1*inch, y_position - 0.8*inch, 
-                                f"Cobertura Obra Social: ${cobro.monto_obra_social}")
-                    p.drawString(1*inch, y_position - 1.0*inch, 
-                                f"Monto Paciente: ${cobro.monto_paciente}")
-                    p.drawString(1*inch, y_position - 1.2*inch, 
-                                f"Estado: {cobro.id_estado_pago.nombre_estado}")
-            
+                    y = height - 3*cm
+                p.drawString(x_cols[0], y, str(fila['diente']))
+                p.drawString(x_cols[1], y, str(fila['cara']))
+                p.drawString(x_cols[2], y, str(fila['codigo']))
+                p.drawString(x_cols[3], y, fila['fecha'])
+                p.drawString(x_cols[4], y, fila['conf'])
+                p.drawRightString(x_cols[5] + 2*cm, y, f"${fila['importe']:.2f}")
+                y -= 0.4*cm
+
+            # Línea total
+            p.line(2*cm, y, width - 2*cm, y)
+            y -= 0.4*cm
+            p.setFont("Helvetica-Bold", 10)
+            p.drawRightString(width - 3*cm, y, f"TOTAL: ${total_importe:.2f}")
+            y -= 0.8*cm
+
+            # Observaciones
+            p.setFont("Helvetica-Bold", 10)
+            p.drawString(2*cm, y, "OBSERVACIONES:")
+            y -= 0.4*cm
+            p.setFont("Helvetica", 9)
+            texto = str(ficha.observaciones or "")
+            max_len = 120
+            for linea in [texto[i:i+max_len] for i in range(0, len(texto), max_len)]:
+                p.drawString(2*cm, y, linea)
+                y -= 0.4*cm
+                if y < 3*cm:
+                    p.showPage()
+                    y = height - 3*cm
+
+            # Firma profesional
+            p.setFont("Helvetica", 9)
+            p.drawString(2*cm, 2.5*cm, "Cantidad de RX Adjuntas: _____")
+            p.drawRightString(width - 5*cm, 2.5*cm, "Firma y Sello del Profesional")
+
             p.showPage()
             p.save()
-            
             buffer.seek(0)
-            
-            response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="ficha_medica_{id_ficha}.pdf"'
-            
+
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename=ficha_medica_{id_ficha}.pdf'
             return response
-            
-        except FichasMedicas.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'Ficha médica no encontrada'
-            }, status=status.HTTP_404_NOT_FOUND)
-        except ImportError:
-            return Response({
-                'success': False,
-                'error': 'La libreria reportlab no esta instalada. Ejecute: pip install reportlab'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
         except Exception as e:
-            return Response({
-                'success': False,
-                'error': str(e)
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class CobroUpdateView(APIView):

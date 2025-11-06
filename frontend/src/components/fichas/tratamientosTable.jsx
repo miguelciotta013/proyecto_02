@@ -1,9 +1,10 @@
 import React from 'react';
+import styles from './tratamientosTable.module.css';
 
 function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCobro }) {
   if (tratamientos.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem', color: '#6c757d' }}>
+      <div className={styles.noResults}>
         <p>Este paciente no tiene tratamientos registrados</p>
       </div>
     );
@@ -11,16 +12,16 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
 
   const getEstadoBadge = (estado) => {
     const estados = {
-      'pendiente': 'badge-warning',
-      'pagado': 'badge-success',
-      'parcial': 'badge-info'
+      'pendiente': styles.badgeWarning,
+      'pagado': styles.badgeSuccess,
+      'parcial': styles.badgeInfo
     };
-    return estados[estado?.toLowerCase()] || 'badge-secondary';
+    return estados[estado?.toLowerCase()] || styles.badgeSecondary;
   };
 
   return (
-    <div className="table-container">
-      <table>
+    <div className={styles.tableContainer}>
+      <table className={styles.table}>
         <thead>
           <tr>
             <th>Fecha</th>
@@ -37,53 +38,53 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
               <td>{ficha.fecha_creacion}</td>
               <td>
                 {ficha.detalles && ficha.detalles.length > 0 ? (
-                  <div>
+                  <div className={styles.detallesList}>
                     {ficha.detalles.map((det, idx) => (
-                      <div key={idx} style={{ marginBottom: '0.25rem' }}>
+                      <div key={idx} className={styles.detalleItem}>
                         • {det.tratamiento}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  'Sin tratamientos'
+                  <span className={styles.noData}>Sin tratamientos</span>
                 )}
               </td>
               <td>
                 {ficha.detalles && ficha.detalles.length > 0 ? (
-                  <div>
+                  <div className={styles.detallesList}>
                     {ficha.detalles.map((det, idx) => (
-                      <div key={idx} style={{ marginBottom: '0.25rem' }}>
+                      <div key={idx} className={styles.detalleItem}>
                         {det.diente} - {det.cara}
                       </div>
                     ))}
                   </div>
                 ) : (
-                  '-'
+                  <span className={styles.noData}>-</span>
                 )}
               </td>
-              <td>
+              <td className={styles.montoCell}>
                 {ficha.cobro ? `$${parseFloat(ficha.cobro.monto_total).toLocaleString('es-AR')}` : '-'}
               </td>
               <td>
                 {ficha.cobro ? (
-                  <span className={`badge ${getEstadoBadge(ficha.cobro.estado_pago)}`}>
+                  <span className={`${styles.badge} ${getEstadoBadge(ficha.cobro.estado_pago)}`}>
                     {ficha.cobro.estado_pago}
                   </span>
                 ) : (
-                  <span className="badge badge-secondary">Sin cobro</span>
+                  <span className={`${styles.badge} ${styles.badgeSecondary}`}>Sin cobro</span>
                 )}
               </td>
               <td>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <div className={styles.accionesContainer}>
                   <button
-                    className="btn btn-info btn-sm"
+                    className={styles.btnAccion}
                     onClick={() => onVerFicha(ficha)}
                     title="Ver ficha médica"
                   >
-                    Ver Ficha
+                    Ficha
                   </button>
                   <button
-                    className="btn btn-info btn-sm"
+                    className={styles.btnAccion}
                     onClick={() => onVerOdontograma(ficha)}
                     title="Ver odontograma"
                   >
@@ -91,11 +92,11 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
                   </button>
                   {ficha.cobro && (
                     <button
-                      className="btn btn-info btn-sm"
+                      className={`${styles.btnAccion} ${styles.btnCobro}`}
                       onClick={() => onVerCobro(ficha.cobro)}
                       title="Ver cobro"
                     >
-                      Ver Cobro
+                      Cobro
                     </button>
                   )}
                 </div>
