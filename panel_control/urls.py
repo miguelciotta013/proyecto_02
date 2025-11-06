@@ -5,7 +5,8 @@ from .views import (
     EmpleadosViewSet,
     ObrasSocialesViewSet,
     MetodosCobroViewSet,
-    TratamientosViewSet
+    TratamientosViewSet,
+    CoberturasOsViewSet
 )
 
 router = DefaultRouter()
@@ -14,6 +15,7 @@ router.register(r'empleados', EmpleadosViewSet, basename='empleados')
 router.register(r'obras_sociales', ObrasSocialesViewSet, basename='obras_sociales')
 router.register(r'metodos_cobro', MetodosCobroViewSet, basename='metodos_cobro')
 router.register(r'tratamientos', TratamientosViewSet, basename='tratamientos')
+router.register(r'coberturas_os', CoberturasOsViewSet, basename='coberturas_os')
 
 urlpatterns = [
     path('', include(router.urls)),
