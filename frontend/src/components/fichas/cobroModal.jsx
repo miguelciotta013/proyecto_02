@@ -268,6 +268,7 @@ function CobroModal({ cobro, onClose, onUpdate }) {
           )}
         </div>
       )}
+      
     </div>
   );
 }
