@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   getPacienteDetalle, 
-  getFichasPorPaciente,
+  getFichasMedicas,
   getCatalogos,
-   getCajaEstado,      
+  getCajaEstado,      
   getFichaPatologica 
 } from '../../api/fichasApi';
 import TratamientosTable from '../../components/fichas/tratamientosTable';
@@ -39,12 +39,23 @@ function TratamientosPacientePage() {
     fetchData();
   }, [id]);
 
-  const fetchData = async () => {
+  // ✅ FUNCIÓN MODIFICADA - Acepta filtros
+  const fetchData = async (filtros = {}) => {
+    console.log('🔍 Buscando con filtros:', filtros);  // ← Agregar esto
     try {
       setLoading(true);
+      
+      const params = {
+        id_paciente: id,
+        ...filtros
+      };
+    
+    console.log('📤 Parámetros enviados al backend:', params);  // ← Y esto
+    
+    // ... resto del código      
       const [pacienteRes, fichasRes, catalogosRes] = await Promise.all([
         getPacienteDetalle(id),
-        getFichasPorPaciente(id),
+        getFichasMedicas(params),  // ← CAMBIADO: Ahora acepta filtros
         getCatalogos()
       ]);
 
@@ -202,11 +213,13 @@ function TratamientosPacientePage() {
           )}
         </div>
 
+        {/* ✅ AGREGADA PROP onFilterChange */}
         <TratamientosTable
           tratamientos={tratamientos}
           onVerFicha={handleVerFicha}
           onVerOdontograma={handleVerOdontograma}
           onVerCobro={handleVerCobro}
+          onFilterChange={fetchData}  // ← NUEVA LÍNEA
         />
       </div>
 

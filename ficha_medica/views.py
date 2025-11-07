@@ -1,5 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from decimal import Decimal
 from rest_framework import status
 from django.utils import timezone
 from django.http import HttpResponse
@@ -257,23 +258,29 @@ class FichaPatologicaView(APIView):
 
 
 class FichasMedicasListView(APIView):
-    """Lista de fichas médicas con filtros"""
+    """Lista de fichas médicas con filtro por estado de pago"""
     
     def get(self, request):
         try:
+            # Parámetros de filtro
             id_paciente = request.query_params.get('id_paciente')
-            fecha_desde = request.query_params.get('fecha_desde')
-            fecha_hasta = request.query_params.get('fecha_hasta')
+            estado_pago = request.query_params.get('estado_pago', '').strip()
             
             fichas = FichasMedicas.objects.filter(eliminado__isnull=True)
             
+            # Filtro por paciente
             if id_paciente:
                 fichas = fichas.filter(id_paciente_os__id_paciente=id_paciente)
             
-            if fecha_desde:
-                fichas = fichas.filter(fecha_creacion__gte=fecha_desde)
-            if fecha_hasta:
-                fichas = fichas.filter(fecha_creacion__lte=fecha_hasta)
+            # Filtro por estado de pago
+            if estado_pago:
+                # Obtener IDs de fichas con ese estado de cobro
+                detalles_con_estado = DetallesConsulta.objects.filter(
+                    id_cobro_consulta__id_estado_pago__nombre_estado__iexact=estado_pago,
+                    eliminado__isnull=True
+                ).values_list('id_ficha_medica', flat=True).distinct()
+                
+                fichas = fichas.filter(id_ficha_medica__in=detalles_con_estado)
             
             fichas = fichas.order_by('-fecha_creacion')
             
@@ -434,6 +441,7 @@ class FichaMedicaPDFView(APIView):
             p.drawString(2*cm, height - 2.6*cm, "ASOCIACIÓN ODONTOLÓGICA SALTEÑA")
 
             # Logo simulado (cuando tengas la imagen, se puede usar drawImage)
+            p.drawImage("ficha_medica/static/AOS-logo.png", 1*cm, height - 3*cm, width=1.5*cm, height=1.5*cm, preserveAspectRatio=True)
 
             # Entidad y obra social
             p.setFont("Helvetica-Bold", 10)
@@ -536,48 +544,63 @@ class FichaMedicaPDFView(APIView):
 
 
 class CobroUpdateView(APIView):
-    """Actualizar información de cobro"""
-    
+    """Actualizar información de cobro con acumulación automática y estado dinámico"""
+
     def patch(self, request, id_cobro):
         try:
             cobro = CobrosConsulta.objects.get(id_cobro_consulta=id_cobro)
-            
+
+            # Monto total esperado (paciente + obra social)
+            monto_total_esperado = Decimal(str(cobro.monto_paciente)) + Decimal(str(cobro.monto_obra_social))
+
+            # Si el monto total es 0, no permitir modificar
+            if monto_total_esperado == 0:
+                return Response({
+                    'success': False,
+                    'error': 'El monto total a pagar es 0. No se puede modificar el cobro.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Actualizar método de cobro
             if 'id_metodo_cobro' in request.data:
                 cobro.id_metodo_cobro = request.data['id_metodo_cobro']
-            
-            if 'monto_pagado' in request.data:
-                nuevo_monto = float(request.data['monto_pagado'])
-                # Solo permitir incrementar el monto pagado
-                if nuevo_monto >= float(cobro.monto_pagado):
-                    cobro.monto_pagado = nuevo_monto
-                else:
-                    return Response({
-                        'success': False,
-                        'error': 'El monto pagado no puede ser menor al actual'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-            
-            if 'id_estado_pago' in request.data:
-                estado = EstadosPago.objects.get(id_estado_pago=request.data['id_estado_pago'])
-                cobro.id_estado_pago = estado
-            
-            # Actualizar fecha de cobro si se marca como pagado completamente
-            if float(cobro.monto_pagado) >= float(cobro.monto_paciente):
-                try:
-                    estado_pagado = EstadosPago.objects.get(nombre_estado='pagado')
-                    cobro.id_estado_pago = estado_pagado
-                    if not cobro.fecha_hora_cobro:
-                        cobro.fecha_hora_cobro = timezone.now()
-                except EstadosPago.DoesNotExist:
-                    pass
-            
+
+            # Convertir montos a Decimal
+            monto_pag_paciente = Decimal(str(request.data.get('monto_pagado_paciente', 0)))
+            monto_pag_os = Decimal(str(request.data.get('monto_pagado_obra_social', 0)))
+
+            # Validaciones básicas
+            if monto_pag_paciente < 0 or monto_pag_os < 0:
+                return Response({
+                    'success': False,
+                    'error': 'Los montos no pueden ser negativos'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Sumar al monto ya pagado (acumulativo)
+            cobro.monto_pagado = cobro.monto_pagado + monto_pag_paciente + monto_pag_os
+
+            # Evitar que supere el monto total
+            if cobro.monto_pagado > monto_total_esperado:
+                cobro.monto_pagado = monto_total_esperado
+
+            # Actualizar estado automáticamente
+            if cobro.monto_pagado == 0:
+                estado = EstadosPago.objects.get(nombre_estado='pendiente')
+            elif cobro.monto_pagado < monto_total_esperado:
+                estado = EstadosPago.objects.get(nombre_estado='parcial')
+            else:
+                estado = EstadosPago.objects.get(nombre_estado='pagado')
+                if not cobro.fecha_hora_cobro:
+                    cobro.fecha_hora_cobro = timezone.now()
+
+            cobro.id_estado_pago = estado
             cobro.save()
-            
+
             return Response({
                 'success': True,
                 'message': 'Cobro actualizado correctamente',
                 'data': CobroDetailSerializer(cobro).data
             })
-            
+
         except CobrosConsulta.DoesNotExist:
             return Response({
                 'success': False,
@@ -593,6 +616,7 @@ class CobroUpdateView(APIView):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 class PacienteDetalleView(APIView):

@@ -40,16 +40,14 @@ export const getObrasSocialesPaciente = (idPaciente) =>
  * Obtener fichas médicas con filtros opcionales
  * @param {Object} params - Parámetros de filtro
  * @param {number} [params.id_paciente] - Filtrar por paciente
- * @param {string} [params.fecha_desde] - Fecha inicio (YYYY-MM-DD)
- * @param {string} [params.fecha_hasta] - Fecha fin (YYYY-MM-DD)
+ * @param {string} [params.estado_pago] - Filtrar por estado (pendiente, pagado, parcial)
  * @returns {Promise} Response con lista de fichas médicas
  */
 export const getFichasMedicas = (params = {}) => {
   const queryParams = new URLSearchParams();
   
   if (params.id_paciente) queryParams.append('id_paciente', params.id_paciente);
-  if (params.fecha_desde) queryParams.append('fecha_desde', params.fecha_desde);
-  if (params.fecha_hasta) queryParams.append('fecha_hasta', params.fecha_hasta);
+  if (params.estado_pago) queryParams.append('estado_pago', params.estado_pago);
   
   const queryString = queryParams.toString();
   const url = queryString ? `/ficha_medica/fichas/?${queryString}` : '/ficha_medica/fichas/';
@@ -175,7 +173,8 @@ export const updateFichaPatologica = (data) =>
  * Actualizar información de cobro
  * @param {number} idCobro - ID del cobro
  * @param {Object} data - Datos a actualizar
- * @param {number} [data.monto_pagado] - Monto pagado (solo incremental)
+ * @param {number} [data.monto_pagado_paciente] - Monto pagado por paciente
+ * @param {number} [data.monto_pagado_obra_social] - Monto pagado por obra social
  * @param {number} [data.id_metodo_cobro] - ID método de cobro
  * @param {number} [data.id_estado_pago] - ID estado de pago
  * @returns {Promise} Response con cobro actualizado
