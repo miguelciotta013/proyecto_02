@@ -6,32 +6,28 @@ function CobroModal({ cobro, onClose, onUpdate }) {
   const [metodosCobro, setMetodosCobro] = useState([]);
   const [formData, setFormData] = useState({
     id_metodo_cobro: cobro.metodo_cobro || cobro.id_metodo_cobro || '',
-    monto_pagado: cobro.monto_pagado || cobro.monto_paciente || '',
-    id_estado_pago: cobro.id_estado_pago || (cobro.estado_pago?.toLowerCase() === 'pagado' ? 2 : 1)
+    monto_pagado_paciente: 0,
+    monto_pagado_obra_social: 0
   });
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    console.log('Cobro recibido:', cobro);
     fetchMetodosCobro();
   }, []);
 
   const fetchMetodosCobro = async () => {
     try {
       const response = await getMetodosCobro();
-      console.log('Respuesta métodos de cobro:', response.data);
-      
       if (response.data.success) {
         setMetodosCobro(response.data.data);
-        
-        // Si el cobro ya tiene un método pero viene como string, buscar su ID
+
         if (cobro.metodo_cobro && typeof cobro.metodo_cobro === 'string') {
-          const metodo = response.data.data.find(m => 
-            m.tipo_cobro.toLowerCase() === cobro.metodo_cobro.toLowerCase()
+          const metodo = response.data.data.find(
+            (m) => m.tipo_cobro.toLowerCase() === cobro.metodo_cobro.toLowerCase()
           );
           if (metodo) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
               ...prev,
               id_metodo_cobro: metodo.id_metodo_cobro
             }));
@@ -46,7 +42,6 @@ function CobroModal({ cobro, onClose, onUpdate }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log('Cambio en campo:', name, 'Valor:', value);
     setFormData({
       ...formData,
       [name]: value
@@ -61,12 +56,27 @@ function CobroModal({ cobro, onClose, onUpdate }) {
       return;
     }
 
-    console.log('Datos a enviar:', formData);
+    const montoPaciente = parseFloat(formData.monto_pagado_paciente);
+    const montoOS = parseFloat(formData.monto_pagado_obra_social);
+
+    if (isNaN(montoPaciente) || isNaN(montoOS)) {
+      alert('Ingrese montos válidos');
+      return;
+    }
+
+    // Evitar edición si el monto total a pagar es 0
+    if (parseFloat(cobro.monto_total) === 0) {
+      alert('⚠️ No se puede registrar un pago cuando el monto total es 0');
+      return;
+    }
 
     try {
       setLoading(true);
-
-      const response = await updateCobro(cobro.id_cobro_consulta, formData);
+      const response = await updateCobro(cobro.id_cobro_consulta, {
+        id_metodo_cobro: formData.id_metodo_cobro,
+        monto_pagado_paciente: montoPaciente,
+        monto_pagado_obra_social: montoOS
+      });
 
       if (response.data.success) {
         alert('✅ Cobro actualizado correctamente');
@@ -81,11 +91,10 @@ function CobroModal({ cobro, onClose, onUpdate }) {
   };
 
   const handleCancelarEdicion = () => {
-    // Restaurar valores originales
     setFormData({
       id_metodo_cobro: cobro.id_metodo_cobro || '',
-      monto_pagado: cobro.monto_pagado || cobro.monto_paciente || '',
-      id_estado_pago: cobro.id_estado_pago || (cobro.estado_pago?.toLowerCase() === 'pagado' ? 2 : 1)
+      monto_pagado_paciente: 0,
+      monto_pagado_obra_social: 0
     });
     setEditMode(false);
   };
@@ -95,7 +104,9 @@ function CobroModal({ cobro, onClose, onUpdate }) {
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>Detalle del Cobro</h3>
-          <button className={styles.modalClose} onClick={onClose}>×</button>
+          <button className={styles.modalClose} onClick={onClose}>
+            ×
+          </button>
         </div>
 
         <div className={styles.modalBody}>
@@ -104,27 +115,70 @@ function CobroModal({ cobro, onClose, onUpdate }) {
             <h4 className={styles.resumenTitle}>Resumen del Cobro</h4>
             <div className={styles.resumenItem}>
               <span>Monto Total:</span>
-              <span>${parseFloat(cobro.monto_total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span>
+                $
+                {parseFloat(cobro.monto_total).toLocaleString('es-AR', {
+                  minimumFractionDigits: 2
+                })}
+              </span>
             </div>
             <div className={styles.resumenItem}>
               <span>Cobertura Obra Social:</span>
-              <span className={styles.cobertura}>-${parseFloat(cobro.monto_obra_social).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span className={styles.cobertura}>
+                -$
+                {parseFloat(cobro.monto_obra_social).toLocaleString('es-AR', {
+                  minimumFractionDigits: 2
+                })}
+              </span>
             </div>
             <div className={styles.resumenItem}>
-              <span>Monto Paciente:</span>
-              <span>${parseFloat(cobro.monto_paciente).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span>Debe Pagar Paciente:</span>
+              <span>
+                $
+                {parseFloat(cobro.monto_paciente).toLocaleString('es-AR', {
+                  minimumFractionDigits: 2
+                })}
+              </span>
+            </div>
+            <div className={styles.divider}></div>
+            <div className={styles.resumenItem}>
+              <span>Pagado por Paciente:</span>
+              <span className={styles.montoPagado}>
+                $
+                {parseFloat(cobro.monto_pagado_paciente || 0).toLocaleString('es-AR', {
+                  minimumFractionDigits: 2
+                })}
+              </span>
             </div>
             <div className={styles.resumenItem}>
-              <span>Monto Pagado:</span>
-              <span className={styles.montoPagado}>${parseFloat(cobro.monto_pagado).toLocaleString('es-AR', { minimumFractionDigits: 2 })}</span>
+              <span>Pagado por Obra Social:</span>
+              <span className={styles.montoPagado}>
+                $
+                {parseFloat(cobro.monto_pagado_obra_social || 0).toLocaleString('es-AR', {
+                  minimumFractionDigits: 2
+                })}
+              </span>
+            </div>
+            <div className={styles.resumenItem}>
+              <span>Total Pagado:</span>
+              <span className={styles.montoPagado}>
+                $
+                {parseFloat(cobro.monto_pagado).toLocaleString('es-AR', {
+                  minimumFractionDigits: 2
+                })}
+              </span>
             </div>
             <div className={styles.resumenItem}>
               <span>Estado:</span>
-              <span className={`${styles.badge} ${
-                cobro.estado_pago === 'pagado' ? styles.badgeSuccess :
-                cobro.estado_pago === 'pendiente' ? styles.badgeWarning :
-                styles.badgeInfo
-              }`}>
+              <span
+                className={`${styles.badge} ${
+                  cobro.estado_pago === 'pagado'
+                    ? styles.badgeSuccess
+                    : cobro.estado_pago === 'pendiente'
+                    ? styles.badgeWarning
+                    : styles.badgeInfo
+                }`}
+              >
                 {cobro.estado_pago}
               </span>
             </div>
@@ -148,28 +202,13 @@ function CobroModal({ cobro, onClose, onUpdate }) {
               <button
                 className={`${styles.btn} ${styles.btnPrimary}`}
                 onClick={() => setEditMode(true)}
+                disabled={parseFloat(cobro.monto_total) === 0}
               >
-                {cobro.estado_pago === 'pendiente' ? '💰 Registrar Pago' : '✏️ Modificar Cobro'}
+                {cobro.estado_pago === 'pendiente' ? '💰 Registrar Pago' : '✏️ Agregar Pago'}
               </button>
             ) : (
               <form onSubmit={handleSubmit}>
-                <h4 className={styles.formTitle}>Actualizar Cobro</h4>
-
-                <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Estado de Pago *</label>
-                  <select
-                    className={styles.formSelect}
-                    name="id_estado_pago"
-                    value={formData.id_estado_pago}
-                    onChange={handleInputChange}
-                    required
-                  >
-                    <option value="">Seleccionar...</option>
-                    <option value="1">Pendiente</option>
-                    <option value="2">Pagado</option>
-                    <option value="3">Parcial</option>
-                  </select>
-                </div>
+                <h4 className={styles.formTitle}>Registrar nuevo pago</h4>
 
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>Método de Cobro *</label>
@@ -179,38 +218,64 @@ function CobroModal({ cobro, onClose, onUpdate }) {
                     value={formData.id_metodo_cobro}
                     onChange={handleInputChange}
                     required
+                    disabled={parseFloat(cobro.monto_total) === 0}
                   >
                     <option value="">Seleccionar...</option>
                     {metodosCobro.length === 0 ? (
-                      <option value="" disabled>Cargando métodos...</option>
+                      <option value="" disabled>
+                        Cargando métodos...
+                      </option>
                     ) : (
-                      metodosCobro.map(metodo => (
+                      metodosCobro.map((metodo) => (
                         <option key={metodo.id_metodo_cobro} value={metodo.id_metodo_cobro}>
                           {metodo.tipo_cobro}
                         </option>
                       ))
                     )}
                   </select>
-                  {metodosCobro.length === 0 && (
-                    <small className={styles.hint}>
-                      ⚠️ No se pudieron cargar los métodos de cobro
-                    </small>
-                  )}
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.formLabel}>Monto Pagado *</label>
+                  <label className={styles.formLabel}>Monto Pagado por Paciente *</label>
                   <input
                     type="number"
                     step="0.01"
                     className={styles.formInput}
-                    name="monto_pagado"
-                    value={formData.monto_pagado}
+                    name="monto_pagado_paciente"
+                    value={formData.monto_pagado_paciente}
                     onChange={handleInputChange}
+                    max={cobro.monto_paciente}
+                    min="0"
                     required
+                    disabled={parseFloat(cobro.monto_total) === 0}
                   />
                   <small className={styles.hint}>
-                    Monto que debe pagar el paciente: ${parseFloat(cobro.monto_paciente).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                    Debe pagar: $
+                    {parseFloat(cobro.monto_paciente).toLocaleString('es-AR', {
+                      minimumFractionDigits: 2
+                    })}
+                  </small>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Monto Pagado por Obra Social *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className={styles.formInput}
+                    name="monto_pagado_obra_social"
+                    value={formData.monto_pagado_obra_social}
+                    onChange={handleInputChange}
+                    max={cobro.monto_obra_social}
+                    min="0"
+                    required
+                    disabled={parseFloat(cobro.monto_total) === 0}
+                  />
+                  <small className={styles.hint}>
+                    Debe pagar OS: $
+                    {parseFloat(cobro.monto_obra_social).toLocaleString('es-AR', {
+                      minimumFractionDigits: 2
+                    })}
                   </small>
                 </div>
 
@@ -228,7 +293,7 @@ function CobroModal({ cobro, onClose, onUpdate }) {
                     className={`${styles.btn} ${styles.btnSuccess}`}
                     disabled={loading}
                   >
-                    {loading ? 'Guardando...' : '✓ Confirmar Cambios'}
+                    {loading ? 'Guardando...' : '✓ Confirmar Pago'}
                   </button>
                 </div>
               </form>
@@ -237,38 +302,11 @@ function CobroModal({ cobro, onClose, onUpdate }) {
         </div>
 
         <div className={styles.modalFooter}>
-          <button 
-            className={`${styles.btn} ${styles.btnSecondary}`} 
-            onClick={onClose}
-          >
+          <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={onClose}>
             Cerrar
           </button>
         </div>
       </div>
-
-      {/* Debug info - remover en producción */}
-      {process.env.NODE_ENV === 'development' && (
-        <div style={{
-          position: 'fixed',
-          bottom: '10px',
-          right: '10px',
-          background: 'black',
-          color: 'white',
-          padding: '10px',
-          borderRadius: '5px',
-          fontSize: '12px',
-          maxWidth: '300px',
-          zIndex: 10000
-        }}>
-          <strong>Debug:</strong><br/>
-          Métodos cargados: {metodosCobro.length}<br/>
-          ID seleccionado: {formData.id_metodo_cobro}<br/>
-          {metodosCobro.length > 0 && (
-            <>Métodos: {metodosCobro.map(m => m.tipo_cobro).join(', ')}</>
-          )}
-        </div>
-      )}
-      
     </div>
   );
 }

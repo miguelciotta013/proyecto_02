@@ -162,23 +162,28 @@ class FichaMedicaDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def get_detalles(self, obj):
-        detalles = DetallesConsulta.objects.filter(id_ficha_medica=obj, eliminado__isnull=True)
+        detalles = DetallesConsulta.objects.filter(
+        id_ficha_medica=obj, 
+        eliminado__isnull=True
+        )
         data = []
-        
         for d in detalles:
             try:
                 cara = CarasDiente.objects.get(id_cara=d.id_cara)
-                cara_nombre = cara.nombre_cara
+                cara_abreviatura = cara.abreviatura
             except CarasDiente.DoesNotExist:
-                cara_nombre = f"Cara {d.id_cara}"
+                cara_abreviatura = "?"
             
             data.append({
                 'id_detalle': d.id_detalle,
-                'tratamiento': d.id_tratamiento.nombre_tratamiento,
-                'diente': d.id_diente.nombre_diente,
-                'cara': cara_nombre
+                'tratamiento': d.id_tratamiento.nombre_tratamiento,  # ← AGREGADO
+                'codigo': d.id_tratamiento.codigo,
+                'importe': str(d.id_tratamiento.importe),
+                'id_diente': d.id_diente.id_diente if d.id_diente else None,
+                'diente': d.id_diente.nombre_diente if d.id_diente else None,  # ← AGREGADO (opcional)
+                'cara': cara_abreviatura,
+                'conformidad_paciente': getattr(d, 'conformidad_paciente', False)
             })
-        
         return data
 
 class FichaPatologicaSerializer(serializers.ModelSerializer):
@@ -194,6 +199,9 @@ class FichaPatologicaCreateUpdateSerializer(serializers.ModelSerializer):
 class CobroDetailSerializer(serializers.ModelSerializer):
     metodo_cobro = serializers.SerializerMethodField()
     estado_pago = serializers.CharField(source='id_estado_pago.nombre_estado', read_only=True)
+    # Campos calculados para mostrar en GET
+    monto_pagado_paciente = serializers.SerializerMethodField()
+    monto_pagado_obra_social = serializers.SerializerMethodField()
     
     class Meta:
         model = CobrosConsulta
@@ -203,6 +211,8 @@ class CobroDetailSerializer(serializers.ModelSerializer):
             'monto_obra_social',
             'monto_paciente',
             'monto_pagado',
+            'monto_pagado_paciente',
+            'monto_pagado_obra_social',
             'fecha_hora_cobro',
             'metodo_cobro',
             'estado_pago'
@@ -216,6 +226,15 @@ class CobroDetailSerializer(serializers.ModelSerializer):
             except MetodosCobro.DoesNotExist:
                 return None
         return None
+    
+    def get_monto_pagado_paciente(self, obj):
+        # Primero se paga lo que debe el paciente
+        return min(float(obj.monto_pagado), float(obj.monto_paciente))
+    
+    def get_monto_pagado_obra_social(self, obj):
+        # Lo que sobra después de pagar al paciente va a obra social
+        pagado_paciente = min(float(obj.monto_pagado), float(obj.monto_paciente))
+        return max(0, float(obj.monto_pagado) - pagado_paciente)
 
 class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
     # Datos del paciente
@@ -275,8 +294,8 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
     
     def get_detalles(self, obj):
         detalles = DetallesConsulta.objects.filter(
-            id_ficha_medica=obj, 
-            eliminado__isnull=True
+        id_ficha_medica=obj, 
+        eliminado__isnull=True
         )
         data = []
         for d in detalles:
@@ -289,8 +308,10 @@ class FichaMedicaConCobroSerializer(serializers.ModelSerializer):
             data.append({
                 'id_detalle': d.id_detalle,
                 'codigo': d.id_tratamiento.codigo,
+                'tratamiento': d.id_tratamiento.nombre_tratamiento,  # ✅ Importante
                 'importe': str(d.id_tratamiento.importe),
                 'id_diente': d.id_diente.id_diente if d.id_diente else None,
+                'diente': d.id_diente.nombre_diente if d.id_diente else None,
                 'cara': cara_abreviatura,
                 'conformidad_paciente': getattr(d, 'conformidad_paciente', False)
             })

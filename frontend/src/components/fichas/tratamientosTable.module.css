@@ -206,3 +206,137 @@
     padding: 0.35em 0.7em;
   }
 }
+
+/* Panel de Filtros */
+.tableWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.filtrosPanel {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.filtrosTitle {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #2e7d9d;
+  font-weight: 600;
+}
+
+.filtrosGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.filtroItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.filtroLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.35rem;
+}
+
+.filtroInput,
+.filtroSelect {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s ease;
+}
+
+.filtroInput:focus,
+.filtroSelect:focus {
+  outline: none;
+  border-color: #2e7d9d;
+}
+
+.filtrosAcciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btnLimpiar {
+  padding: 0.5rem 1.25rem;
+  background-color: #9e9e9e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.btnLimpiar:hover {
+  background-color: #7a7a7a;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filtrosGrid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Filtro Simple */
+.filtroSimple {
+  background: #f8f9fa;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filtroLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+
+.filtroSelect {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-width: 200px;
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.filtroSelect:focus {
+  outline: none;
+  border-color: #2e7d9d;
+}
+
+.tableWrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .filtroSimple {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filtroSelect {
+    width: 100%;
+  }
+}
