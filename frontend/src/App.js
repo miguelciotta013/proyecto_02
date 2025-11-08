@@ -2,42 +2,63 @@
 import React, { useContext } from "react";
 import "./App.css";
 import "tailwindcss/tailwind.css";
-import { BrowserRouter as Router, Routes, Route, NavLink, useParams, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+  useParams,
+  Navigate,
+} from "react-router-dom";
 
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import RequireAuth from "./components/Auth/RequireAuth";
 
+// 🏠 Páginas principales
 import Home from "./pages/home/home";
 import ListaPacientes from "./pages/pacientes/listaPacientes";
 import LoginPage from "./pages/login/login";
-import RecuperarContrasenaPage from "./pages/login/RecuperarContrasenaPage";
 
+// 💰 Cajas
 import ListaCajas from "./pages/cajas/listaCajas";
 import DetalleCaja from "./pages/cajas/detalleCaja";
 
+// 🗓️ Turnos
 import ListadoTurnos from "./pages/turnos/ListadoTurnos";
 import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
-import PacienteTurnos from "./pages/turnos/PacienteTurnos";   // 👈 NUEVA
+import PacienteTurnos from "./pages/turnos/PacienteTurnos";
 
+// 🩺 Fichas médicas
 import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
 import HistorialPage from "./pages/fichasMedicas/HistorialPage";
 import FichaMedicaDetailPage from "./pages/fichasMedicas/FichaMedicaDetailPage";
 
+// ⚙️ Panel
 import VistaPanel from "./pages/panel_control/vista_panel";
+
+// 🔐 Recuperación de contraseña
+import RecuperarContrasenaPage from "./pages/recuperar/RecuperarContrasenaPage";
+import ValidarCodigo from "./pages/recuperar/ValidarCodigoPage";
+import CambiarContrasena from "./pages/recuperar/CambiarContrasenaPage";
 
 function App() {
   return (
     <div
       className="App"
-      style={{ fontFamily: "'Poppins', sans-serif", minHeight: "100vh", backgroundColor: "#f9fafc" }}
+      style={{
+        fontFamily: "'Poppins', sans-serif",
+        minHeight: "100vh",
+        backgroundColor: "#f9fafc",
+      }}
     >
       <AuthProvider>
         <Router>
           <Header />
           <main style={{ padding: 24 }}>
             <Routes>
+              {/* 🏠 Inicio */}
               <Route
                 path="/"
                 element={
@@ -46,9 +67,14 @@ function App() {
                   </RequireAuth>
                 }
               />
+
+              {/* 🔐 Login y recuperación */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/recuperar-contraseña" element={<RecuperarContrasenaPage />} />
+              <Route path="/validar-codigo" element={<ValidarCodigo />} />
+              <Route path="/cambiar-contraseña" element={<CambiarContrasena />} />
 
+              {/* 👥 Pacientes */}
               <Route
                 path="/pacientes"
                 element={
@@ -58,6 +84,7 @@ function App() {
                 }
               />
 
+              {/* 🩺 Historial / Fichas */}
               <Route
                 path="/historial"
                 element={
@@ -79,6 +106,7 @@ function App() {
                 element={<FichaMedicaDetailPage />}
               />
 
+              {/* 💰 Cajas */}
               <Route
                 path="/cajas"
                 element={
@@ -96,7 +124,7 @@ function App() {
                 }
               />
 
-              {/* TURNOS */}
+              {/* 🗓️ Turnos */}
               <Route
                 path="/turnos"
                 element={
@@ -138,6 +166,7 @@ function App() {
                 }
               />
 
+              {/* ⚙️ Panel */}
               <Route
                 path="/panel"
                 element={
@@ -179,7 +208,9 @@ function Header() {
           flexWrap: "wrap",
         }}
       >
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: "bold" }}>🦷 Consultorio GF</h1>
+        <h1 style={{ margin: 0, fontSize: 20, fontWeight: "bold" }}>
+          🦷 Consultorio GF
+        </h1>
 
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <StyledNav to="/">Inicio</StyledNav>
@@ -187,7 +218,8 @@ function Header() {
           <StyledNav to="/pacientes">Pacientes</StyledNav>
           <StyledNav to="/historial">Fichas Médicas</StyledNav>
           <StyledNav to="/cajas">Cajas</StyledNav>
-          <StyledNav to="/panel">Panel de</StyledNav>
+          <StyledNav to="/panel">Panel</StyledNav>
+
           {accessToken ? (
             <button
               onClick={logout}
@@ -236,19 +268,7 @@ function StyledNav({ to, children }) {
         borderRadius: 8,
         transition: "background-color 0.15s, transform 0.15s",
         backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "transparent",
-        transform: "scale(1)",
       })}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.18)";
-        e.currentTarget.style.transform = "scale(1.04)";
-      }}
-      onMouseLeave={(e) => {
-        const isActive = e.currentTarget.getAttribute("aria-current") === "page";
-        e.currentTarget.style.backgroundColor = isActive
-          ? "rgba(255,255,255,0.15)"
-          : "transparent";
-        e.currentTarget.style.transform = "scale(1)";
-      }}
     >
       {children}
     </NavLink>

@@ -78,7 +78,7 @@ export default function PacienteCard({ paciente, onEditar, onEliminar, onAsignar
           onMouseEnter={(e) => e.target.style.backgroundColor = "#1976d2"}
           onMouseLeave={(e) => e.target.style.backgroundColor = "#2196f3"}
         >
-          Asignar obra sociaaaaal
+          Asignar obra social
         </button>
 
         <button
