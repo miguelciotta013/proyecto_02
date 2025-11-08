@@ -108,10 +108,10 @@ class CatalogosOdontologicos(APIView):
                         Parentesco.objects.all(),
                         many=True
                     ).data,
-                    'tratamientos': TratamientosSerializer(
-                        Tratamientos.objects.filter(eliminado__isnull=True), 
-                        many=True
-                    ).data
+                'tratamientos': TratamientosSerializer(
+                    Tratamientos.objects.filter(Q(eliminado=0) | Q(eliminado__isnull=True)), 
+                    many=True
+                ).data
                 }
             })
         except Exception as e:
@@ -741,9 +741,9 @@ class TratamientosConCoberturaView(APIView):
     
     def get(self, request):
         id_obra_social = request.query_params.get('id_obra_social')
-        
+    
         try:
-            tratamientos = Tratamientos.objects.filter(eliminado__isnull=True)
+            tratamientos = Tratamientos.objects.filter(Q(eliminado=0) | Q(eliminado__isnull=True))
             data = []
             
             for trat in tratamientos:
@@ -863,7 +863,7 @@ class MetodosCobroView(APIView):
     
     def get(self, request):
         try:
-            metodos = MetodosCobro.objects.filter(eliminado__isnull=True)
+            metodos = MetodosCobro.objects.filter(Q(eliminado=0) | Q(eliminado__isnull=True))
             serializer = MetodosCobroSerializer(metodos, many=True)
             return Response({
                 'success': True,

@@ -59,7 +59,7 @@ class MetodosCobroViewSet(viewsets.ModelViewSet):
 
 # ---------- TRATAMIENTOS ----------
 class TratamientosViewSet(viewsets.ModelViewSet):
-    queryset = Tratamientos.objects.filter(eliminado=0)
+    queryset = Tratamientos.objects.filter(Q(eliminado=0) | Q(eliminado__isnull=True))
     serializer_class = TratamientosSerializer
     permission_classes = [AllowAny]
 
