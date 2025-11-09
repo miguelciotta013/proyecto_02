@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'login',
     'widget_tweaks',
     
+   
+    
 ]
 
 MIDDLEWARE = [
@@ -69,7 +71,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Puerto de React
+    "http://127.0.0.1:3000",
+]
 ROOT_URLCONF = 'proyecto_odontologico.urls'
 
 TEMPLATES = [

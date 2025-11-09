@@ -11,6 +11,7 @@ urlpatterns = [
     path('logout/', LogoutTemplateView.as_view(), name='logout'),
 
     # 🧩 API endpoints
+    path('api/', include('api.urls')),
     path('api/auth/', include('login.urls')),
     path('api/home/', include('home.urls')),
     path('api/ficha_medica/', include('ficha_medica.urls')),
@@ -18,6 +19,7 @@ urlpatterns = [
     path('api/turnos/', include('turnos.urls')),
     path('api/caja/', include('caja.urls')),
     path('api/panel-control/', include('panel_control.urls')),
+    
 
     # 🔑 Recuperación de contraseña (Django built-in)
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
@@ -25,5 +27,7 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('api/auth/', include('login.urls')),
+    
+    
 
 ]
