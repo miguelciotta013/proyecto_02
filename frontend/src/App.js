@@ -35,6 +35,7 @@ import PacienteTurnos from "./pages/turnos/PacienteTurnos";
 import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
 import HistorialPage from "./pages/fichasMedicas/HistorialPage";
 import FichaMedicaDetailPage from "./pages/fichasMedicas/FichaMedicaDetailPage";
+import OdontogramaPage from "./pages/fichasMedicas/OdontogramaPage";
 
 // ⚙️ Panel
 import VistaPanel from "./pages/panel_control/vista_panel";
@@ -138,6 +139,12 @@ function AppContent() {
                 <FichaMedicaDetailPage />
               </RequireAuth>
             }
+          />
+          <Route 
+          path="/odontograma/:idPaciente/:idFicha" 
+          element={
+            <OdontogramaPage />
+            } 
           />
 
           {/* 💰 Cajas */}

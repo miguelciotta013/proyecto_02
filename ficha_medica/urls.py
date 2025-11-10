@@ -13,6 +13,7 @@ from .views import (
     FichaMedicaDetailView,
     FichaMedicaPDFView,
     OdontogramaView,
+    OdontogramaPDFView,
     MetodosCobroView,
     EstadosPagoView,
     UpdateConformidadView,
@@ -46,6 +47,9 @@ urlpatterns = [
     
     # Ver odontograma de una ficha médica
     path('ficha/<int:id_ficha>/odontograma/', OdontogramaView.as_view(), name='odontograma'),
+    
+    # NUEVO: Descargar PDF del odontograma
+    path('ficha/<int:id_ficha>/odontograma/pdf/', OdontogramaPDFView.as_view(), name='odontograma-pdf'),
     
     
     # ============================================

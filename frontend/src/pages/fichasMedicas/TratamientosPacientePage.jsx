@@ -10,7 +10,6 @@ import {
 import TratamientosTable from '../../components/fichas/tratamientosTable';
 import NuevoTratamientoModal from '../../components/fichas/nuevoTratamientoModal';
 import FichaPatologicaModal from '../../components/fichas/fichaPatologicaModal';
-import OdontogramaModal from '../../components/fichas/odontogramaModal';
 import CobroModal from '../../components/fichas/cobroModal';
 import styles from '../../pages/fichasMedicas/Tratamientos.module.css';
 
@@ -219,7 +218,8 @@ function TratamientosPacientePage() {
           onVerFicha={handleVerFicha}
           onVerOdontograma={handleVerOdontograma}
           onVerCobro={handleVerCobro}
-          onFilterChange={fetchData}  // ← NUEVA LÍNEA
+          onFilterChange={fetchData}
+          idPaciente={id}
         />
       </div>
 
@@ -245,14 +245,6 @@ function TratamientosPacientePage() {
         />
       )}
 
-      {/* Modal Odontograma */}
-      {modalOdontograma && fichaSeleccionada && (
-        <OdontogramaModal
-          ficha={fichaSeleccionada}
-          paciente={paciente}
-          onClose={() => setModalOdontograma(false)}
-        />
-      )}
 
       {/* Modal Cobro */}
       {modalCobro && cobroSeleccionado && (
