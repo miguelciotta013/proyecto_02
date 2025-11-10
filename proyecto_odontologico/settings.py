@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     'login',
     'widget_tweaks',
     
+   
+    
 ]
 
 MIDDLEWARE = [
@@ -69,7 +71,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # Puerto de React
+    "http://127.0.0.1:3000",
+]
 ROOT_URLCONF = 'proyecto_odontologico.urls'
 
 TEMPLATES = [
@@ -202,8 +207,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'TU_CORREO@gmail.com'
-EMAIL_HOST_PASSWORD = 'TU_CONTRASEÑA_O_APP_PASSWORD'
+EMAIL_HOST_USER = 'sarapuraivanlionel@gmail.com'
+EMAIL_HOST_PASSWORD = 'soerlljhpfpskuah'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # Si usas otro proveedor, cambia los datos según corresponda
 # Para pruebas locales puedes usar: 'django.core.mail.backends.console.EmailBackend'

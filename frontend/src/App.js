@@ -2,155 +2,226 @@
 import React, { useContext } from "react";
 import "./App.css";
 import "tailwindcss/tailwind.css";
-import { BrowserRouter as Router, Routes, Route, NavLink, useParams, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+  useParams,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import RequireAuth from "./components/Auth/RequireAuth";
 
+// 🏠 Páginas principales
 import Home from "./pages/home/home";
 import ListaPacientes from "./pages/pacientes/listaPacientes";
 import LoginPage from "./pages/login/login";
-import RecuperarContrasenaPage from "./pages/login/RecuperarContrasenaPage";
 
+// 💰 Cajas
 import ListaCajas from "./pages/cajas/listaCajas";
 import DetalleCaja from "./pages/cajas/detalleCaja";
 
+// 🗓️ Turnos
 import ListadoTurnos from "./pages/turnos/ListadoTurnos";
 import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
-import PacienteTurnos from "./pages/turnos/PacienteTurnos";   // 👈 NUEVA
+import PacienteTurnos from "./pages/turnos/PacienteTurnos";
 
+// 🩺 Fichas médicas
 import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
 import HistorialPage from "./pages/fichasMedicas/HistorialPage";
 import FichaMedicaDetailPage from "./pages/fichasMedicas/FichaMedicaDetailPage";
 
+// ⚙️ Panel
 import VistaPanel from "./pages/panel_control/vista_panel";
+
+// 🔐 Recuperación de contraseña
+import RecuperarContrasenaPage from "./pages/recuperar/RecuperarContrasenaPage";
+import ValidarCodigo from "./pages/recuperar/ValidarCodigoPage";
+import CambiarContrasena from "./pages/recuperar/CambiarContrasenaPage";
+
+// 📊 Dashboard
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
     <div
       className="App"
-      style={{ fontFamily: "'Poppins', sans-serif", minHeight: "100vh", backgroundColor: "#f9fafc" }}
+      style={{
+        fontFamily: "'Poppins', sans-serif",
+        minHeight: "100vh",
+        backgroundColor: "#f9fafc",
+      }}
     >
       <AuthProvider>
         <Router>
-          <Header />
-          <main style={{ padding: 24 }}>
-            <Routes>
-              <Route
-                path="/"
-                element={
-                  <RequireAuth>
-                    <AuthGate />
-                  </RequireAuth>
-                }
-              />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/recuperar-contraseña" element={<RecuperarContrasenaPage />} />
-
-              <Route
-                path="/pacientes"
-                element={
-                  <RequireAuth>
-                    <ListaPacientes />
-                  </RequireAuth>
-                }
-              />
-
-              <Route
-                path="/historial"
-                element={
-                  <RequireAuth>
-                    <HistorialPage />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/historial/:id"
-                element={
-                  <RequireAuth>
-                    <TratamientosPacientePage />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/historial/:idPaciente/ficha/:idFicha"
-                element={<FichaMedicaDetailPage />}
-              />
-
-              <Route
-                path="/cajas"
-                element={
-                  <RequireAuth>
-                    <ListaCajas />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/caja/:id"
-                element={
-                  <RequireAuth>
-                    <DetalleCajaWrapper />
-                  </RequireAuth>
-                }
-              />
-
-              {/* TURNOS */}
-              <Route
-                path="/turnos"
-                element={
-                  <RequireAuth>
-                    <ListadoTurnos />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/turnos/paciente/:id"
-                element={
-                  <RequireAuth>
-                    <PacienteTurnos />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/turnos/nuevo"
-                element={
-                  <RequireAuth>
-                    <NuevoTurno />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/turnos/:id"
-                element={
-                  <RequireAuth>
-                    <DetalleTurno />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/turnos/:id/editar"
-                element={
-                  <RequireAuth>
-                    <EditarTurno />
-                  </RequireAuth>
-                }
-              />
-
-              <Route
-                path="/panel"
-                element={
-                  <RequireAuth>
-                    <VistaPanel />
-                  </RequireAuth>
-                }
-              />
-            </Routes>
-          </main>
+          <AppContent />
         </Router>
       </AuthProvider>
     </div>
+  );
+}
+
+// Componente separado para poder usar useLocation
+function AppContent() {
+  const { accessToken } = useContext(AuthContext);
+  const location = useLocation();
+  
+  // Lista de rutas donde NO se debe mostrar el header (rutas públicas)
+  const rutasSinHeader = [
+    '/login',
+    '/recuperar-contraseña',
+    '/validar-codigo',
+    '/cambiar-contraseña'
+  ];
+  
+  const mostrarHeader = accessToken && !rutasSinHeader.includes(location.pathname);
+
+  return (
+    <>
+      {/* Solo mostrar Header si está logueado */}
+      {mostrarHeader && <Header />}
+      
+      <main style={{ padding: mostrarHeader ? 24 : 0 }}>
+        <Routes>
+          {/* 🏠 Inicio */}
+          <Route
+            path="/"
+            element={
+              <RequireAuth>
+                <AuthGate />
+              </RequireAuth>
+            }
+          />
+
+          {/* 🔐 Login y recuperación */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/recuperar-contraseña" element={<RecuperarContrasenaPage />} />
+          <Route path="/validar-codigo" element={<ValidarCodigo />} />
+          <Route path="/cambiar-contraseña" element={<CambiarContrasena />} />
+
+          {/* 👥 Pacientes */}
+          <Route
+            path="/pacientes"
+            element={
+              <RequireAuth>
+                <ListaPacientes />
+              </RequireAuth>
+            }
+          />
+
+          {/* 🩺 Historial / Fichas */}
+          <Route
+            path="/historial"
+            element={
+              <RequireAuth>
+                <HistorialPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/historial/:id"
+            element={
+              <RequireAuth>
+                <TratamientosPacientePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/historial/:idPaciente/ficha/:idFicha"
+            element={
+              <RequireAuth>
+                <FichaMedicaDetailPage />
+              </RequireAuth>
+            }
+          />
+
+          {/* 💰 Cajas */}
+          <Route
+            path="/cajas"
+            element={
+              <RequireAuth>
+                <ListaCajas />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/caja/:id"
+            element={
+              <RequireAuth>
+                <DetalleCajaWrapper />
+              </RequireAuth>
+            }
+          />
+
+          {/* 🗓️ Turnos */}
+          <Route
+            path="/turnos"
+            element={
+              <RequireAuth>
+                <ListadoTurnos />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/turnos/paciente/:id"
+            element={
+              <RequireAuth>
+                <PacienteTurnos />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/turnos/nuevo"
+            element={
+              <RequireAuth>
+                <NuevoTurno />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/turnos/:id"
+            element={
+              <RequireAuth>
+                <DetalleTurno />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/turnos/:id/editar"
+            element={
+              <RequireAuth>
+                <EditarTurno />
+              </RequireAuth>
+            }
+          />
+
+          {/* ⚙️ Panel */}
+          <Route
+            path="/panel"
+            element={
+              <RequireAuth>
+                <VistaPanel />
+              </RequireAuth>
+            }
+          />
+
+          {/* 📊 Dashboard - PROTEGIDO */}
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            }
+          />
+        </Routes>
+      </main>
+    </>
   );
 }
 
@@ -179,7 +250,9 @@ function Header() {
           flexWrap: "wrap",
         }}
       >
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: "bold" }}>🦷 Consultorio GF</h1>
+        <h1 style={{ margin: 0, fontSize: 20, fontWeight: "bold" }}>
+          🦷 Consultorio GF
+        </h1>
 
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
           <StyledNav to="/">Inicio</StyledNav>
@@ -187,7 +260,9 @@ function Header() {
           <StyledNav to="/pacientes">Pacientes</StyledNav>
           <StyledNav to="/historial">Fichas Médicas</StyledNav>
           <StyledNav to="/cajas">Cajas</StyledNav>
-          <StyledNav to="/panel">Panel de</StyledNav>
+          <StyledNav to="/panel">Panel</StyledNav>
+          <StyledNav to="/dashboard">📊 Graficos </StyledNav>
+
           {accessToken ? (
             <button
               onClick={logout}
@@ -236,19 +311,7 @@ function StyledNav({ to, children }) {
         borderRadius: 8,
         transition: "background-color 0.15s, transform 0.15s",
         backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "transparent",
-        transform: "scale(1)",
       })}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.18)";
-        e.currentTarget.style.transform = "scale(1.04)";
-      }}
-      onMouseLeave={(e) => {
-        const isActive = e.currentTarget.getAttribute("aria-current") === "page";
-        e.currentTarget.style.backgroundColor = isActive
-          ? "rgba(255,255,255,0.15)"
-          : "transparent";
-        e.currentTarget.style.transform = "scale(1)";
-      }}
     >
       {children}
     </NavLink>

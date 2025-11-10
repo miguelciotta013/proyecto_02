@@ -1,3 +1,4 @@
+// frontend/src/pages/login/login.jsx
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import loginApi from '../../api/loginApi';
@@ -8,6 +9,7 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const { login } = useContext(AuthContext);
@@ -15,6 +17,8 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setLoading(true);
+    
     try {
       const data = await loginApi.login(username, password);
       if (data?.access) {
@@ -26,50 +30,86 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.error || err.message || 'Error en el servidor');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.loginCard}>
-        <div className={styles.logoContainer}>
-          <img src="/logo.png" alt="Consultorio Odontológico" className={styles.logo} />
-          <h2 className={styles.title}>Consultorio Odontológico GF</h2>
-          <p className={styles.subtitle}>Acceso para personal autorizado</p>
+        
+        {/* Header con franja azul */}
+        <div className={styles.header}>
+          <div className={styles.logoContainer}>
+            <div className={styles.logoCircle}>
+              <span className={styles.logoIcon}>🦷</span>
+            </div>
+            <h1 className={styles.title}>Consultorio GF</h1>
+          </div>
+          <p className={styles.subtitle}>Sistema de Gestión Odontológica</p>
         </div>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {/* Contenido del formulario */}
+        <div className={styles.formContainer}>
+          {error && (
+            <div className={styles.errorAlert}>
+              <span className={styles.errorIcon}>⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label>Usuario</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              className={styles.input}
-              placeholder="Ingrese su usuario"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Contraseña</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className={styles.input}
-              placeholder="Ingrese su contraseña"
-            />
-          </div>
-          <button type="submit" className={styles.button}>
-            Ingresar
-          </button>
-          <button type="button" className={styles.button + ' ' + styles.secondary} onClick={() => navigate('/recuperar-contraseña')} style={{marginTop: '10px'}}>
-            ¿Olvidaste tu contraseña?
-          </button>
-        </form>
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Usuario</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                className={styles.input}
+                placeholder="Ingrese su usuario"
+                disabled={loading}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Contraseña</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className={styles.input}
+                placeholder="Ingrese su contraseña"
+                disabled={loading}
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              className={styles.btnPrimary}
+              disabled={loading}
+            >
+              {loading ? 'Ingresando...' : 'Ingresar al Sistema'}
+            </button>
+
+            <button 
+              type="button" 
+              className={styles.btnSecondary}
+              onClick={() => navigate('/recuperar-contraseña')}
+              disabled={loading}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </form>
+        </div>
+
+        {/* Footer */}
+        <div className={styles.footer}>
+          <p className={styles.footerText}>Acceso exclusivo para personal autorizado</p>
+          <p className={styles.footerCopy}>© 2025 Consultorio GF - Todos los derechos reservados</p>
+        </div>
       </div>
     </div>
   );

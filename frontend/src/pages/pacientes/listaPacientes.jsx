@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { listPacientes, getPaciente } from '../../api/pacientesApi';
+import { listPacientes, getPaciente, deletePaciente } from '../../api/pacientesApi';
 import PacienteTable from '../../components/pacientes/pacienteTable';
 import PacienteCard from '../../components/pacientes/pacienteCard';
 import PacientesForm from '../../components/pacientes/pacientesForm';
@@ -11,36 +11,21 @@ export default function ListaPacientes() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selected, setSelected] = useState(null);
+  const [editing, setEditing] = useState(null);
   const [showObraFor, setShowObraFor] = useState(null);
   const [showPatologiaFor, setShowPatologiaFor] = useState(null);
-  const [editing, setEditing] = useState(null);
 
   useEffect(() => {
     fetchPacientes();
   }, []);
-
-  useEffect(() => {
-    const actualizarPacienteObra = async () => {
-      if (selected && selected.id) {
-        await handleView(selected.id);
-      }
-    };
-    window.addEventListener('pacienteObraActualizada', actualizarPacienteObra);
-    return () => {
-      window.removeEventListener('pacienteObraActualizada', actualizarPacienteObra);
-    };
-  }, [selected]);
 
   async function fetchPacientes() {
     setLoading(true);
     setError(null);
     try {
       const resp = await listPacientes();
-      if (resp && resp.success) {
-        setPacientes(resp.data || []);
-      } else {
-        setError(resp?.error || 'Error al obtener pacientes');
-      }
+      if (resp?.success) setPacientes(resp.data || []);
+      else setError(resp?.error || 'Error al obtener pacientes');
     } catch (e) {
       setError(e.message || String(e));
     } finally {
@@ -51,7 +36,7 @@ export default function ListaPacientes() {
   async function handleView(id) {
     try {
       const resp = await getPaciente(id);
-      if (resp && resp.success) setSelected(resp.data);
+      if (resp?.success) setSelected(resp.data);
       else setError(resp?.error || 'No se pudo obtener paciente');
     } catch (e) {
       setError(e.message || String(e));
@@ -63,14 +48,11 @@ export default function ListaPacientes() {
     try {
       setLoading(true);
       setError(null);
-      const { deletePaciente } = await import('../../api/pacientesApi');
       const resp = await deletePaciente(id_paciente);
-      if (resp && resp.success) {
-        await fetchPacientes();
-        setSelected(null);
-      } else {
-        setError(resp?.error || 'Error al eliminar');
-      }
+      if (resp?.success) {
+        setPacientes(prev => prev.filter(p => p.id_paciente !== id_paciente));
+        if (selected?.id_paciente === id_paciente) setSelected(null);
+      } else setError(resp?.error || 'Error al eliminar');
     } catch (e) {
       setError(e.message || String(e));
     } finally {
@@ -82,11 +64,8 @@ export default function ListaPacientes() {
     setError(null);
     getPaciente(id_paciente)
       .then(resp => {
-        if (resp && resp.success) {
-          setEditing(resp.data);
-        } else {
-          setError(resp?.error || 'No se pudo obtener paciente');
-        }
+        if (resp?.success) setEditing(resp.data);
+        else setError(resp?.error || 'No se pudo obtener paciente');
       })
       .catch(e => setError(e.message || String(e)));
   }
@@ -104,20 +83,7 @@ export default function ListaPacientes() {
       <h2 style={{ color: "#333", marginBottom: 16 }}>Pacientes</h2>
 
       <div style={{ marginBottom: 16 }}>
-        <button
-          onClick={() => setSelected('__create__')}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "8px",
-            border: "none",
-            backgroundColor: "#4caf50",
-            color: "#fff",
-            cursor: "pointer",
-            transition: "background-color 0.2s",
-          }}
-          onMouseEnter={e => e.target.style.backgroundColor = "#45a049"}
-          onMouseLeave={e => e.target.style.backgroundColor = "#4caf50"}
-        >
+        <button onClick={() => setSelected('__create__')} style={buttonStyle("#4caf50")}>
           Nuevo paciente
         </button>
       </div>
@@ -126,60 +92,120 @@ export default function ListaPacientes() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {!loading && !error && (
-        <div style={{
-          backgroundColor: "#fff",
-          padding: 16,
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          overflowX: "auto"
-        }}>
+        <div style={listCardStyle}>
           <PacienteTable pacientes={pacientes} onView={handleView} />
         </div>
       )}
 
+      {/* Tarjeta del paciente */}
       {selected && selected !== '__create__' && (
-        <div style={{ marginTop: 20 }}>
-          <PacienteCard 
-            paciente={selected} 
-            onClose={() => setSelected(null)} 
-            onEliminar={handleEliminar}
-            onAsignarObra={(id) => setShowObraFor(id)}
-            onAgregarFicha={handleAgregarFicha}
-            onEditar={handleEditar}
-            onObraRemoved={(updatedPaciente) => { setSelected(updatedPaciente); fetchPacientes(); }}
-            onObraAssigned={async () => { await handleView(selected.id); fetchPacientes(); }}
-          />
-        </div>
+        <PacienteCard
+          paciente={selected}
+          onClose={() => setSelected(null)}
+          onEditar={handleEditar}
+          onEliminar={handleEliminar}
+          onAsignarObra={handleAsignarObra}
+          onAgregarFicha={handleAgregarFicha}
+          onObraRemoved={(updatedPaciente) => {
+            setSelected(updatedPaciente);
+            setPacientes(prev => prev.map(p => p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p));
+          }}
+          onObraAssigned={(updatedPaciente) => {
+            setSelected(updatedPaciente);
+            setPacientes(prev => prev.map(p => p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p));
+          }}
+          onUpdated={(updatedPaciente) => {
+            setSelected(updatedPaciente);
+            setPacientes(prev => prev.map(p => p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p));
+          }}
+        />
       )}
 
+      {/* Crear paciente */}
       {selected === '__create__' && (
-        <div style={{ marginTop: 20, backgroundColor: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-          <PacientesForm onClose={() => setSelected(null)} onCreated={() => fetchPacientes()} />
-        </div>
-      )}
-
-      {editing && (
-        <div style={{ marginTop: 20, backgroundColor: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-          <PacientesForm 
-            initialData={editing} 
-            onClose={() => setEditing(null)} 
-            onUpdated={() => { setEditing(null); fetchPacientes(); }}
+        <div style={cardWrapperStyle}>
+          <PacientesForm
+            onClose={() => setSelected(null)}
+            onCreated={(newPaciente) => {
+              setPacientes(prev => [...prev, newPaciente]);
+              setSelected(newPaciente);
+            }}
           />
         </div>
       )}
 
-      {showObraFor && (
-        <div style={{ marginTop: 20, backgroundColor: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-          <ObraSocialForm id_paciente={showObraFor} onClose={() => setShowObraFor(null)} onAssigned={async () => { setShowObraFor(null); await handleView(showObraFor); fetchPacientes(); }} />
+      {/* Editar paciente */}
+      {editing && (
+        <div style={cardWrapperStyle}>
+          <PacientesForm
+            initialData={editing}
+            onClose={() => setEditing(null)}
+            onUpdated={(updated) => {
+              if (!updated?.id_paciente) return;
+              setPacientes(prev => prev.map(p => p.id_paciente === updated.id_paciente ? updated : p));
+              if (selected?.id_paciente === updated.id_paciente) setSelected(updated);
+              setEditing(null);
+            }}
+          />
         </div>
       )}
 
+      {/* Obras sociales */}
+      {showObraFor && (
+        <div style={cardWrapperStyle}>
+          <ObraSocialForm
+            id_paciente={showObraFor}
+            onClose={() => setShowObraFor(null)}
+            onAssigned={async () => {
+              const resp = await getPaciente(showObraFor);
+              if (resp?.success) {
+                setSelected(resp.data);
+                setPacientes(prev => prev.map(p => p.id_paciente === resp.data.id_paciente ? resp.data : p));
+              }
+              setShowObraFor(null);
+            }}
+          />
+        </div>
+      )}
+
+      {/* Patologías */}
       {showPatologiaFor && (
-        <div style={{ marginTop: 20, backgroundColor: "#fff", padding: 16, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-          <PatologiaForm id_paciente={showPatologiaFor} onClose={() => setShowPatologiaFor(null)} onSaved={() => { setShowPatologiaFor(null); fetchPacientes(); }} />
+        <div style={cardWrapperStyle}>
+          <PatologiaForm
+            id_paciente={showPatologiaFor}
+            onClose={() => setShowPatologiaFor(null)}
+            onSaved={() => setShowPatologiaFor(null)}
+          />
         </div>
       )}
     </div>
   );
 }
 
+const buttonStyle = (bg) => ({
+  padding: "10px 16px",
+  borderRadius: "8px",
+  border: "none",
+  backgroundColor: bg,
+  color: "#fff",
+  cursor: "pointer",
+  transition: "background-color 0.2s",
+  fontWeight: 600,
+  marginBottom: 8
+});
+
+const listCardStyle = {
+  backgroundColor: "#fff",
+  padding: 16,
+  borderRadius: "12px",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  overflowX: "auto"
+};
+
+const cardWrapperStyle = {
+  marginTop: 20,
+  backgroundColor: "#fff",
+  padding: 16,
+  borderRadius: 12,
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+};
