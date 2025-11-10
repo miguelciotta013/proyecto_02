@@ -340,3 +340,11 @@
     width: 100%;
   }
 }
+
+.btnOdonto {
+  background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+}
+
+.btnOdonto:hover {
+  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+}

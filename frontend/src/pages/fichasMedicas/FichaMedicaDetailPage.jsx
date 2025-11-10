@@ -8,6 +8,7 @@ import {
 } from '../../api/fichasApi';
 import styles from './FichaMedicaDetailPage.module.css';
 
+
 function FichaMedicaDetailPage() {
   const { idPaciente, idFicha } = useParams();
   const navigate = useNavigate();
@@ -83,7 +84,6 @@ function FichaMedicaDetailPage() {
   };
 
   const handleEliminar = async () => {
-    // Opción A: confirm simple
     const confirmar = window.confirm(
       '¿Está seguro que desea eliminar esta ficha médica?\n\nEsta acción no se puede deshacer.'
     );
@@ -181,21 +181,21 @@ function FichaMedicaDetailPage() {
                   onClick={() => setEditMode(true)}
                   title="Editar conformidades"
                 >
-                   Editar
+                  ✏️ Editar
                 </button>
                 <button 
                   className={`${styles.btn} ${styles.btnSuccess}`}
                   onClick={handleDescargarPDF}
                   title="Descargar PDF"
                 >
-                   PDF
+                  📄 PDF
                 </button>
                 <button 
                   className={`${styles.btn} ${styles.btnDanger}`}
                   onClick={handleEliminar}
                   title="Eliminar ficha"
                 >
-                   Eliminar
+                  🗑️ Eliminar
                 </button>
               </>
             ) : (
@@ -210,7 +210,7 @@ function FichaMedicaDetailPage() {
                   className={`${styles.btn} ${styles.btnSuccess}`}
                   onClick={handleGuardarConformidades}
                 >
-                   Guardar
+                  💾 Guardar
                 </button>
               </>
             )}

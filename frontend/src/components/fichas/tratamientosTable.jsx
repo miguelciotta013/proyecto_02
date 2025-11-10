@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import styles from './tratamientosTable.module.css';
+import { useNavigate } from 'react-router-dom';
 
-function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCobro, onFilterChange }) {
+function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCobro, onFilterChange, idPaciente }) {
+  const navigate = useNavigate();
   const [estadoSeleccionado, setEstadoSeleccionado] = useState('');
 
   const handleEstadoChange = (e) => {
@@ -88,7 +90,7 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
                     )}
                   </td>
                   <td className={styles.montoCell}>
-                    {ficha.cobro ? `$${parseFloat(ficha.cobro.monto_total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}` : '-'}
+                    {ficha.cobro ? `${parseFloat(ficha.cobro.monto_total).toLocaleString('es-AR', { minimumFractionDigits: 2 })}` : '-'}
                   </td>
                   <td>
                     {ficha.cobro ? (
@@ -106,14 +108,14 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
                         onClick={() => onVerFicha(ficha)}
                         title="Ver ficha médica"
                       >
-                      Ficha
+                        📋 Ficha
                       </button>
-                      <button
-                        className={styles.btnAccion}
-                        onClick={() => onVerOdontograma(ficha)}
+                      <button 
+                        className={`${styles.btnAccion} ${styles.btnOdonto}`}
+                        onClick={() => navigate(`/odontograma/${idPaciente}/${ficha.id_ficha_medica}`)}
                         title="Ver odontograma"
                       >
-                      Odontograma
+                        🦷 Odontograma
                       </button>
                       {ficha.cobro && (
                         <button
@@ -121,7 +123,7 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
                           onClick={() => onVerCobro(ficha.cobro)}
                           title="Ver cobro"
                         >
-                        Cobro
+                          💰 Cobro
                         </button>
                       )}
                     </div>

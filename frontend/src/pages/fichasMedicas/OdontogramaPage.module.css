@@ -1,0 +1,430 @@
+/* Contenedor principal */
+.mainContainer {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+  background-color: #f4f6f9;
+  min-height: 100vh;
+}
+
+/* Card principal */
+.card {
+  background: white;
+  width: 100%;
+  max-width: 1600px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+}
+
+/* Header */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.cardTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0;
+}
+
+/* Botones */
+.buttonGroup {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btnPrimary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.btnPrimary:hover {
+  background-color: #115293;
+  transform: translateY(-1px);
+}
+
+.btnSecondary {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.btnSecondary:hover {
+  background-color: #bdbdbd;
+}
+
+.btnSuccess {
+  background-color: #4caf50;
+  color: white;
+}
+
+.btnSuccess:hover {
+  background-color: #3b8d3b;
+  transform: translateY(-1px);
+}
+
+/* Información del paciente */
+.pacienteInfo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  background: #f9fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.85rem;
+}
+
+.value {
+  color: #333;
+  font-size: 0.95rem;
+}
+
+/* Referencias */
+.referencias {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.referenciasTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #856404;
+  margin: 0 0 0.75rem 0;
+}
+
+.referenciasList {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.referenciaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.cuadradoAzul {
+  width: 24px;
+  height: 24px;
+  background-color: #4A90E2;
+  border: 1px solid #333;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.xRoja {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  flex-shrink: 0;
+  border: 1px solid #333;
+  border-radius: 3px;
+  background: white;
+}
+
+.xRojaLine1,
+.xRojaLine2 {
+  position: absolute;
+  width: 100%;
+  height: 3px;
+  background: #f44336;
+  top: 50%;
+  left: 0;
+}
+
+.xRojaLine1 {
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.xRojaLine2 {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+/* Contenedor del odontograma */
+.odontogramaContainer {
+  background: white;
+  border: 2px solid #1976d2;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Arcadas */
+.arcadaSuperior,
+.arcadaInferior {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.arcadaLabel {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.labelLeft,
+.labelRight {
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 0.9rem;
+}
+
+/* Fila completa de dientes */
+.filaCompleta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Fila de dientes */
+.dientesRow {
+  display: flex;
+  gap: 0.3rem;
+}
+
+/* Contenedor individual de diente */
+.dienteContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.dienteNumero {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
+  min-height: 14px;
+}
+
+/* Separador central */
+.separadorCentral {
+  width: 1rem;
+}
+
+/* Espacio vacío */
+.espacioVacio {
+  width: 40px;
+}
+
+/* Línea divisoria horizontal */
+.lineaDivisoria {
+  height: 2px;
+  background: #1976d2;
+  margin: 1.5rem 0;
+}
+
+/* Secciones */
+.section {
+  background: #f9fafc;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.observacionesText {
+  color: #333;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Ficha Patológica */
+.fichaPatologicaContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.patologiaSeccion {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.patologiaSubtitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1976d2;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e3f2fd;
+}
+
+.checkboxGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1.5rem;
+}
+
+.checkboxItemReadonly {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: default;
+}
+
+.checkboxReadonly {
+  width: 18px;
+  height: 18px;
+  cursor: default;
+  accent-color: #1976d2;
+  flex-shrink: 0;
+}
+
+.labelActivo {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.labelInactivo {
+  color: #999;
+}
+
+.otrasPatologias {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Loading */
+.loadingSpinner {
+  text-align: center;
+  padding: 3rem;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #1976d2;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+  .odontogramaContainer {
+    padding: 1rem;
+  }
+  
+  .espacioVacio {
+    width: 30px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .pacienteInfo {
+    grid-template-columns: 1fr;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .buttonGroup {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .mainContainer {
+    padding: 1rem;
+  }
+  
+  .card {
+    padding: 1rem;
+  }
+  
+  .odontogramaContainer {
+    padding: 0.5rem;
+    overflow-x: auto;
+  }
+  
+  .filaCompleta {
+    gap: 0.2rem;
+  }
+  
+  .dientesRow {
+    gap: 0.2rem;
+  }
+  
+  .espacioVacio {
+    width: 20px;
+  }
+}

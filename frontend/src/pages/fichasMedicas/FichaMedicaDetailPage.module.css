@@ -336,3 +336,12 @@
     grid-template-columns: 1fr;
   }
 }
+.btnInfo {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btnInfo:hover {
+  background-color: #117a8b;
+  transform: translateY(-1px);
+}
