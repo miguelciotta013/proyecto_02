@@ -76,9 +76,11 @@ export default function DetalleCaja() {
   const apertura = Number(caja.resumen?.monto_apertura ?? 0);
   const totalIngresos = Number(caja.resumen?.total_ingresos ?? 0);
   const totalEgresos = Number(caja.resumen?.total_egresos ?? 0);
+  const totalCobros = Number(caja.resumen?.total_cobros ?? 0);
+
   const montoCierre = caja.resumen?.monto_cierre != null
     ? Number(caja.resumen.monto_cierre)
-    : apertura + totalIngresos - totalEgresos;
+    : apertura + totalIngresos + totalCobros - totalEgresos;
 
   return (
     <div className={styles.container}>

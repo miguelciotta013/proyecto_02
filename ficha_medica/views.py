@@ -390,156 +390,390 @@ class FichaMedicaDetailView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
 class FichaMedicaPDFView(APIView):
-    """Genera PDF con formato similar al formulario odontológico oficial"""
+    """Genera PDF replicando el formulario oficial de A.O.S."""
+
+    def calcular_edad(self, fecha_nacimiento):
+        """Calcula la edad actual desde la fecha de nacimiento"""
+        hoy = date.today()
+        edad = hoy.year - fecha_nacimiento.year
+        # Ajustar si aún no cumplió años este año
+        if (hoy.month, hoy.day) < (fecha_nacimiento.month, fecha_nacimiento.day):
+            edad -= 1
+        return edad
 
     def get(self, request, id_ficha):
         try:
+            # ============================================
+            # 1. OBTENER DATOS DE LA BASE DE DATOS
+            # ============================================
             ficha = FichasMedicas.objects.select_related(
                 'id_paciente_os__id_paciente',
-                'id_paciente_os__id_obra_social'
+                'id_paciente_os__id_obra_social',
+                'id_paciente_os__id_parentesco',
+                'id_empleado__user'
             ).get(id_ficha_medica=id_ficha, eliminado__isnull=True)
 
+            # Datos del paciente
             paciente = ficha.id_paciente_os.id_paciente
             paciente_os = ficha.id_paciente_os
-            obra_social = paciente_os.id_obra_social.nombre_obra_social if paciente_os.id_obra_social else ''
+            
+            # Calcular edad
+            edad = self.calcular_edad(paciente.fecha_nacimiento) if paciente.fecha_nacimiento else ""
+            
+            # Datos de obra social
+            obra_social = paciente_os.id_obra_social.nombre_os if paciente_os.id_obra_social else ''
             parentesco = getattr(paciente_os.id_parentesco, 'tipo_parentesco', '')
-            titular = "Sí" if paciente_os.titular else "No"
-
+            titular_nombre = paciente_os.titular or ''
+            
+            # Obtener detalles de tratamientos
             detalles = DetallesConsulta.objects.filter(
-                id_ficha_medica=ficha, eliminado__isnull=True
+                id_ficha_medica=ficha, 
+                eliminado__isnull=True
             ).select_related('id_tratamiento', 'id_diente')
 
+            # Calcular total y preparar filas de tratamientos
             total_importe = Decimal('0.00')
-            filas = []
+            filas_tratamientos = []
+            
             for d in detalles:
                 importe = Decimal(d.id_tratamiento.importe or 0)
                 total_importe += importe
+                
+                # Obtener cara del diente
                 cara = ""
-                try:
-                    cara = CarasDiente.objects.get(id_cara=d.id_cara).abreviatura
-                except:
-                    cara = str(d.id_cara or "")
-                filas.append({
-                    'diente': d.id_diente.id_diente if d.id_diente else '',
+                if d.id_cara:
+                    try:
+                        cara = CarasDiente.objects.get(id_cara=d.id_cara).abreviatura
+                    except CarasDiente.DoesNotExist:
+                        cara = ""
+                
+                filas_tratamientos.append({
+                    'diente': str(d.id_diente.id_diente) if d.id_diente else '',
                     'cara': cara,
                     'codigo': d.id_tratamiento.codigo,
-                    'fecha': d.fecha_realizacion.strftime("%d/%m/%Y") if hasattr(d, 'fecha_realizacion') else '',
-                    'conf': 'Sí' if d.conformidad_paciente else 'No',
-                    'importe': importe
+                    'fecha': d.fecha_realizacion.strftime("%d/%m/%Y") if hasattr(d, 'fecha_realizacion') and d.fecha_realizacion else '',
+                    'conformidad': 'X' if d.conformidad_paciente else '',
+                    'importe': float(importe)
                 })
 
-            # Crear PDF
+            # ============================================
+            # 2. CONFIGURAR PDF
+            # ============================================
             buffer = BytesIO()
-            p = canvas.Canvas(buffer, pagesize=landscape(A4))
-            width, height = landscape(A4)
-
-            # Encabezado principal
-            p.setFont("Helvetica-Bold", 14)
-            p.drawString(2*cm, height - 2*cm, "REGISTRO DE PRESTACIONES")
-            p.setFont("Helvetica", 10)
-            p.drawString(2*cm, height - 2.6*cm, "ASOCIACIÓN ODONTOLÓGICA SALTEÑA")
-
-            # Logo simulado (cuando tengas la imagen, se puede usar drawImage)
-            p.drawImage("ficha_medica/static/AOS-logo.png", 1*cm, height - 3*cm, width=1.5*cm, height=1.5*cm, preserveAspectRatio=True)
-
-            # Entidad y obra social
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(13*cm, height - 2*cm, "ENTIDAD PRIMARIA: A.O.S")
-            p.drawString(13*cm, height - 2.6*cm, f"OBRA SOCIAL: {obra_social}")
-
-            # Fecha
-            p.setFont("Helvetica", 10)
+            pdf = canvas.Canvas(buffer, pagesize=landscape(A4))
+            width, height = landscape(A4)  # width=842pt, height=595pt
+            
+            # Fecha actual
             hoy = date.today()
-            p.drawString(2*cm, height - 3.6*cm, f"FECHA: {hoy.day:02d}/{hoy.month:02d}/{hoy.year}")
 
-            # Datos del paciente
-            y = height - 4.5*cm
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(2*cm, y, "PACIENTE:")
-            p.setFont("Helvetica", 10)
-            p.drawString(5*cm, y, f"{paciente.apellido_paciente}, {paciente.nombre_paciente}")
-            p.drawString(13*cm, y, f"Edad: {paciente.get_edad() if hasattr(paciente, 'get_edad') else ''}")
-            p.drawString(17*cm, y, f"Credencial: {paciente_os.credencial_paciente or ''}")
-            y -= 0.5*cm
-            p.drawString(2*cm, y, f"Titular: {titular}")
-            p.drawString(8*cm, y, f"Parentesco: {parentesco}")
-            p.drawString(14*cm, y, f"Fecha nac.: {paciente.fecha_nacimiento}")
-            y -= 0.5*cm
-            p.drawString(2*cm, y, f"Domicilio: {paciente.domicilio or ''}")
-            p.drawString(12*cm, y, f"Localidad: {paciente.localidad or ''}")
-            p.drawString(18*cm, y, f"Tel: {paciente.telefono or ''}")
+            # ============================================
+            # 3. ENCABEZADO CON LOGO Y TÍTULO
+            # ============================================
+            y_pos = height - 1.5*cm
+            
+            # Logo (izquierda)
+            try:
+                pdf.drawImage(
+                    "ficha_medica/static/AOS-logo.png", 
+                    1*cm, 
+                    y_pos - 2.5*cm, 
+                    width=2.5*cm, 
+                    height=2.5*cm, 
+                    preserveAspectRatio=True
+                )
+            except:
+                pass
+            
+            # Título principal
+            pdf.setFont("Helvetica-Bold", 14)
+            pdf.drawString(4*cm, y_pos - 0.5*cm, "REGISTRO DE")
+            pdf.drawString(4*cm, y_pos - 1*cm, "PRESTACIONES")
+            
+            pdf.setFont("Helvetica", 9)
+            pdf.drawString(4*cm, y_pos - 1.5*cm, "ASOCIACIÓN ODONTOLÓGICA")
+            pdf.drawString(4*cm, y_pos - 1.9*cm, "SALTEÑA")
+            
+            pdf.setFont("Helvetica", 7)
+            pdf.drawString(4*cm, y_pos - 2.4*cm, "ESPAÑA 1175 - TEL. 0387 431-1116 - 4400 SALTA")
+            
+            # ============================================
+            # 4. RECUADROS SUPERIORES (Entidad y Obra Social)
+            # ============================================
+            # Recuadro ENTIDAD PRIMARIA
+            pdf.setStrokeColor(colors.black)
+            pdf.setLineWidth(1)
+            pdf.rect(13*cm, y_pos - 2.5*cm, 6.5*cm, 2.5*cm, stroke=1, fill=0)
+            
+            pdf.setFont("Helvetica", 7)
+            pdf.drawString(13.2*cm, y_pos - 0.5*cm, "ENTIDAD")
+            pdf.drawString(13.2*cm, y_pos - 0.8*cm, "PRIMARIA:")
+            
+            pdf.setFont("Helvetica-Bold", 18)
+            pdf.drawString(14.5*cm, y_pos - 1.5*cm, "A.O.S.")
+            
+            pdf.setFont("Helvetica", 7)
+            pdf.drawString(13.2*cm, y_pos - 2*cm, "CÓDIGO")
+            pdf.rect(14.5*cm, y_pos - 2.2*cm, 1*cm, 0.4*cm, stroke=1, fill=0)
+            
+            # Recuadro OBRA SOCIAL
+            pdf.rect(19.5*cm, y_pos - 2.5*cm, 9.5*cm, 2.5*cm, stroke=1, fill=0)
+            
+            pdf.setFont("Helvetica-Bold", 12)
+            pdf.drawString(22*cm, y_pos - 0.7*cm, "OBRA SOCIAL")
+            
+            # Nombre de la obra social (arriba)
+            pdf.setFont("Helvetica", 10)
+            pdf.drawString(20*cm, y_pos - 1.2*cm, obra_social)
+            
+            # Nº y Código (abajo)
+            pdf.setFont("Helvetica", 7)
+            pdf.drawString(19.7*cm, y_pos - 1.8*cm, "Nº")
+            pdf.drawString(21.5*cm, y_pos - 1.8*cm, "CÓDIGO")
+            
+            pdf.rect(20.2*cm, y_pos - 2*cm, 1*cm, 0.4*cm, stroke=1, fill=0)
+            pdf.rect(22.5*cm, y_pos - 2*cm, 6*cm, 0.4*cm, stroke=1, fill=0)
+            
+            # ============================================
+            # 5. FECHA (debajo de los recuadros, a la derecha)
+            # ============================================
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(19.5*cm, y_pos - 3*cm, "FECHA:")
+            pdf.setFont("Helvetica", 10)
+            pdf.drawString(21.5*cm, y_pos - 3*cm, f"Día {hoy.day:02d}")
+            pdf.drawString(24*cm, y_pos - 3*cm, f"Mes {hoy.month:02d}")
+            pdf.drawString(26.5*cm, y_pos - 3*cm, f"Año 20{hoy.year % 100:02d}")
+            
+            y_pos -= 3.8*cm
+            
+            # ============================================
+            # 6. DATOS DEL PACIENTE (solo nombre, apellido, edad y credencial)
+            # ============================================
+            pdf.setStrokeColor(colors.black)
+            pdf.setLineWidth(1.5)
+            pdf.rect(1*cm, y_pos - 1*cm, width - 2*cm, 1*cm, stroke=1, fill=0)
+            
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(1.2*cm, y_pos - 0.6*cm, "PACIENTE:")
+            
+            # Nombre del paciente
+            pdf.setFont("Helvetica", 10)
+            nombre_completo = f"{paciente.apellido_paciente}, {paciente.nombre_paciente}"
+            pdf.drawString(3.5*cm, y_pos - 0.6*cm, nombre_completo)
+            
+            # Edad
+            pdf.setFont("Helvetica", 9)
+            pdf.drawString(15*cm, y_pos - 0.6*cm, f"Edad:")
+            pdf.rect(16*cm, y_pos - 0.7*cm, 1*cm, 0.4*cm, stroke=1, fill=0)
+            pdf.drawCentredString(16.5*cm, y_pos - 0.5*cm, str(edad))
+            
+            # Credencial (más corta)
+            pdf.drawString(18*cm, y_pos - 0.6*cm, f"Credencial:")
+            pdf.rect(20*cm, y_pos - 0.7*cm, 5*cm, 0.4*cm, stroke=1, fill=0)
+            credencial = str(paciente_os.credencial_paciente) if paciente_os.credencial_paciente else ""
+            pdf.drawString(20.2*cm, y_pos - 0.5*cm, credencial)
+            
+            y_pos -= 1.3*cm
+            
+            # DATOS ADICIONALES (fuera del recuadro)
+            pdf.setFont("Helvetica", 9)
+            # Primera línea - Titular, Parentesco, Fecha de nacimiento
+            pdf.drawString(1.2*cm, y_pos, f"Titular: {'_' * 40}")
+            pdf.drawString(11*cm, y_pos, f"Parentesco: {'_' * 25}")
+            pdf.drawString(20*cm, y_pos, f"Fecha de nacimiento: {paciente.fecha_nacimiento or '_ _ / _ _ / _ _ _ _'}")
+            
+            y_pos -= 0.5*cm
+            
+            # Segunda línea - Domicilio, Localidad
+            pdf.drawString(1.2*cm, y_pos, f"Domicilio: {paciente.domicilio or '_' * 50}")
+            pdf.drawString(15*cm, y_pos, f"Localidad: {paciente.localidad or '_' * 30}")
+            
+            y_pos -= 0.5*cm
+            
+            # Tercera línea - Lugar de trabajo del Titular, Tel
+            pdf.drawString(1.2*cm, y_pos, f"Lugar de trabajo del Titular: {'_' * 55}")
+            pdf.drawString(21*cm, y_pos, f"Tel: {paciente.telefono or '_' * 15}")
+            
+            y_pos -= 0.8*cm
+            
+            # ============================================
+            # 7. DATOS DEL ODONTÓLOGO (recuadro más alto)
+            # ============================================
+            pdf.setStrokeColor(colors.black)
+            pdf.setLineWidth(1.5)
+            pdf.rect(1*cm, y_pos - 1.3*cm, width - 2*cm, 1.3*cm, stroke=1, fill=0)
+            
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawString(1.2*cm, y_pos - 0.7*cm, "ODONTÓLOGO:")
+            
+            # Nombre del odontólogo (fijo)
+            pdf.setFont("Helvetica", 9)
+            pdf.drawCentredString(10*cm, y_pos - 0.5*cm, "GISELA ALEJANDRA FLORES")
+            pdf.setFont("Helvetica", 8)
+            pdf.drawCentredString(10*cm, y_pos - 0.8*cm, "ODONTÓLOGA")
+            pdf.drawCentredString(10*cm, y_pos - 1.1*cm, "M.P. 1802")
+            
+            # Matrícula Profesional (derecha)
+            pdf.setFont("Helvetica", 9)
+            pdf.drawString(23*cm, y_pos - 0.5*cm, "Matrícula")
+            pdf.drawString(23*cm, y_pos - 0.8*cm, "Profesional:")
+            pdf.rect(25.5*cm, y_pos - 0.9*cm, 3.5*cm, 0.7*cm, stroke=1, fill=0)
+            pdf.setFont("Helvetica-Bold", 12)
+            pdf.drawCentredString(27.2*cm, y_pos - 0.6*cm, "1802")
+            
+            y_pos -= 1.5*cm
+            
+            # ============================================
+            # 8. TABLA DE TRATAMIENTOS
+            # ============================================
+            pdf.setStrokeColor(colors.black)
+            pdf.setLineWidth(1)
+            
+            # Encabezados de la tabla
+            alto_fila = 0.6*cm
+            x_diente = 1*cm
+            x_cara = 2.5*cm
+            x_codigo = 4.5*cm
+            x_fecha = 7.5*cm
+            x_conformidad = 11*cm
+            x_importe = 23*cm
+            ancho_total = width - 2*cm
+            
+            # Dibujar encabezados
+            pdf.setFillColor(colors.lightgrey)
+            pdf.rect(x_diente, y_pos - alto_fila, ancho_total, alto_fila, stroke=1, fill=1)
+            
+            pdf.setFillColor(colors.black)
+            pdf.setFont("Helvetica-Bold", 9)
+            pdf.drawCentredString(x_diente + 0.75*cm, y_pos - 0.4*cm, "DIENTE Nº")
+            pdf.drawCentredString(x_cara + 1*cm, y_pos - 0.4*cm, "CARA")
+            pdf.drawCentredString(x_codigo + 1.5*cm, y_pos - 0.4*cm, "CÓDIGO")
+            pdf.drawCentredString(x_fecha + 1.75*cm, y_pos - 0.4*cm, "Fecha Realización")
+            pdf.drawCentredString(x_conformidad + 6*cm, y_pos - 0.4*cm, "CONFORMIDAD PACIENTE")
+            pdf.drawCentredString(x_importe + 3*cm, y_pos - 0.4*cm, "IMPORTE")
+            
+            # Líneas verticales de encabezado
+            pdf.line(x_cara, y_pos - alto_fila, x_cara, y_pos)
+            pdf.line(x_codigo, y_pos - alto_fila, x_codigo, y_pos)
+            pdf.line(x_fecha, y_pos - alto_fila, x_fecha, y_pos)
+            pdf.line(x_conformidad, y_pos - alto_fila, x_conformidad, y_pos)
+            pdf.line(x_importe, y_pos - alto_fila, x_importe, y_pos)
+            
+            y_pos -= alto_fila
+            
+            # Filas de tratamientos (máximo 10 filas visibles)
+            pdf.setFont("Helvetica", 9)
+            num_filas_visibles = 10
+            
+            for i in range(num_filas_visibles):
+                if i < len(filas_tratamientos):
+                    fila = filas_tratamientos[i]
+                    pdf.drawCentredString(x_diente + 0.75*cm, y_pos - 0.4*cm, fila['diente'])
+                    pdf.drawCentredString(x_cara + 1*cm, y_pos - 0.4*cm, fila['cara'])
+                    pdf.drawCentredString(x_codigo + 1.5*cm, y_pos - 0.4*cm, fila['codigo'])
+                    pdf.drawCentredString(x_fecha + 1.75*cm, y_pos - 0.4*cm, fila['fecha'])
+                    pdf.drawCentredString(x_conformidad + 6*cm, y_pos - 0.4*cm, fila['conformidad'])
+                    pdf.drawRightString(x_importe + 5.5*cm, y_pos - 0.4*cm, f"${fila['importe']:.2f}")
+                
+                # Dibujar fila
+                pdf.rect(x_diente, y_pos - alto_fila, ancho_total, alto_fila, stroke=1, fill=0)
+                
+                # Líneas verticales
+                pdf.line(x_cara, y_pos - alto_fila, x_cara, y_pos)
+                pdf.line(x_codigo, y_pos - alto_fila, x_codigo, y_pos)
+                pdf.line(x_fecha, y_pos - alto_fila, x_fecha, y_pos)
+                pdf.line(x_conformidad, y_pos - alto_fila, x_conformidad, y_pos)
+                pdf.line(x_importe, y_pos - alto_fila, x_importe, y_pos)
+                
+                y_pos -= alto_fila
+            
+            # Fila de TOTAL
+            pdf.setFont("Helvetica-Bold", 10)
+            pdf.drawRightString(x_conformidad + 11.5*cm, y_pos - 0.4*cm, "TOTAL")
+            pdf.drawRightString(x_importe + 5.5*cm, y_pos - 0.4*cm, f"${total_importe:.2f}")
+            pdf.rect(x_diente, y_pos - alto_fila, ancho_total, alto_fila, stroke=1, fill=0)
+            pdf.line(x_importe, y_pos - alto_fila, x_importe, y_pos)
+            
+            y_pos -= 1.2*cm
+            
+            # ============================================
+            # 9. OBSERVACIONES
+            # ============================================
+            pdf.setStrokeColor(colors.black)
+            pdf.setLineWidth(1)
+            pdf.rect(1*cm, y_pos - 2.5*cm, 18*cm, 2.5*cm, stroke=1, fill=0)
+            
+            pdf.setFont("Helvetica-Bold", 9)
+            pdf.drawString(1.2*cm, y_pos - 0.4*cm, "OBSERVACIONES:")
+            
+            # Texto de observaciones
+            pdf.setFont("Helvetica", 8)
+            texto_obs = str(ficha.observaciones or "")
+            
+            # Líneas para escribir
+            y_obs = y_pos - 0.9*cm
+            for _ in range(4):
+                pdf.drawString(1.2*cm, y_obs, "_" * 110)
+                y_obs -= 0.5*cm
+            
+            # Escribir observaciones si existen
+            if texto_obs:
+                y_obs = y_pos - 0.9*cm
+                max_chars = 80
+                for i in range(0, min(len(texto_obs), 320), max_chars):
+                    linea = texto_obs[i:i+max_chars]
+                    pdf.drawString(1.2*cm, y_obs, linea)
+                    y_obs -= 0.5*cm
+                    if y_obs < y_pos - 2.3*cm:
+                        break
+            
+            # ============================================
+            # 10. CANTIDAD DE RX Y FIRMA
+            # ============================================
+            # Recuadro RX Adjuntas
+            pdf.rect(19.5*cm, y_pos - 2.5*cm, 3*cm, 2.5*cm, stroke=1, fill=0)
+            pdf.setFont("Helvetica", 8)
+            pdf.drawString(19.7*cm, y_pos - 0.6*cm, "Cantidad de RX")
+            pdf.drawString(19.7*cm, y_pos - 0.9*cm, "Adjuntas")
+            
+            # Cuadro para número
+            pdf.rect(20*cm, y_pos - 1.5*cm, 2*cm, 0.8*cm, stroke=1, fill=0)
+            
+            # Firma y sello
+            pdf.rect(22.5*cm, y_pos - 2.5*cm, 6.5*cm, 2.5*cm, stroke=1, fill=0)
+            pdf.setFont("Helvetica", 8)
+            pdf.drawCentredString(25.7*cm, y_pos - 0.5*cm, "GISELA ALEJANDRA FLORES")
+            pdf.setFont("Helvetica", 7)
+            pdf.drawCentredString(25.7*cm, y_pos - 0.8*cm, "ODONTÓLOGA")
+            pdf.drawCentredString(25.7*cm, y_pos - 1.1*cm, "M.P. 1802")
+            pdf.setFont("Helvetica-Bold", 7)
+            pdf.drawCentredString(25.7*cm, y_pos - 2.2*cm, "SELLO Y FIRMA DEL PROFESIONAL")
 
-            # Línea separadora
-            y -= 0.6*cm
-            p.line(2*cm, y, width - 2*cm, y)
-            y -= 0.4*cm
-
-            # Odontólogo (de momento fijo, se puede reemplazar dinámico)
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(2*cm, y, "ODONTÓLOGO: GISELA ALEJANDRA FLORES   Matrícula Profesional: 1802")
-            y -= 0.6*cm
-
-            # Encabezado de tabla
-            p.setFont("Helvetica-Bold", 9)
-            columnas = ["DIENTE Nº", "CARA", "CÓDIGO", "FECHA REALIZACIÓN", "CONFORMIDAD PACIENTE", "IMPORTE"]
-            x_cols = [2*cm, 4*cm, 6*cm, 9*cm, 13*cm, 18*cm]
-            for i, col in enumerate(columnas):
-                p.drawString(x_cols[i], y, col)
-            y -= 0.3*cm
-            p.line(2*cm, y, width - 2*cm, y)
-            y -= 0.3*cm
-
-            # Filas
-            p.setFont("Helvetica", 9)
-            for fila in filas:
-                if y < 3*cm:
-                    p.showPage()
-                    y = height - 3*cm
-                p.drawString(x_cols[0], y, str(fila['diente']))
-                p.drawString(x_cols[1], y, str(fila['cara']))
-                p.drawString(x_cols[2], y, str(fila['codigo']))
-                p.drawString(x_cols[3], y, fila['fecha'])
-                p.drawString(x_cols[4], y, fila['conf'])
-                p.drawRightString(x_cols[5] + 2*cm, y, f"${fila['importe']:.2f}")
-                y -= 0.4*cm
-
-            # Línea total
-            p.line(2*cm, y, width - 2*cm, y)
-            y -= 0.4*cm
-            p.setFont("Helvetica-Bold", 10)
-            p.drawRightString(width - 3*cm, y, f"TOTAL: ${total_importe:.2f}")
-            y -= 0.8*cm
-
-            # Observaciones
-            p.setFont("Helvetica-Bold", 10)
-            p.drawString(2*cm, y, "OBSERVACIONES:")
-            y -= 0.4*cm
-            p.setFont("Helvetica", 9)
-            texto = str(ficha.observaciones or "")
-            max_len = 120
-            for linea in [texto[i:i+max_len] for i in range(0, len(texto), max_len)]:
-                p.drawString(2*cm, y, linea)
-                y -= 0.4*cm
-                if y < 3*cm:
-                    p.showPage()
-                    y = height - 3*cm
-
-            # Firma profesional
-            p.setFont("Helvetica", 9)
-            p.drawString(2*cm, 2.5*cm, "Cantidad de RX Adjuntas: _____")
-            p.drawRightString(width - 5*cm, 2.5*cm, "Firma y Sello del Profesional")
-
-            p.showPage()
-            p.save()
+            # ============================================
+            # 11. FINALIZAR PDF
+            # ============================================
+            pdf.showPage()
+            pdf.save()
             buffer.seek(0)
 
+            # ============================================
+            # 12. RESPUESTA HTTP
+            # ============================================
             response = HttpResponse(buffer, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename=ficha_medica_{id_ficha}.pdf'
             return response
 
+        except FichasMedicas.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Ficha médica no encontrada'
+            }, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({'success': False, 'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
