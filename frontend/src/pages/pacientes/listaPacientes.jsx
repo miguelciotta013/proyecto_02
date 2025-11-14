@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { listPacientes, getPaciente, deletePaciente } from '../../api/pacientesApi';
 import PacienteTable from '../../components/pacientes/pacienteTable';
 import PacienteCard from '../../components/pacientes/pacienteCard';
 import PacientesForm from '../../components/pacientes/pacientesForm';
 import ObraSocialForm from '../../components/pacientes/obraSocialForm';
 import PatologiaForm from '../../components/pacientes/patologiaForm';
+import { Plus, RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function ListaPacientes() {
   const [pacientes, setPacientes] = useState([]);
@@ -15,197 +16,475 @@ export default function ListaPacientes() {
   const [showObraFor, setShowObraFor] = useState(null);
   const [showPatologiaFor, setShowPatologiaFor] = useState(null);
 
+  // Cargar pacientes al montar el componente
   useEffect(() => {
     fetchPacientes();
   }, []);
 
-  async function fetchPacientes() {
+  // Función para cargar pacientes con useCallback para evitar re-creaciones
+  const fetchPacientes = useCallback(async () => {
     setLoading(true);
     setError(null);
+    
     try {
+      console.log('🔄 Cargando pacientes...');
       const resp = await listPacientes();
-      if (resp?.success) setPacientes(resp.data || []);
-      else setError(resp?.error || 'Error al obtener pacientes');
+      
+      if (resp?.success) {
+        console.log('✅ Pacientes cargados:', resp.data?.length || 0);
+        setPacientes(resp.data || []);
+      } else {
+        const errorMsg = resp?.error || 'Error al obtener pacientes';
+        console.error('❌ Error:', errorMsg);
+        setError(errorMsg);
+      }
     } catch (e) {
-      setError(e.message || String(e));
+      const errorMsg = e.message || String(e);
+      console.error('❌ Error de red:', errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
-  async function handleView(id) {
+  // Ver detalles de un paciente
+  const handleView = useCallback(async (id) => {
     try {
+      console.log('👁️ Obteniendo paciente:', id);
       const resp = await getPaciente(id);
-      if (resp?.success) setSelected(resp.data);
-      else setError(resp?.error || 'No se pudo obtener paciente');
+      
+      if (resp?.success) {
+        console.log('✅ Paciente obtenido:', resp.data);
+        setSelected(resp.data);
+        setError(null);
+      } else {
+        const errorMsg = resp?.error || 'No se pudo obtener el paciente';
+        console.error('❌ Error:', errorMsg);
+        setError(errorMsg);
+      }
     } catch (e) {
-      setError(e.message || String(e));
+      const errorMsg = e.message || String(e);
+      console.error('❌ Error:', errorMsg);
+      setError(errorMsg);
     }
-  }
+  }, []);
 
-  async function handleEliminar(id_paciente) {
-    if (!window.confirm('¿Seguro que querés dar de baja a este paciente?')) return;
+  // Eliminar paciente
+  const handleEliminar = useCallback(async (id_paciente) => {
+    if (!window.confirm('¿Estás seguro de que querés dar de baja a este paciente?')) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('🗑️ Eliminando paciente:', id_paciente);
       const resp = await deletePaciente(id_paciente);
+      
       if (resp?.success) {
+        console.log('✅ Paciente eliminado correctamente');
+        
+        // Actualizar lista de pacientes
         setPacientes(prev => prev.filter(p => p.id_paciente !== id_paciente));
-        if (selected?.id_paciente === id_paciente) setSelected(null);
-      } else setError(resp?.error || 'Error al eliminar');
+        
+        // Cerrar tarjeta si está viendo el paciente eliminado
+        if (selected?.id_paciente === id_paciente) {
+          setSelected(null);
+        }
+      } else {
+        const errorMsg = resp?.error || 'Error al eliminar el paciente';
+        console.error('❌ Error:', errorMsg);
+        setError(errorMsg);
+      }
     } catch (e) {
-      setError(e.message || String(e));
+      const errorMsg = e.message || String(e);
+      console.error('❌ Error:', errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
-  }
+  }, [selected]);
 
-  function handleEditar(id_paciente) {
-    setError(null);
-    getPaciente(id_paciente)
-      .then(resp => {
-        if (resp?.success) setEditing(resp.data);
-        else setError(resp?.error || 'No se pudo obtener paciente');
-      })
-      .catch(e => setError(e.message || String(e)));
-  }
+  // Editar paciente
+  const handleEditar = useCallback(async (id_paciente) => {
+    try {
+      setError(null);
+      console.log('✏️ Cargando datos para editar:', id_paciente);
+      
+      const resp = await getPaciente(id_paciente);
+      
+      if (resp?.success) {
+        console.log('✅ Datos cargados para edición');
+        setEditing(resp.data);
+        setSelected(null); // Cerrar tarjeta de vista
+      } else {
+        const errorMsg = resp?.error || 'No se pudo obtener el paciente';
+        console.error('❌ Error:', errorMsg);
+        setError(errorMsg);
+      }
+    } catch (e) {
+      const errorMsg = e.message || String(e);
+      console.error('❌ Error:', errorMsg);
+      setError(errorMsg);
+    }
+  }, []);
 
-  function handleAsignarObra(id_paciente) {
+  // Asignar obra social
+  const handleAsignarObra = useCallback((id_paciente) => {
+    console.log('🏥 Abriendo formulario de obra social para:', id_paciente);
     setShowObraFor(id_paciente);
-  }
+    setSelected(null); // Cerrar tarjeta
+  }, []);
 
-  function handleAgregarFicha(id_paciente) {
+  // Agregar patología
+  const handleAgregarFicha = useCallback((id_paciente) => {
+    console.log('📋 Abriendo formulario de patología para:', id_paciente);
     setShowPatologiaFor(id_paciente);
-  }
+    setSelected(null); // Cerrar tarjeta
+  }, []);
+
+  // Actualizar paciente en la lista
+  const updatePacienteInList = useCallback((updatedPaciente) => {
+    if (!updatedPaciente?.id_paciente) return;
+    
+    console.log('🔄 Actualizando paciente en lista:', updatedPaciente.id_paciente);
+    
+    setPacientes(prev => 
+      prev.map(p => 
+        p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p
+      )
+    );
+  }, []);
 
   return (
-    <div style={{ padding: 24, fontFamily: "'Poppins', sans-serif", backgroundColor: "#f0f2f5", minHeight: "100vh" }}>
-      <h2 style={{ color: "#333", marginBottom: 16 }}>Pacientes</h2>
-
-      <div style={{ marginBottom: 16 }}>
-        <button onClick={() => setSelected('__create__')} style={buttonStyle("#4caf50")}>
-          Nuevo paciente
-        </button>
+    <div style={containerStyle}>
+      {/* Header */}
+      <div style={headerStyle}>
+        <h2 style={titleStyle}>
+          👥 Gestión de Pacientes
+        </h2>
+        <div style={headerActionsStyle}>
+          <button 
+            onClick={fetchPacientes} 
+            style={refreshButtonStyle}
+            disabled={loading}
+            title="Recargar lista"
+          >
+            <RefreshCw 
+              size={18} 
+              style={{ 
+                animation: loading ? 'spin 1s linear infinite' : 'none' 
+              }} 
+            />
+          </button>
+          <button 
+            onClick={() => setSelected('__create__')} 
+            style={addButtonStyle}
+            disabled={loading}
+          >
+            <Plus size={18} style={{ marginRight: 6 }} />
+            Nuevo Paciente
+          </button>
+        </div>
       </div>
 
-      {loading && <p style={{ color: "#555" }}>Cargando pacientes...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {!loading && !error && (
-        <div style={listCardStyle}>
-          <PacienteTable pacientes={pacientes} onView={handleView} />
+      {/* Mensajes de error */}
+      {error && (
+        <div style={errorBoxStyle}>
+          <AlertCircle size={20} style={{ marginRight: 8, flexShrink: 0 }} />
+          <div>
+            <strong>Error:</strong> {error}
+          </div>
+          <button 
+            onClick={() => setError(null)} 
+            style={closeErrorStyle}
+          >
+            ✕
+          </button>
         </div>
       )}
 
-      {/* Tarjeta del paciente */}
-      {selected && selected !== '__create__' && (
-        <PacienteCard
-          paciente={selected}
-          onClose={() => setSelected(null)}
-          onEditar={handleEditar}
-          onEliminar={handleEliminar}
-          onAsignarObra={handleAsignarObra}
-          onAgregarFicha={handleAgregarFicha}
-          onObraRemoved={(updatedPaciente) => {
-            setSelected(updatedPaciente);
-            setPacientes(prev => prev.map(p => p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p));
-          }}
-          onObraAssigned={(updatedPaciente) => {
-            setSelected(updatedPaciente);
-            setPacientes(prev => prev.map(p => p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p));
-          }}
-          onUpdated={(updatedPaciente) => {
-            setSelected(updatedPaciente);
-            setPacientes(prev => prev.map(p => p.id_paciente === updatedPaciente.id_paciente ? updatedPaciente : p));
-          }}
+      {/* Tabla de pacientes */}
+      <div style={tableContainerStyle}>
+        <PacienteTable 
+          pacientes={pacientes} 
+          onView={handleView}
+          loading={loading}
         />
+      </div>
+
+      {/* Modal: Ver detalles del paciente */}
+      {selected && selected !== '__create__' && (
+        <div style={modalOverlayStyle} onClick={() => setSelected(null)}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <PacienteCard
+              paciente={selected}
+              onClose={() => setSelected(null)}
+              onEditar={handleEditar}
+              onEliminar={handleEliminar}
+              onAsignarObra={handleAsignarObra}
+              onAgregarFicha={handleAgregarFicha}
+              onObraRemoved={(updatedPaciente) => {
+                setSelected(updatedPaciente);
+                updatePacienteInList(updatedPaciente);
+              }}
+              onObraAssigned={(updatedPaciente) => {
+                setSelected(updatedPaciente);
+                updatePacienteInList(updatedPaciente);
+              }}
+              onUpdated={(updatedPaciente) => {
+                setSelected(updatedPaciente);
+                updatePacienteInList(updatedPaciente);
+              }}
+            />
+          </div>
+        </div>
       )}
 
-      {/* Crear paciente */}
+      {/* Modal: Crear nuevo paciente */}
       {selected === '__create__' && (
-        <div style={cardWrapperStyle}>
-          <PacientesForm
-            onClose={() => setSelected(null)}
-            onCreated={(newPaciente) => {
-              setPacientes(prev => [...prev, newPaciente]);
-              setSelected(newPaciente);
-            }}
-          />
+        <div style={modalOverlayStyle} onClick={() => setSelected(null)}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <PacientesForm
+              onClose={() => setSelected(null)}
+              onCreated={(newPaciente) => {
+                console.log('✅ Paciente creado:', newPaciente);
+                
+                // 1. Agregar a la lista
+                setPacientes(prev => [newPaciente, ...prev]);
+                
+                // 2. Cerrar formulario
+                setSelected(null);
+                
+                // 3. Abrir tarjeta del nuevo paciente después de un breve delay
+                setTimeout(() => {
+                  setSelected(newPaciente);
+                }, 100);
+              }}
+            />
+          </div>
         </div>
       )}
 
-      {/* Editar paciente */}
+      {/* Modal: Editar paciente */}
       {editing && (
-        <div style={cardWrapperStyle}>
-          <PacientesForm
-            initialData={editing}
-            onClose={() => setEditing(null)}
-            onUpdated={(updated) => {
-              if (!updated?.id_paciente) return;
-              setPacientes(prev => prev.map(p => p.id_paciente === updated.id_paciente ? updated : p));
-              if (selected?.id_paciente === updated.id_paciente) setSelected(updated);
-              setEditing(null);
-            }}
-          />
+        <div style={modalOverlayStyle} onClick={() => setEditing(null)}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <PacientesForm
+              initialData={editing}
+              onClose={() => setEditing(null)}
+              onUpdated={(updatedPaciente) => {
+                console.log('✅ Paciente actualizado:', updatedPaciente);
+                
+                if (!updatedPaciente?.id_paciente) return;
+                
+                // Actualizar en la lista
+                updatePacienteInList(updatedPaciente);
+                
+                // Actualizar tarjeta si está abierta
+                if (selected?.id_paciente === updatedPaciente.id_paciente) {
+                  setSelected(updatedPaciente);
+                }
+                
+                // Cerrar formulario de edición
+                setEditing(null);
+              }}
+            />
+          </div>
         </div>
       )}
 
-      {/* Obras sociales */}
+      {/* Modal: Asignar obra social */}
       {showObraFor && (
-        <div style={cardWrapperStyle}>
-          <ObraSocialForm
-            id_paciente={showObraFor}
-            onClose={() => setShowObraFor(null)}
-            onAssigned={async () => {
-              const resp = await getPaciente(showObraFor);
-              if (resp?.success) {
-                setSelected(resp.data);
-                setPacientes(prev => prev.map(p => p.id_paciente === resp.data.id_paciente ? resp.data : p));
-              }
-              setShowObraFor(null);
-            }}
-          />
+        <div style={modalOverlayStyle} onClick={() => setShowObraFor(null)}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <ObraSocialForm
+              id_paciente={showObraFor}
+              onClose={() => setShowObraFor(null)}
+              onAssigned={async () => {
+                console.log('✅ Obra social asignada');
+                
+                // Recargar datos del paciente
+                const resp = await getPaciente(showObraFor);
+                
+                if (resp?.success) {
+                  updatePacienteInList(resp.data);
+                  setSelected(resp.data);
+                }
+                
+                setShowObraFor(null);
+              }}
+            />
+          </div>
         </div>
       )}
 
-      {/* Patologías */}
+      {/* Modal: Agregar patología */}
       {showPatologiaFor && (
-        <div style={cardWrapperStyle}>
-          <PatologiaForm
-            id_paciente={showPatologiaFor}
-            onClose={() => setShowPatologiaFor(null)}
-            onSaved={() => setShowPatologiaFor(null)}
-          />
+        <div style={modalOverlayStyle} onClick={() => setShowPatologiaFor(null)}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <PatologiaForm
+              id_paciente={showPatologiaFor}
+              onClose={() => setShowPatologiaFor(null)}
+              onSaved={async () => {
+                console.log('✅ Patología guardada');
+                
+                // Recargar datos del paciente
+                const resp = await getPaciente(showPatologiaFor);
+                
+                if (resp?.success) {
+                  updatePacienteInList(resp.data);
+                  setSelected(resp.data);
+                }
+                
+                setShowPatologiaFor(null);
+              }}
+            />
+          </div>
         </div>
       )}
+
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          
+          @keyframes slideUp {
+            from { 
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to { 
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
 
-const buttonStyle = (bg) => ({
-  padding: "10px 16px",
-  borderRadius: "8px",
-  border: "none",
-  backgroundColor: bg,
-  color: "#fff",
-  cursor: "pointer",
-  transition: "background-color 0.2s",
-  fontWeight: 600,
-  marginBottom: 8
-});
+// --- ESTILOS ---
 
-const listCardStyle = {
-  backgroundColor: "#fff",
-  padding: 16,
-  borderRadius: "12px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-  overflowX: "auto"
+const containerStyle = {
+  padding: '24px',
+  fontFamily: "'Poppins', sans-serif",
+  backgroundColor: '#f0f2f5',
+  minHeight: '100vh'
 };
 
-const cardWrapperStyle = {
-  marginTop: 20,
-  backgroundColor: "#fff",
-  padding: 16,
-  borderRadius: 12,
-  boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
+const headerStyle = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: '24px',
+  flexWrap: 'wrap',
+  gap: '16px'
+};
+
+const titleStyle = {
+  color: '#333',
+  margin: 0,
+  fontSize: '28px',
+  fontWeight: '700'
+};
+
+const headerActionsStyle = {
+  display: 'flex',
+  gap: '12px',
+  alignItems: 'center'
+};
+
+const refreshButtonStyle = {
+  padding: '10px 12px',
+  borderRadius: '8px',
+  border: '2px solid #2e7d9d',
+  backgroundColor: '#fff',
+  color: '#2e7d9d',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  fontWeight: '600',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+};
+
+const addButtonStyle = {
+  padding: '10px 20px',
+  borderRadius: '8px',
+  border: 'none',
+  backgroundColor: '#4caf50',
+  color: '#fff',
+  cursor: 'pointer',
+  transition: 'all 0.2s',
+  fontWeight: '600',
+  display: 'flex',
+  alignItems: 'center',
+  boxShadow: '0 4px 10px rgba(76, 175, 80, 0.3)'
+};
+
+const errorBoxStyle = {
+  backgroundColor: '#ffebee',
+  border: '2px solid #f44336',
+  borderRadius: '12px',
+  padding: '16px',
+  marginBottom: '20px',
+  display: 'flex',
+  alignItems: 'center',
+  color: '#c62828',
+  animation: 'slideUp 0.3s ease-out',
+  position: 'relative'
+};
+
+const closeErrorStyle = {
+  position: 'absolute',
+  top: '8px',
+  right: '8px',
+  background: 'transparent',
+  border: 'none',
+  color: '#c62828',
+  cursor: 'pointer',
+  fontSize: '18px',
+  fontWeight: 'bold',
+  padding: '4px 8px',
+  borderRadius: '4px'
+};
+
+const tableContainerStyle = {
+  animation: 'fadeIn 0.5s ease-out'
+};
+
+const modalOverlayStyle = {
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1000,
+  padding: '20px',
+  animation: 'fadeIn 0.2s ease-out'
+};
+
+const modalContentStyle = {
+  backgroundColor: '#fff',
+  borderRadius: '16px',
+  boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+  maxWidth: '900px',
+  width: '100%',
+  maxHeight: '90vh',
+  overflow: 'auto',
+  animation: 'slideUp 0.3s ease-out'
 };

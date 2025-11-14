@@ -9,6 +9,15 @@ export default function RequireAuth({ children }) {
   const location = useLocation();
 
   useEffect(() => {
+  const token = localStorage.getItem('access_token');
+  setAuthenticated(!!token); // Si hay token, lo damos por válido (aunque puede estar expirado)
+  setChecking(false);
+ }, []);
+
+
+
+
+  useEffect(() => {
     const verify = async () => {
       const token = localStorage.getItem('access_token');
       if (!token) {

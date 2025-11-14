@@ -108,6 +108,9 @@ export default function DetalleCaja() {
           <p>Total ingresos: <strong>${totalIngresos}</strong></p>
           <p>Total egresos: <strong>${totalEgresos}</strong></p>
           <p>Total cobros: <strong>${totalCobros}</strong></p>
+        
+
+        
           <hr />
           {/* <p>Total esperado: <strong>${totalEsperado}</strong></p> */}
 
