@@ -108,14 +108,14 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
                         onClick={() => onVerFicha(ficha)}
                         title="Ver ficha médica"
                       >
-                        📋 Ficha
+                        Ficha
                       </button>
                       <button 
                         className={`${styles.btnAccion} ${styles.btnOdonto}`}
                         onClick={() => navigate(`/odontograma/${idPaciente}/${ficha.id_ficha_medica}`)}
                         title="Ver odontograma"
                       >
-                        🦷 Odontograma
+                        Odontograma
                       </button>
                       {ficha.cobro && (
                         <button
@@ -123,7 +123,7 @@ function TratamientosTable({ tratamientos, onVerFicha, onVerOdontograma, onVerCo
                           onClick={() => onVerCobro(ficha.cobro)}
                           title="Ver cobro"
                         >
-                          💰 Cobro
+                          Cobro
                         </button>
                       )}
                     </div>

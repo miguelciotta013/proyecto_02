@@ -178,7 +178,7 @@ function TratamientosPacientePage() {
           <h2 className={styles.cardTitle}>Tratamientos de {paciente.nombre_completo}</h2>
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => navigate('/historial')}>
-              ← Volver
+              ←
             </button>
             <button 
               className={`${styles.btn} ${styles.btnPrimary}`} 

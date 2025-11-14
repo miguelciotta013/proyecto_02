@@ -93,17 +93,17 @@
 }
 
 .badgeWarning {
-  background-color: #ffc107;
-  color: #856404;
+  background-color: #e73333;
+  color: white;
 }
 
 .badgeSuccess {
   background-color: #28a745;
-  color: white;
+  color: rgb(179, 179, 179);
 }
 
 .badgeInfo {
-  background-color: #17a2b8;
+  background-color: #fdc93a;
   color: white;
 }
 
