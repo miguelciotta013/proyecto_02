@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './OdontogramaPage.module.css';
 import DienteComponent from '../../components/fichas/dienteComponent';
-import EditarFichaPatologicaModal from '../../components/fichas/editarFichaPatologicaModal';
+import EditarFichaPatologicaModal from '../../components/fichas/editarFichaPatologicaModal'
+
 
 function OdontogramaPage() {
   const { idPaciente, idFicha } = useParams();
@@ -72,6 +73,19 @@ function OdontogramaPage() {
             tratamientos: []
           };
 
+          // Debug para cada diente
+          if (dienteData.caras_tratadas.length > 0 || dienteData.extraido) {
+            console.log(` Diente ${numDiente}:`, {
+              caras: dienteData.caras_tratadas,
+              extraido: dienteData.extraido,
+              tratamientos: dienteData.tratamientos
+            });
+          }
+
+          // Determinar si es superior según AMBOS juegos de dientes
+          // Superiores: 11-18, 21-28 (adultos) y 51-55, 61-65 (niños)
+          const esSuperior = (numDiente >= 11 && numDiente <= 28) || (numDiente >= 51 && numDiente <= 65);
+
           return (
             <div key={numDiente} className={styles.dienteContainer}>
               {numerosArriba && (
@@ -80,7 +94,7 @@ function OdontogramaPage() {
               <DienteComponent
                 carasTratadas={dienteData.caras_tratadas}
                 extraido={dienteData.extraido}
-                esSuperior={numDiente >= 11 && numDiente <= 28 || numDiente >= 51 && numDiente <= 65}
+                esSuperior={esSuperior}
               />
               {!numerosArriba && (
                 <span className={styles.dienteNumero}>{numDiente}</span>
@@ -169,7 +183,7 @@ function OdontogramaPage() {
       <div className={styles.card}>
         {/* Header */}
         <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>🦷 Odontograma - Ficha #{idFicha}</h2>
+          <h2 className={styles.cardTitle}>Odontograma - Ficha #{idFicha}</h2>
           <div className={styles.buttonGroup}>
             <button 
               className={`${styles.btn} ${styles.btnSecondary}`}
@@ -189,7 +203,7 @@ function OdontogramaPage() {
               onClick={handleDescargarPDF}
               title="Descargar PDF"
             >
-              Descargar PDF
+              Descargar
             </button>
           </div>
         </div>
@@ -244,6 +258,16 @@ function OdontogramaPage() {
               {renderDientesRow([21, 22, 23, 24, 25, 26, 27, 28], true)}
             </div>
 
+            {/* Fila 4: 48-41, 31-38 */}
+            <div className={styles.filaCompleta}>
+              {renderDientesRow([48, 47, 46, 45, 44, 43, 42, 41], false)}
+              <div className={styles.separadorCentral}></div>
+              {renderDientesRow([31, 32, 33, 34, 35, 36, 37, 38], false)}
+            </div>
+
+            {/* Línea divisoria horizontal */}
+          <div className={styles.lineaDivisoria}></div>
+
             {/* Fila 2: 55-51, 61-65 (temporales superiores) */}
             <div className={styles.filaCompleta}>
               <div className={styles.espacioVacio}></div>
@@ -258,8 +282,6 @@ function OdontogramaPage() {
             </div>
           </div>
 
-          {/* Línea divisoria horizontal */}
-          <div className={styles.lineaDivisoria}></div>
 
           {/* Dientes inferiores */}
           <div className={styles.arcadaInferior}>
@@ -276,26 +298,21 @@ function OdontogramaPage() {
               <div className={styles.espacioVacio}></div>
             </div>
 
-            {/* Fila 4: 48-41, 31-38 */}
-            <div className={styles.filaCompleta}>
-              {renderDientesRow([48, 47, 46, 45, 44, 43, 42, 41], false)}
-              <div className={styles.separadorCentral}></div>
-              {renderDientesRow([31, 32, 33, 34, 35, 36, 37, 38], false)}
-            </div>
+            
           </div>
         </div>
 
         {/* Observaciones de la ficha */}
         {odontogramaData.observaciones && (
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>📝 Observaciones</h3>
+            <h3 className={styles.sectionTitle}> Observaciones</h3>
             <p className={styles.observacionesText}>{odontogramaData.observaciones}</p>
           </div>
         )}
 
         {/* Ficha Patológica */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>🏥 Ficha Patológica</h3>
+          <h3 className={styles.sectionTitle}> Ficha Patológica</h3>
           {ficha_patologica ? (
             <div className={styles.fichaPatologicaContent}>
               {/* Condiciones Médicas Generales */}

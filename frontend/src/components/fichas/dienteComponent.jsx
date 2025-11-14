@@ -34,9 +34,6 @@ function DienteComponent({ carasTratadas = [], extraido = false, esSuperior = tr
   const colorPalatino = carasTratadas.includes(3) ? colorTratado : colorNormal;
   const colorMesial = carasTratadas.includes(4) ? colorTratado : colorNormal;
   const colorDistal = carasTratadas.includes(5) ? colorTratado : colorNormal;
-
-  // Puntos para cuadrado central (más pequeño)
-  const centroMargen = 10; // Margen desde el borde del diente
   
   return (
     <div className={styles.diente}>
@@ -50,7 +47,6 @@ function DienteComponent({ carasTratadas = [], extraido = false, esSuperior = tr
         {esSuperior ? (
           <>
             {/* DIENTES SUPERIORES */}
-            
             {/* Vestibular (arriba) - Trapecio superior */}
             <polygon 
               points="5,45 45,45 35,15 15,15" 
@@ -86,7 +82,6 @@ function DienteComponent({ carasTratadas = [], extraido = false, esSuperior = tr
         ) : (
           <>
             {/* DIENTES INFERIORES */}
-            
             {/* Palatino/Lingual (arriba) - Trapecio superior */}
             <polygon 
               points="5,45 45,45 35,15 15,15" 

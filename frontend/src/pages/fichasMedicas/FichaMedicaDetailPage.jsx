@@ -172,7 +172,7 @@ function FichaMedicaDetailPage() {
               className={`${styles.btn} ${styles.btnSecondary}`}
               onClick={() => navigate(`/historial/${idPaciente}`)}
             >
-              ← Volver
+              ← 
             </button>
             {!editMode ? (
               <>
@@ -181,21 +181,21 @@ function FichaMedicaDetailPage() {
                   onClick={() => setEditMode(true)}
                   title="Editar conformidades"
                 >
-                  ✏️ Editar
+                  Editar
                 </button>
                 <button 
                   className={`${styles.btn} ${styles.btnSuccess}`}
                   onClick={handleDescargarPDF}
                   title="Descargar PDF"
                 >
-                  📄 PDF
+                  Descargar
                 </button>
                 <button 
                   className={`${styles.btn} ${styles.btnDanger}`}
                   onClick={handleEliminar}
                   title="Eliminar ficha"
                 >
-                  🗑️ Eliminar
+                  Eliminar
                 </button>
               </>
             ) : (
@@ -210,7 +210,7 @@ function FichaMedicaDetailPage() {
                   className={`${styles.btn} ${styles.btnSuccess}`}
                   onClick={handleGuardarConformidades}
                 >
-                  💾 Guardar
+                  Guardar
                 </button>
               </>
             )}
@@ -268,7 +268,7 @@ function FichaMedicaDetailPage() {
 
             {/* Sección 2: Información de la Ficha */}
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>📋 Información de la Ficha</h3>
+              <h3 className={styles.sectionTitle}> Información de la Ficha</h3>
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>Fecha de Atención:</span>
@@ -289,7 +289,7 @@ function FichaMedicaDetailPage() {
 
             {/* Sección 3: Obra Social */}
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>🏥 Obra Social Utilizada</h3>
+              <h3 className={styles.sectionTitle}> Obra Social Utilizada</h3>
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span className={styles.label}>Obra Social:</span>
@@ -317,10 +317,10 @@ function FichaMedicaDetailPage() {
             
             {/* Sección 4: Tratamientos Realizados */}
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>🦷 Tratamientos Realizados</h3>
+              <h3 className={styles.sectionTitle}> Tratamientos Realizados</h3>
               {editMode && (
                 <p className={styles.editHint}>
-                  ℹ️ Marque las casillas para confirmar cada tratamiento
+                 Marque las casillas para confirmar cada tratamiento
                 </p>
               )}
               <div className={styles.tableContainer}>
@@ -378,7 +378,7 @@ function FichaMedicaDetailPage() {
 
             {/* Sección 5: Estado del Cobro */}
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>💰 Estado del Cobro</h3>
+              <h3 className={styles.sectionTitle}> Estado del Cobro</h3>
               {ficha.cobro ? (
                 <div className={styles.cobroInfo}>
                   <div className={styles.montoTotal}>

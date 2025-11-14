@@ -101,7 +101,7 @@
 
 .label {
   font-weight: 600;
-  color: #555;
+  color: #161616;
   font-size: 0.85rem;
 }
 
@@ -328,12 +328,12 @@
 }
 
 .labelActivo {
-  color: #1976d2;
+  color: #d21919;
   font-weight: 600;
 }
 
 .labelInactivo {
-  color: #999;
+  color: #292929;
 }
 
 .otrasPatologias {
