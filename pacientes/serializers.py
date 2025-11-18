@@ -35,6 +35,25 @@ class PacienteCreateUpdateSerializer(serializers.ModelSerializer):
             'correo'
         ]
 
+    def validate_dni_paciente(self, value):
+        """
+        Evita crear o actualizar un paciente con un DNI que ya exista
+        (excluyendo los registros marcados como eliminados). Cuando se
+        actualiza, se permite conservar el mismo DNI del propio registro.
+        """
+        if value is None:
+            return value
+
+        qs = Pacientes.objects.filter(dni_paciente=value, eliminado__isnull=True)
+        # Si estamos en modo actualización, excluir la instancia actual
+        if getattr(self, 'instance', None) is not None:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise serializers.ValidationError('Ya existe un paciente con ese DNI')
+
+        return value
+
 # --- LISTADO DE OBRAS SOCIALES ---
 class ObraSocialSerializer(serializers.ModelSerializer):
     class Meta:

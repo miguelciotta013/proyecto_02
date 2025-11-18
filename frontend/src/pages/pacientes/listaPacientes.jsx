@@ -214,58 +214,69 @@ export default function ListaPacientes() {
         />
       </div>
 
-      {/* Modal: Ver detalles del paciente */}
-      {selected && selected !== '__create__' && (
-        <div style={modalOverlayStyle} onClick={() => setSelected(null)}>
-          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-            <PacienteCard
-              paciente={selected}
-              onClose={() => setSelected(null)}
-              onEditar={handleEditar}
-              onEliminar={handleEliminar}
-              onAsignarObra={handleAsignarObra}
-              onAgregarFicha={handleAgregarFicha}
-              onObraRemoved={(updatedPaciente) => {
-                setSelected(updatedPaciente);
-                updatePacienteInList(updatedPaciente);
-              }}
-              onObraAssigned={(updatedPaciente) => {
-                setSelected(updatedPaciente);
-                updatePacienteInList(updatedPaciente);
-              }}
-              onUpdated={(updatedPaciente) => {
-                setSelected(updatedPaciente);
-                updatePacienteInList(updatedPaciente);
-              }}
-            />
-          </div>
-        </div>
-      )}
+{selected === '__create__' && (
+  <div style={modalOverlayStyle} onClick={() => setSelected(null)}>
+    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
 
-      {/* Modal: Crear nuevo paciente */}
-      {selected === '__create__' && (
-        <div style={modalOverlayStyle} onClick={() => setSelected(null)}>
-          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-            <PacientesForm
-              onClose={() => setSelected(null)}
-              onCreated={(newPaciente) => {
-                console.log('✅ Paciente creado:', newPaciente);
-                
-                // 1. Agregar a la lista
-                setPacientes(prev => [newPaciente, ...prev]);
-                
-                // 2. Cerrar formulario
-                setSelected(null);
-                
-                // 3. Abrir tarjeta del nuevo paciente después de un breve delay
-                setTimeout(() => {
-                  setSelected(newPaciente);
-                }, 100);
-              }}
-            />
-          </div>
-        </div>
-      )}
+      <PacientesForm
+        onClose={() => setSelected(null)}
+
+        onCreated={async (newPaciente) => {
+          console.log('✅ Paciente creado:', newPaciente);
+
+          // 1. Agregar rápido a la tabla
+          setPacientes(prev => [newPaciente, ...prev]);
+
+          // 2. Traer la versión COMPLETA desde la API
+          const resp = await getPaciente(newPaciente.id_paciente);
+
+          if (resp?.success) {
+            console.log("📥 Paciente completo cargado:", resp.data);
+
+            // 3. Actualizar en la tabla
+            updatePacienteInList(resp.data);
+
+            // 4. Cerrar el modal de creación
+            setSelected(null);
+
+            // 5. Abrir la tarjeta del nuevo paciente
+            setSelected(resp.data);
+          } else {
+            console.error("❌ No se pudo obtener el paciente completo al crearlo");
+          }
+        }}
+      />
+
+    </div>
+  </div>
+)}
+
+
+onCreated={async (newPaciente) => {
+  console.log('✅ Paciente creado:', newPaciente);
+
+  // 1. Agregar a la lista rápido
+  setPacientes(prev => [newPaciente, ...prev]);
+
+  // 2. Traer paciente COMPLETO desde la API
+  const resp = await getPaciente(newPaciente.id_paciente);
+
+  if (resp?.success) {
+    console.log("📥 Paciente completo cargado:", resp.data);
+
+    // 3. Actualizar lista con datos reales
+    updatePacienteInList(resp.data);
+
+    // 4. Cerrar formulario recién ahora
+    setSelected(null);
+
+    // 5. Abrir la tarjeta del paciente
+    setSelected(resp.data);
+  } else {
+    console.error("❌ No se pudo obtener el paciente completo al crearlo");
+  }
+}}
+
 
       {/* Modal: Editar paciente */}
       {editing && (

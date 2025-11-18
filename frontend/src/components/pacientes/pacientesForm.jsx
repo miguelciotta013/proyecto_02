@@ -189,7 +189,21 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
       }
     } catch (e) {
       console.error('❌ Error:', e);
-      setSubmitError(e.message || 'Error de conexión con el servidor');
+      // Manejar errores de validación devueltos por el backend (e.response.data.errors)
+      const remoteErrors = e?.response?.data?.errors;
+      if (remoteErrors && typeof remoteErrors === 'object') {
+        // Mapear errores del backend al estado local de errores
+        const newErrors = { ...errors };
+        Object.keys(remoteErrors).forEach(k => {
+          // remoteErrors[k] puede ser una lista de mensajes
+          const v = remoteErrors[k];
+          newErrors[k] = Array.isArray(v) ? v.join(' ') : String(v);
+        });
+        setErrors(newErrors);
+        setSubmitError('Por favor, corrige los errores en el formulario');
+      } else {
+        setSubmitError(e.message || 'Error de conexión con el servidor');
+      }
     } finally {
       setLoading(false);
     }

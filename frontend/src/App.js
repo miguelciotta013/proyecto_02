@@ -105,48 +105,6 @@ function AppContent() {
           <Route path="/validar-codigo" element={<ValidarCodigo />} />
           <Route path="/cambiar-contraseña" element={<CambiarContrasena />} />
 
-          {/* 👥 Pacientes */}
-          <Route
-            path="/pacientes"
-            element={
-              <RequireAuth>
-                <ListaPacientes />
-              </RequireAuth>
-            }
-          />
-
-          {/* 🩺 Historial / Fichas */}
-          <Route
-            path="/historial"
-            element={
-              <RequireAuth>
-                <HistorialPage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/historial/:id"
-            element={
-              <RequireAuth>
-                <TratamientosPacientePage />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/historial/:idPaciente/ficha/:idFicha"
-            element={
-              <RequireAuth>
-                <FichaMedicaDetailPage />
-              </RequireAuth>
-            }
-          />
-          <Route 
-          path="/odontograma/:idPaciente/:idFicha" 
-          element={
-            <OdontogramaPage />
-            } 
-          />
-
           {/* 💰 Cajas */}
           <Route
             path="/cajas"
@@ -161,6 +119,16 @@ function AppContent() {
             element={
               <RequireAuth>
                 <DetalleCajaWrapper />
+              </RequireAuth>
+            }
+          />
+
+          {/* 👥 Pacientes */}
+          <Route
+            path="/pacientes"
+            element={
+              <RequireAuth>
+                <ListaPacientes />
               </RequireAuth>
             }
           />
@@ -207,22 +175,56 @@ function AppContent() {
             }
           />
 
+          {/* 🩺 Historial / Fichas */}
+          <Route
+            path="/historial"
+            element={
+              <RequireAuth>
+                <HistorialPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/historial/:id"
+            element={
+              <RequireAuth>
+                <TratamientosPacientePage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/historial/:idPaciente/ficha/:idFicha"
+            element={
+              <RequireAuth>
+                <FichaMedicaDetailPage />
+              </RequireAuth>
+            }
+          />
+          <Route 
+            path="/odontograma/:idPaciente/:idFicha" 
+            element={
+              <RequireAuth>
+                <OdontogramaPage />
+              </RequireAuth>
+            } 
+          />
+
+          {/* 📊 Dashboard */}
+          <Route
+            path="/dashboard"
+            element={
+              <RequireAuth>
+                <Dashboard />
+              </RequireAuth>
+            }
+          />
+
           {/* ⚙️ Panel */}
           <Route
             path="/panel"
             element={
               <RequireAuth>
                 <VistaPanel />
-              </RequireAuth>
-            }
-          />
-
-          {/* 📊 Dashboard - PROTEGIDO */}
-          <Route
-            path="/dashboard"
-            element={
-              <RequireAuth>
-                <Dashboard />
               </RequireAuth>
             }
           />
@@ -262,13 +264,13 @@ function Header() {
         </h1>
 
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <StyledNav to="/">Inicio</StyledNav>
-          <StyledNav to="/turnos">Turnos</StyledNav>
-          <StyledNav to="/pacientes">Pacientes</StyledNav>
-          <StyledNav to="/historial">Fichas Médicas</StyledNav>
-          <StyledNav to="/cajas">Cajas</StyledNav>
-          <StyledNav to="/panel">Panel</StyledNav>
-          <StyledNav to="/dashboard">📊 Graficos </StyledNav>
+          <StyledNav to="/">🏠 Inicio</StyledNav>
+          <StyledNav to="/cajas">💰 Cajas</StyledNav>
+          <StyledNav to="/pacientes">👥 Pacientes</StyledNav>
+          <StyledNav to="/turnos">🗓️ Turnos</StyledNav>
+          <StyledNav to="/historial">🩺 Fichas</StyledNav>
+          <StyledNav to="/dashboard">📊 Gráficos</StyledNav>
+          <StyledNav to="/panel">⚙️ Panel</StyledNav>
 
           {accessToken ? (
             <button
