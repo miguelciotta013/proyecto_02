@@ -6,11 +6,15 @@ from .views import (
     CajaDetailView,
     CajaIngresoView,
     CajaEgresoView,
-    MetodosCobroListView
+    MetodosCobroListView,
+    CajaDashboardView,
+    EmpleadosListView
 )
-from .views import EmpleadosListView
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/', CajaDashboardView.as_view(), name='caja-dashboard'),
+    
     # Lista de cajas
     path('', CajaListView.as_view(), name='caja-list'),
     

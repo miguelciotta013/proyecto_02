@@ -324,6 +324,72 @@ class MetodosCobroListView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+class CajaDashboardView(APIView):
+    """Dashboard: resumen agregado de cajas con totales de ingresos, egresos y cobros"""
+    
+    def get(self, request):
+        try:
+            from django.db.models import Sum
+            
+            cajas = Cajas.objects.all().order_by('-fecha_hora_apertura')
+            
+            # Calcular totales globales
+            total_ingresos = Ingresos.objects.aggregate(Sum('monto_ingreso'))['monto_ingreso__sum'] or 0
+            total_egresos = Egresos.objects.aggregate(Sum('monto_egreso'))['monto_egreso__sum'] or 0
+            total_cobros = CobrosConsulta.objects.filter(
+                Q(eliminado__isnull=True) | Q(eliminado=0)
+            ).aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+            
+            # Por cada caja, calcular sus movimientos
+            cajas_data = []
+            for caja in cajas:
+                caja_ingresos = Ingresos.objects.filter(
+                    id_caja=caja
+                ).aggregate(Sum('monto_ingreso'))['monto_ingreso__sum'] or 0
+                
+                caja_egresos = Egresos.objects.filter(
+                    id_caja=caja
+                ).aggregate(Sum('monto_egreso'))['monto_egreso__sum'] or 0
+                
+                caja_cobros = CobrosConsulta.objects.filter(
+                    Q(id_caja=caja) &
+                    (Q(eliminado__isnull=True) | Q(eliminado=0))
+                ).aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+                
+                empleado_nombre = ""
+                if caja.id_empleado and caja.id_empleado.user:
+                    user = caja.id_empleado.user
+                    empleado_nombre = f"{user.first_name} {user.last_name}".strip() or user.username
+                
+                cajas_data.append({
+                    'id_caja': caja.id_caja,
+                    'empleado_nombre': empleado_nombre,
+                    'fecha_hora_apertura': caja.fecha_hora_apertura,
+                    'monto_apertura': str(caja.monto_apertura),
+                    'fecha_hora_cierre': caja.fecha_hora_cierre,
+                    'monto_cierre': str(caja.monto_cierre) if caja.monto_cierre else None,
+                    'estado': 'Abierta' if caja.estado_caja == 1 else 'Cerrada',
+                    'ingresos': str(caja_ingresos),
+                    'egresos': str(caja_egresos),
+                    'cobros': str(caja_cobros)
+                })
+            
+            return Response({
+                'success': True,
+                'data': cajas_data,
+                'resumen_total': {
+                    'total_ingresos': str(total_ingresos),
+                    'total_egresos': str(total_egresos),
+                    'total_cobros': str(total_cobros)
+                }
+            })
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class EmpleadosListView(APIView):
     """Listar empleados activos"""
     def get(self, request):
