@@ -4,7 +4,6 @@ import PacienteTable from '../../components/pacientes/pacienteTable';
 import PacienteCard from '../../components/pacientes/pacienteCard';
 import PacientesForm from '../../components/pacientes/pacientesForm';
 import ObraSocialForm from '../../components/pacientes/obraSocialForm';
-import PatologiaForm from '../../components/pacientes/patologiaForm';
 import { Plus, RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function ListaPacientes() {
@@ -184,7 +183,7 @@ export default function ListaPacientes() {
             disabled={loading}
           >
             <Plus size={18} style={{ marginRight: 6 }} />
-            Nuevo Paciente
+            Agregar Nuevo Paciente
           </button>
         </div>
       </div>
@@ -252,7 +251,7 @@ export default function ListaPacientes() {
 )}
 
 
-onCreated={async (newPaciente) => {
+{async (newPaciente) => {
   console.log('✅ Paciente creado:', newPaciente);
 
   // 1. Agregar a la lista rápido
@@ -277,6 +276,25 @@ onCreated={async (newPaciente) => {
   }
 }}
 
+
+      {/* Modal: Ver paciente */}
+      {selected && selected !== '__create__' && typeof selected === 'object' && (
+        <div style={modalOverlayStyle} onClick={() => setSelected(null)}>
+          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
+            <PacienteCard
+              paciente={selected}
+              onClose={() => setSelected(null)}
+              onEditar={handleEditar}
+              onEliminar={handleEliminar}
+              onAsignarObra={handleAsignarObra}
+              onAgregarFicha={handleAgregarFicha}
+              onObraRemoved={(updated) => { updatePacienteInList(updated); setSelected(updated); }}
+              onObraAssigned={(updated) => { updatePacienteInList(updated); setSelected(updated); }}
+              onUpdated={(updated) => { updatePacienteInList(updated); setSelected(updated); }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Modal: Editar paciente */}
       {editing && (
@@ -331,30 +349,7 @@ onCreated={async (newPaciente) => {
         </div>
       )}
 
-      {/* Modal: Agregar patología */}
-      {showPatologiaFor && (
-        <div style={modalOverlayStyle} onClick={() => setShowPatologiaFor(null)}>
-          <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-            <PatologiaForm
-              id_paciente={showPatologiaFor}
-              onClose={() => setShowPatologiaFor(null)}
-              onSaved={async () => {
-                console.log('✅ Patología guardada');
-                
-                // Recargar datos del paciente
-                const resp = await getPaciente(showPatologiaFor);
-                
-                if (resp?.success) {
-                  updatePacienteInList(resp.data);
-                  setSelected(resp.data);
-                }
-                
-                setShowPatologiaFor(null);
-              }}
-            />
-          </div>
-        </div>
-      )}
+      
 
       <style>
         {`

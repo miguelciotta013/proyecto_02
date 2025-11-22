@@ -4,7 +4,7 @@ from home.models import (
     CobrosConsulta, MetodosCobro, EstadosPago
 )
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Sum
 
 class CajaListSerializer(serializers.ModelSerializer):
     """Para listar cajas"""
@@ -146,6 +146,39 @@ class EgresoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Egresos
         fields = ['descripcion_egreso', 'monto_egreso']
+    
+    def validate_monto_egreso(self, value):
+        """
+        Valida que el monto del egreso no supere el saldo disponible en la caja.
+        El saldo se calcula como: monto_apertura + ingresos + cobros - egresos_existentes
+        """
+        caja = self.context.get('caja')
+        if not caja:
+            return value
+        
+        # Calcular saldo disponible
+        total_ingresos = Ingresos.objects.filter(
+            id_caja=caja
+        ).aggregate(Sum('monto_ingreso'))['monto_ingreso__sum'] or 0
+        
+        total_egresos_existentes = Egresos.objects.filter(
+            id_caja=caja
+        ).aggregate(Sum('monto_egreso'))['monto_egreso__sum'] or 0
+        
+        total_cobros = CobrosConsulta.objects.filter(
+            Q(id_caja=caja) &
+            (Q(eliminado__isnull=True) | Q(eliminado=0))
+        ).aggregate(Sum('monto_pagado'))['monto_pagado__sum'] or 0
+        
+        # Saldo disponible = apertura + ingresos + cobros - egresos ya realizados
+        saldo_disponible = float(caja.monto_apertura) + float(total_ingresos) + float(total_cobros) - float(total_egresos_existentes)
+        
+        if float(value) > saldo_disponible:
+            raise serializers.ValidationError(
+                f'El monto del egreso ({value}) supera el saldo disponible en la caja ({saldo_disponible:.2f})'
+            )
+        
+        return value
 
 class MetodoCobroSerializer(serializers.ModelSerializer):
     class Meta:

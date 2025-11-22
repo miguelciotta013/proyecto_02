@@ -270,7 +270,8 @@ class CajaEgresoView(APIView):
         try:
             caja = Cajas.objects.get(id_caja=id_caja, estado_caja=1)
             
-            serializer = EgresoSerializer(data=request.data)
+            # Pasar la caja como contexto al serializer para validación
+            serializer = EgresoSerializer(data=request.data, context={'caja': caja})
             if serializer.is_valid():
                 egreso = Egresos.objects.create(
                     id_caja=caja,

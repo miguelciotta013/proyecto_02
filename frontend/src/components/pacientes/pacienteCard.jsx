@@ -295,23 +295,7 @@ export default function PacienteCard({
             {showConfirmDelete ? 'Confirmar Eliminación' : 'Dar de Baja'}
           </button>
 
-          <button
-            onClick={() => onAgregarFicha?.(pacienteData.id_paciente)}
-            style={fichaButtonStyle}
-            onMouseEnter={(e) => {
-              e.target.style.backgroundColor = '#fb8c00';
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 6px 15px rgba(255, 152, 0, 0.3)';
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.backgroundColor = '#ff9800';
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 4px 10px rgba(255, 152, 0, 0.2)';
-            }}
-          >
-            <FileText size={18} style={{ marginRight: 8 }} />
-            Agregar Ficha Médica
-          </button>
+          
         </div>
       </div>
     </div>
