@@ -16,6 +16,9 @@ export async function login(username, password) {
     if (res.data?.access) {
       localStorage.setItem("access_token", res.data.access);
       localStorage.setItem("refresh_token", res.data.refresh);
+      if (res.data?.username) {
+        localStorage.setItem('username', res.data.username);
+      }
     }
 
     return res.data;

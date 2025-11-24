@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPaciente, updatePaciente } from '../../api/pacientesApi';
+import { createPaciente, updatePaciente, getPaciente } from '../../api/pacientesApi';
 import { 
   X, 
   User, 
@@ -172,14 +172,28 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
       if (resp?.success) {
         console.log('✅ Operación exitosa:', resp.data);
         setSubmitSuccess(true);
-        
+
         // Llamar callback correspondiente
         if (initialData?.id_paciente) {
-          onUpdated?.(resp.data);
+          // Si el backend NO devuelve los datos actualizados en resp.data,
+          // solicitarlos explícitamente para asegurar que el padre reciba
+          // la versión completa y actualizada del paciente.
+          if (resp.data) {
+            onUpdated?.(resp.data);
+          } else {
+            try {
+              const full = await getPaciente(initialData.id_paciente);
+              if (full?.success) onUpdated?.(full.data);
+              else onUpdated?.(initialData);
+            } catch (e) {
+              console.error('Error fetching updated paciente:', e);
+              onUpdated?.(initialData);
+            }
+          }
         } else {
           onCreated?.(resp.data);
         }
-        
+
         // Cerrar después de un breve delay
         setTimeout(() => {
           onClose?.();

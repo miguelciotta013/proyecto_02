@@ -15,7 +15,7 @@ import {
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import RequireAuth from "./components/Auth/RequireAuth";
 
-// 🏠 Páginas principales
+// Páginas principales
 import Home from "./pages/home/home";
 import ListaPacientes from "./pages/pacientes/listaPacientes";
 import LoginPage from "./pages/login/login";
@@ -44,6 +44,7 @@ import VistaPanel from "./pages/panel_control/vista_panel";
 import RecuperarContrasenaPage from "./pages/recuperar/RecuperarContrasenaPage";
 import ValidarCodigo from "./pages/recuperar/ValidarCodigoPage";
 import CambiarContrasena from "./pages/recuperar/CambiarContrasenaPage";
+import MiPerfil from "./pages/profile/MiPerfil";
 
 // 📊 Dashboard
 import Dashboard from "./pages/Dashboard";
@@ -56,6 +57,7 @@ function App() {
         fontFamily: "'Poppins', sans-serif",
         minHeight: "100vh",
         backgroundColor: "#f9fafc",
+        fontSize: "18px",
       }}
     >
       <AuthProvider>
@@ -87,9 +89,9 @@ function AppContent() {
       {/* Solo mostrar Header si está logueado */}
       {mostrarHeader && <Header />}
       
-      <main style={{ padding: mostrarHeader ? 24 : 0 }}>
+      <main style={{ padding: mostrarHeader ? 32 : 0 }}>
         <Routes>
-          {/* 🏠 Inicio */}
+          {/* Inicio */}
           <Route
             path="/"
             element={
@@ -104,8 +106,16 @@ function AppContent() {
           <Route path="/recuperar-contraseña" element={<RecuperarContrasenaPage />} />
           <Route path="/validar-codigo" element={<ValidarCodigo />} />
           <Route path="/cambiar-contraseña" element={<CambiarContrasena />} />
+          <Route
+            path="/mi-perfil"
+            element={
+              <RequireAuth>
+                <MiPerfil />
+              </RequireAuth>
+            }
+          />
 
-          {/* 💰 Cajas */}
+          {/* Cajas */}
           <Route
             path="/cajas"
             element={
@@ -123,7 +133,7 @@ function AppContent() {
             }
           />
 
-          {/* 👥 Pacientes */}
+          {/* Pacientes */}
           <Route
             path="/pacientes"
             element={
@@ -133,7 +143,7 @@ function AppContent() {
             }
           />
 
-          {/* 🗓️ Turnos */}
+          {/* Turnos */}
           <Route
             path="/turnos"
             element={
@@ -175,7 +185,7 @@ function AppContent() {
             }
           />
 
-          {/* 🩺 Historial / Fichas */}
+          {/*  Historial / Fichas */}
           <Route
             path="/historial"
             element={
@@ -219,7 +229,7 @@ function AppContent() {
             }
           />
 
-          {/* ⚙️ Panel */}
+          {/* Panel */}
           <Route
             path="/panel"
             element={
@@ -237,14 +247,14 @@ function AppContent() {
 export default App;
 
 function Header() {
-  const { accessToken, logout } = useContext(AuthContext);
+  const { accessToken, username } = useContext(AuthContext);
 
   return (
     <header
       style={{
         backgroundColor: "#1976d2",
         color: "#fff",
-        padding: "12px 24px",
+        padding: "16px 24px",
         boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         position: "sticky",
         top: 0,
@@ -259,34 +269,38 @@ function Header() {
           flexWrap: "wrap",
         }}
       >
-        <h1 style={{ margin: 0, fontSize: 20, fontWeight: "bold" }}>
-          🦷 Consultorio GF
+        <h1 style={{ margin: 0, fontSize: 26, fontWeight: "bold" }}>
+          🦷 Consultorio_GF
         </h1>
 
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          <StyledNav to="/">🏠 Inicio</StyledNav>
-          <StyledNav to="/cajas">💰 Cajas</StyledNav>
-          <StyledNav to="/pacientes">👥 Pacientes</StyledNav>
-          <StyledNav to="/turnos">🗓️ Turnos</StyledNav>
-          <StyledNav to="/historial">🩺 Fichas</StyledNav>
+          <StyledNav to="/"> Inicio</StyledNav>
+          <StyledNav to="/cajas">Cajas</StyledNav>
+          <StyledNav to="/pacientes"> Pacientes</StyledNav>
+          <StyledNav to="/turnos"> Turnos</StyledNav>
+          <StyledNav to="/historial"> Fichas</StyledNav>
           <StyledNav to="/dashboard">📊 Gráficos</StyledNav>
-          <StyledNav to="/panel">⚙️ Panel</StyledNav>
+          <StyledNav to="/panel"> Panel</StyledNav>
 
           {accessToken ? (
-            <button
-              onClick={logout}
-              style={{
-                background: "transparent",
-                color: "#fff",
-                border: "1px solid rgba(255,255,255,0.18)",
-                padding: "6px 10px",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontWeight: 500,
-              }}
-            >
-              Cerrar sesión
-            </button>
+            <div style={{display:'flex', gap:8, alignItems:'center'}}>
+              <button
+                onClick={() => window.location.href = '/mi-perfil'}
+                title={`Ver perfil (${username || 'usuario'})`}
+                style={{
+                  background: "transparent",
+                  color: "#fff",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  fontWeight: 500,
+                  fontSize: "16px",
+                }}
+              >
+                {username ? `${username}` : 'Mi cuenta'}
+              </button>
+            </div>
           ) : (
             <StyledNav to="/login">Login</StyledNav>
           )}
@@ -316,8 +330,9 @@ function StyledNav({ to, children }) {
         color: "#fff",
         textDecoration: "none",
         fontWeight: 500,
-        padding: "8px 12px",
+        padding: "10px 14px",
         borderRadius: 8,
+        fontSize: "16px",
         transition: "background-color 0.15s, transform 0.15s",
         backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "transparent",
       })}

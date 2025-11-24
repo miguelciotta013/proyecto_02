@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import { obtenerTurnos } from '../../api/turnosApi';
 
@@ -16,11 +16,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState(todayString);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchData(selectedDate);
-  }, [selectedDate]);
-
-  async function fetchData(fechaFiltro) {
+  const fetchData = useCallback(async (fechaFiltro) => {
     setLoading(true);
     setError(null);
     try {
@@ -32,7 +28,11 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    fetchData(selectedDate);
+  }, [selectedDate, fetchData]);
 
   function changeDate(days) {
     const [yyyy, mm, dd] = selectedDate.split('-');
@@ -130,7 +130,7 @@ function getEstadoColor(estado) {
 
 const Section = ({ title, children }) => (
   <div style={{ marginBottom: 32 }}>
-    <h3 style={{ color: "#2e7d9d", marginBottom: 16, fontSize: 20 }}>{title}</h3>
+    <h3 style={{ color: "#2e7d9d", marginBottom: 16, fontSize: 26 }}>{title}</h3>
     {children}
   </div>
 );
@@ -192,10 +192,10 @@ const styles = {
   },
   headerTitle: {
     margin: 0,
-    fontSize: 26,
+    fontSize: 34,
     fontWeight: 600,
   },
-  subtitle: { color: '#444', fontSize: 18, margin: '24px 0', textAlign: 'center' },
+  subtitle: { color: '#444', fontSize: 22, margin: '24px 0', textAlign: 'center' },
   dateControls: { display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 30, justifyContent: 'center' },
   dateInput: {
     padding: 10,

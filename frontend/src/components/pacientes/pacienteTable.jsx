@@ -81,8 +81,50 @@ export default function PacienteTable({ pacientes = [], onView, loading = false 
     },
     {
       name: "Teléfono",
-      selector: (p) => p.telefono || "-",
       width: "140px",
+      cell: (p) => {
+        if (!p.telefono) return <span style={{color:'#999'}}>-</span>;
+        
+        // Limpiar el número: solo dígitos
+        const numLimpio = p.telefono.replace(/\D/g, '');
+        
+        // Si no comienza con código país, asumir +54 (Argentina)
+        const numFinal = numLimpio.startsWith('54') || numLimpio.startsWith('0') 
+          ? (numLimpio.startsWith('0') ? '54' + numLimpio.slice(1) : numLimpio)
+          : '54' + numLimpio;
+        
+        const urlWhatsApp = `https://wa.me/${numFinal}`;
+        
+        return (
+          <a
+            href={urlWhatsApp}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: '#25d366',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              display: 'inline-block',
+              transition: 'all 0.2s',
+              backgroundColor: 'rgba(37, 211, 102, 0.1)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(37, 211, 102, 0.2)';
+              e.target.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'rgba(37, 211, 102, 0.1)';
+              e.target.style.transform = 'scale(1)';
+            }}
+            title={`Abrir WhatsApp con ${p.telefono}`}
+          >
+            💬 {p.telefono}
+          </a>
+        );
+      },
     },
     {
       name: "Acciones",

@@ -123,7 +123,15 @@ class RecuperarContrasenaView(APIView):
         User = get_user_model()
         
         try:
-            user = User.objects.get(email=email)
+            # Normalizar email y buscar de forma case-insensitive
+            normalized_email = (email or '').strip()
+            user = User.objects.filter(email__iexact=normalized_email).first()
+            if not user:
+                # Mantener el mismo comportamiento: no revelar existencia
+                return Response({
+                    'success': True,
+                    'message': 'Si el correo existe, recibirás un código de recuperación'
+                }, status=status.HTTP_200_OK)
             
             # Verificar límite de intentos (máximo 3 códigos por hora)
             cache_key_attempts = f'recovery_attempts_{email}'
@@ -230,71 +238,93 @@ class CambiarContrasenaView(APIView):
     """Cambia la contraseña usando el código validado"""
     
     def post(self, request):
+        # DEBUG: imprimir payload recibido (temporal)
+        try:
+            print("[DEBUG] CambiarContrasenaView payload:", request.data)
+        except Exception:
+            pass
+        # Aceptar nombres de campo tanto 'nuevaContrasena' como 'contrasena_nueva'
+        nueva_contrasena = request.data.get('contrasena_nueva') or request.data.get('nuevaContrasena')
+        contrasena_actual = request.data.get('contrasena_actual')
         email = request.data.get('email')
         codigo = request.data.get('codigo')
-        nueva_contrasena = request.data.get('nuevaContrasena')
-        
-        if not email or not codigo or not nueva_contrasena:
-            return Response({
-                'success': False,
-                'error': 'Todos los campos son requeridos'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Validar longitud mínima de contraseña
-        if len(nueva_contrasena) < 8:
-            return Response({
-                'success': False,
-                'error': 'La contraseña debe tener al menos 8 caracteres'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+
+        # Si viene contrasena_actual, asumimos cambio autenticado (usuario logueado)
+        if contrasena_actual:
+            user = None
+            # Preferir usuario autenticado por token
+            if request.user and request.user.is_authenticated:
+                user = request.user
+            else:
+                # Intentar obtener por email si se pasó
+                if email:
+                    try:
+                        User = get_user_model()
+                        user = User.objects.get(email=email)
+                    except User.DoesNotExist:
+                        return Response({'success': False, 'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Verificar que existan datos
+            if not user or not nueva_contrasena:
+                return Response({'success': False, 'error': 'Todos los campos son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Verificar contraseña actual
+            if not user.check_password(contrasena_actual):
+                return Response({'success': False, 'error': 'Contraseña actual incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if len(nueva_contrasena) < 4:
+                return Response({'success': False, 'error': 'La contraseña debe tener al menos 4 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                user.password = make_password(nueva_contrasena)
+                user.save()
+                return Response({'success': True, 'message': 'Contraseña cambiada exitosamente'}, status=status.HTTP_200_OK)
+            except Exception:
+                return Response({'success': False, 'error': 'Error al cambiar la contraseña'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Si no viene contrasena_actual, asumimos flujo de recuperación por email
+        # Requerimos email y nueva contraseña
+        if not email or not nueva_contrasena:
+            return Response({'success': False, 'error': 'Todos los campos son requeridos'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar longitud mínima (frontend usa 4, recuperación original pedía 8; usar 4 para consistencia UX)
+        if len(nueva_contrasena) < 4:
+            return Response({'success': False, 'error': 'La contraseña debe tener al menos 4 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+
         User = get_user_model()
-        
         try:
-            user = User.objects.get(email=email)
-            
-            # Verificar código
+            normalized_email = (email or '').strip()
+            user = User.objects.filter(email__iexact=normalized_email).first()
+            if not user:
+                return Response({'success': False, 'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Verificar código si fue enviado; si no se envía, aceptar si existe un código en caché
             cache_key = f'recovery_code_{email}'
             codigo_guardado = cache.get(cache_key)
-            
-            if not codigo_guardado:
-                return Response({
-                    'success': False,
-                    'error': 'Código expirado. Solicita uno nuevo.'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
-            if codigo != codigo_guardado:
-                return Response({
-                    'success': False,
-                    'error': 'Código incorrecto'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
+
+            if codigo:
+                if not codigo_guardado or codigo != codigo_guardado:
+                    return Response({'success': False, 'error': 'Código incorrecto o expirado'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                # Si no se envió código, permitimos el cambio solo si existe un código vigente en caché
+                if not codigo_guardado:
+                    return Response({'success': False, 'error': 'Código requerido o expirado. Solicitá un código primero.'}, status=status.HTTP_400_BAD_REQUEST)
+
             # Cambiar contraseña
             user.password = make_password(nueva_contrasena)
             user.save()
-            
+
             # Eliminar código usado
             cache.delete(cache_key)
-            
-            # Limpiar intentos
             cache_key_attempts = f'recovery_attempts_{email}'
             cache.delete(cache_key_attempts)
-            
-            return Response({
-                'success': True,
-                'message': 'Contraseña cambiada exitosamente'
-            }, status=status.HTTP_200_OK)
-            
+
+            return Response({'success': True, 'message': 'Contraseña cambiada exitosamente'}, status=status.HTTP_200_OK)
+
         except User.DoesNotExist:
-            return Response({
-                'success': False,
-                'error': 'Usuario no encontrado'
-            }, status=status.HTTP_404_NOT_FOUND)
-            
-        except Exception as e:
-            return Response({
-                'success': False,
-                'error': 'Error al cambiar la contraseña'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'success': False, 'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception:
+            return Response({'success': False, 'error': 'Error al cambiar la contraseña'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 # ============================================

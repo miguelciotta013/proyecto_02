@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from login.views import LoginTemplateView, LogoutTemplateView
+from login.views import LoginTemplateView, LogoutTemplateView, CambiarContrasenaView
 from django.contrib.auth import views as auth_views  # 👈 necesario para recuperación
 
 urlpatterns = [
@@ -12,6 +12,8 @@ urlpatterns = [
 
     # 🧩 API endpoints
     path('api/', include('api.urls')),
+    # Ruta explícita para compatibilidad: asegurar /api/auth/cambiar/ disponible
+    path('api/auth/cambiar/', CambiarContrasenaView.as_view()),
     path('api/auth/', include('login.urls')),
     path('api/home/', include('home.urls')),
     path('api/ficha_medica/', include('ficha_medica.urls')),

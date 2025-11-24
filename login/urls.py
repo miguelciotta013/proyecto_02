@@ -18,4 +18,6 @@ urlpatterns = [
     path('recuperar-contrasena/', RecuperarContrasenaView.as_view(), name='recuperar-contrasena'),
     path('validar-codigo/', ValidarCodigoView.as_view(), name='validar-codigo'),
     path('cambiar-contrasena/', CambiarContrasenaView.as_view(), name='cambiar-contrasena'),
+    # Ruta adicional por compatibilidad con frontend antiguo que llama "/auth/cambiar/"
+    path('cambiar/', CambiarContrasenaView.as_view(), name='cambiar'),
 ]

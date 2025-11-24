@@ -22,7 +22,8 @@ export default function LoginPage() {
     try {
       const data = await loginApi.login(username, password);
       if (data?.access) {
-        login({ access: data.access, refresh: data.refresh });
+        // Pasar también el username devuelto por el backend al contexto
+        login({ access: data.access, refresh: data.refresh, username: data.username || username });
         navigate('/');
       } else {
         setError(data?.error || 'Credenciales inválidas');

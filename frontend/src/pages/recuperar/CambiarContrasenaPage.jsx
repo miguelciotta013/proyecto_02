@@ -6,15 +6,18 @@ export default function CambiarContrasenaPage() {
   const [actual, setActual] = useState("");
   const [nueva, setNueva] = useState("");
   const [confirmar, setConfirmar] = useState("");
+  const [emailRecup, setEmailRecup] = useState(localStorage.getItem("email_recuperacion") || "");
   const [mensaje, setMensaje] = useState("");
   const [error, setError] = useState("");
   const [modoRecuperacion, setModoRecuperacion] = useState(false);
   const navigate = useNavigate();
+  const accessToken = localStorage.getItem('access_token');
 
   useEffect(() => {
     // Si hay email guardado en recuperación, activamos modo recuperación
     const emailRecuperacion = localStorage.getItem("email_recuperacion");
     if (emailRecuperacion) {
+      setEmailRecup(emailRecuperacion);
       setModoRecuperacion(true);
     }
   }, []);
@@ -39,7 +42,11 @@ export default function CambiarContrasenaPage() {
 
       if (modoRecuperacion) {
         // Recuperación: enviamos email + nueva contraseña
-        const email = localStorage.getItem("email_recuperacion");
+        const email = (emailRecup || localStorage.getItem("email_recuperacion") || "").trim();
+        if (!email) {
+          setError('Ingrese el email asociado a la cuenta para recuperar la contraseña.');
+          return;
+        }
         payload = {
           contrasena_nueva: nueva,
           email: email,
@@ -62,11 +69,15 @@ export default function CambiarContrasenaPage() {
         setTimeout(() => navigate("/login"), 1500);
       }
     } catch (err) {
-      console.error("Error Axios:", err.response?.status, err.response?.data);
+      // Log completo para debugging
+      console.error("Error Axios:", err);
+
+      // Intentar obtener un mensaje útil desde la respuesta del servidor
+      const serverData = err.response?.data;
+      const serverMessage = serverData?.message || serverData?.error || (serverData && JSON.stringify(serverData));
+
       setError(
-        err.response?.data?.error ||
-        err.response?.data?.message ||
-        "Error al cambiar la contraseña. Verifique los datos."
+        serverMessage || err.message || "Error al cambiar la contraseña. Verifique los datos."
       );
     }
   };
@@ -77,6 +88,26 @@ export default function CambiarContrasenaPage() {
         <h2 style={styles.title}>
           {modoRecuperacion ? "Crear Nueva Contraseña 🔑" : "Cambiar Contraseña 🔒"}
         </h2>
+
+        <div style={{textAlign: 'center', marginBottom: 12}}>
+          {/* Toggle sencillo entre modos */}
+          <button
+            type="button"
+            onClick={() => {
+              // Si el usuario quiere cambiar sin email, pero no está autenticado, avisar
+              if (!modoRecuperacion && !accessToken) {
+                // actualmente en modo 'cambio' y no está autenticado
+                setError('Debes iniciar sesión para cambiar la contraseña sin usar recuperación por email.');
+                return;
+              }
+              setError('');
+              setModoRecuperacion(!modoRecuperacion);
+            }}
+            style={{background: 'transparent', border: 'none', color: '#007bff', cursor: 'pointer'}}
+          >
+            {modoRecuperacion ? 'Usar contraseña actual en lugar de email' : 'Usar recuperación por email en su lugar'}
+          </button>
+        </div>
         <form onSubmit={handleSubmit} style={styles.form}>
           {!modoRecuperacion && (
             <input
@@ -85,6 +116,15 @@ export default function CambiarContrasenaPage() {
               onChange={(e) => setActual(e.target.value)}
               placeholder="Contraseña actual"
               required
+              style={styles.input}
+            />
+          )}
+          {modoRecuperacion && (
+            <input
+              type="email"
+              value={emailRecup}
+              onChange={(e) => setEmailRecup(e.target.value)}
+              placeholder="Email asociado (si no está en localStorage)"
               style={styles.input}
             />
           )}
