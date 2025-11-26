@@ -20,27 +20,27 @@ import Home from "./pages/home/home";
 import ListaPacientes from "./pages/pacientes/listaPacientes";
 import LoginPage from "./pages/login/login";
 
-// 💰 Cajas
+//  Cajas
 import ListaCajas from "./pages/cajas/listaCajas";
 import DetalleCaja from "./pages/cajas/detalleCaja";
 
-// 🗓️ Turnos
+//  Turnos
 import ListadoTurnos from "./pages/turnos/ListadoTurnos";
 import NuevoTurno from "./pages/turnos/NuevoTurno";
 import EditarTurno from "./pages/turnos/EditarTurno";
 import DetalleTurno from "./pages/turnos/DetalleTurno";
 import PacienteTurnos from "./pages/turnos/PacienteTurnos";
 
-// 🩺 Fichas médicas
+// Fichas médicas
 import TratamientosPacientePage from "./pages/fichasMedicas/TratamientosPacientePage";
 import HistorialPage from "./pages/fichasMedicas/HistorialPage";
 import FichaMedicaDetailPage from "./pages/fichasMedicas/FichaMedicaDetailPage";
 import OdontogramaPage from "./pages/fichasMedicas/OdontogramaPage";
 
-// ⚙️ Panel
+// Panel
 import VistaPanel from "./pages/panel_control/vista_panel";
 
-// 🔐 Recuperación de contraseña
+//  Recuperación de contraseña
 import RecuperarContrasenaPage from "./pages/recuperar/RecuperarContrasenaPage";
 import ValidarCodigo from "./pages/recuperar/ValidarCodigoPage";
 import CambiarContrasena from "./pages/recuperar/CambiarContrasenaPage";

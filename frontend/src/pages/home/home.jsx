@@ -88,7 +88,7 @@ export default function Home() {
                 <table style={styles.table}>
                   <thead>
                     <tr>
-                      {["Fecha", "Hora", "Nombre", "Apellido", "Asunto", "Estado"].map(col => (
+                      {["Fecha", "Hora", "Nombre", "Apellido", "Asunto", "Estado",].map(col => (
                         <th key={col} style={styles.th}>{col}</th>
                       ))}
                     </tr>
