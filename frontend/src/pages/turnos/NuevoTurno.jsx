@@ -3,6 +3,8 @@ import React from 'react';
 import TurnoForm from '../../components/turnos/TurnoForm';
 import { crearTurno } from '../../api/turnosApi';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { showSuccess } from '../../utils/alertas';
+import styles from './NuevoTurno.module.css';
 
 export default function NuevoTurno() {
   const navigate = useNavigate();
@@ -16,8 +18,7 @@ export default function NuevoTurno() {
 
     const resp = await crearTurno(out);
     if (resp && resp.success && resp.data) {
-      alert('Turno creado correctamente');
-      // después de crear, te puedo mandar otra vez a los turnos de ese paciente:
+      await showSuccess('Turno creado', 'El turno se creó correctamente.');
       if (prefilled.id_paciente) {
         navigate(`/turnos/paciente/${prefilled.id_paciente}`, {
           state: {
@@ -28,7 +29,10 @@ export default function NuevoTurno() {
       } else {
         navigate(`/turnos/${resp.data.id_turno}`);
       }
-    } else throw new Error(resp?.errors || resp?.error || 'Error al crear turno');
+    } else {
+      const msg = resp?.errors || resp?.error || 'Error al crear turno';
+      throw new Error(msg);
+    }
   }
 
   const initialData = {
@@ -39,19 +43,34 @@ export default function NuevoTurno() {
   };
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Nuevo turno</h2>
-      <TurnoForm
-        initialData={initialData}
-        onSaved={handleSaved}
-        onCancel={() =>
-          prefilled.id_paciente
-            ? navigate(-1)
-            : navigate('/turnos')
-        }
-        mode="create"
-        hidePatientFields={Boolean(prefilled.id_paciente)}
-      />
+    <div className={styles.page}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          <button
+            className={styles.backBtn}
+            type="button"
+            onClick={() =>
+              prefilled.id_paciente
+                ? navigate(-1)
+                : navigate('/turnos')
+            }
+          >
+            &lt;
+          </button>
+          <h2 className={styles.title}>Nuevo turno</h2>
+        </div>
+        <TurnoForm
+          initialData={initialData}
+          onSaved={handleSaved}
+          onCancel={() =>
+            prefilled.id_paciente
+              ? navigate(-1)
+              : navigate('/turnos')
+          }
+          mode="create"
+          hidePatientFields={Boolean(prefilled.id_paciente)}
+        />
+      </div>
     </div>
   );
 }

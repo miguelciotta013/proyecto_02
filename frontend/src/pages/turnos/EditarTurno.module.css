@@ -1,1 +1,48 @@
-/*Para futuro css*/
+/* src/pages/turnos/EditarTurno.module.css */
+.page {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 580px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.backBtn {
+  background: #1f78b4;
+  border: none;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.backBtn:hover {
+  background: #186492;
+}
+
+.title {
+  font-size: 1.1rem;
+  margin: 0;
+  color: #0f172a;
+}
+
+.loading {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}

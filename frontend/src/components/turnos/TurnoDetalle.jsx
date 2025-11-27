@@ -1,6 +1,7 @@
 // src/components/turnos/TurnoDetalle.jsx
 import React, { useEffect, useState } from 'react';
 import { obtenerEstados } from '../../api/turnosApi';
+import { showError, confirmAction } from '../../utils/alertas';
 import styles from './TurnoDetalle.module.css';
 
 export default function TurnoDetalle({
@@ -14,7 +15,9 @@ export default function TurnoDetalle({
   const [estados, setEstados] = useState([]);
   const [selectedEstado, setSelectedEstado] = useState(turno?.id_turno_estado || '');
 
-  useEffect(() => setSelectedEstado(turno?.id_turno_estado || ''), [turno]);
+  useEffect(() => {
+    setSelectedEstado(turno?.id_turno_estado || '');
+  }, [turno]);
 
   useEffect(() => {
     let mounted = true;
@@ -23,7 +26,7 @@ export default function TurnoDetalle({
         const r = await obtenerEstados();
         if (r && r.success && mounted) setEstados(r.data || []);
       } catch (e) {
-        // noop
+        // opcional: log
       }
     }
     load();
@@ -31,16 +34,47 @@ export default function TurnoDetalle({
   }, []);
 
   const handleEliminar = () => {
-    // la vista ya controla cuándo volver
-    if (window.confirm('¿Seguro que querés cancelar este turno?')) {
-      onEliminar(turno.id_turno);
-    }
+    onEliminar(turno.id_turno);
   };
 
   const handleCambioEstado = async (e) => {
     const nuevoId = e.target.value === '' ? '' : parseInt(e.target.value, 10);
-    setSelectedEstado(nuevoId);
-    await onCambiarEstado(turno.id_turno, nuevoId);
+
+    // Estado actual (antes de cambiar)
+    const estadoActualObj = estados.find(
+      s => s.id_estado_turno === (selectedEstado || turno.id_turno_estado)
+    );
+    const nombreActual = estadoActualObj?.estado_turno || 'Sin estado';
+
+    // Estado nuevo (al que quiere pasar)
+    const estadoNuevoObj = estados.find(s => s.id_estado_turno === nuevoId);
+    const nombreNuevo = estadoNuevoObj?.estado_turno || (nuevoId ? 'este estado' : 'Sin estado');
+
+    // Confirmación
+    const confirmado = await confirmAction(
+      'Cambiar estado',
+      `¿Seguro que querés cambiar el estado del turno de "${nombreActual}" a "${nombreNuevo}"?`,
+      'Sí, cambiar',
+      'No'
+    );
+
+    if (!confirmado) {
+      // Si cancela, dejamos el valor anterior en el select
+      setSelectedEstado(turno.id_turno_estado || '');
+      return;
+    }
+
+    try {
+      await onCambiarEstado(turno.id_turno, nuevoId);
+      setSelectedEstado(nuevoId);
+    } catch (err) {
+      // Revertir al estado original del turno si falla
+      setSelectedEstado(turno.id_turno_estado || '');
+      const msg = err && err.message
+        ? err.message
+        : 'Error al cambiar el estado del turno.';
+      await showError('No se pudo cambiar el estado', msg);
+    }
   };
 
   if (!turno) return <div className={styles.empty}>No se encontró el turno.</div>;
@@ -49,10 +83,9 @@ export default function TurnoDetalle({
     estados.find(s => s.id_estado_turno === turno.id_turno_estado)?.estado_turno ||
     '-- sin estado --';
 
-  // 👇 texto plano del estado que viene del backend, para decidir si dejo cancelar
   const estadoTexto = (turno.estado || estadoActual || '').toLowerCase();
-  const sePuedeCancelar =
-    estadoTexto !== 'confirmado' && estadoTexto !== 'atendido';
+  const esCancelado = estadoTexto.startsWith('cancel'); // "cancelado"
+  const sePuedeEliminar = esCancelado;
 
   return (
     <div className={`${styles.detailPanel} card`}>
@@ -116,7 +149,6 @@ export default function TurnoDetalle({
         </div>
       )}
 
-      {/* ACCIONES: editar siempre, cancelar solo si no está confirmado/atendido */}
       <div className={styles.actions}>
         {readOnly ? null : (
           <>
@@ -127,12 +159,12 @@ export default function TurnoDetalle({
               Editar
             </button>
 
-            {sePuedeCancelar && (
+            {sePuedeEliminar && (
               <button
                 className={`${styles.btn} ${styles.danger}`}
                 onClick={handleEliminar}
               >
-                Cancelar
+                Eliminar
               </button>
             )}
           </>
