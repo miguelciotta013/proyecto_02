@@ -54,7 +54,7 @@ export default function Dashboard() {
         const data = await res.json();
         const registros = Array.isArray(data.data) ? data.data : [];
         setDataCaja(registros);
-        calcularTotales(registros);
+        await calcularTotales(registros);
       } catch (err) {
         console.error("Error:", err);
       } finally {
@@ -64,12 +64,36 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  const calcularTotales = (registros) => {
-    let ingresos = 0, egresos = 0;
+  const calcularTotales = async (registros) => {
+    let ingresos = 0;
+    let egresos = 0;
+    
+    // Calcular ingresos desde monto_cierre
     for (const item of registros) {
       ingresos += parseFloat(item.monto_cierre || 0);
-      egresos += parseFloat(item.monto_apertura || 0);
     }
+    
+    // Calcular egresos reales desde cada caja
+    for (const caja of registros) {
+      try {
+        const idCaja = caja.id_caja || caja.id;
+        const resDetalle = await fetch(`${API_URL}/caja/${idCaja}/`);
+        const detalle = await resDetalle.json();
+        
+        if (detalle.data) {
+          // Sumar egresos reales de la caja
+          const egresosArray = detalle.data.egresos || detalle.data.movimientos_egreso || [];
+          if (Array.isArray(egresosArray)) {
+            egresosArray.forEach(egr => {
+              egresos += parseFloat(egr.monto || egr.importe || 0);
+            });
+          }
+        }
+      } catch (err) {
+        console.error(`Error al obtener egresos de caja ${caja.id_caja}:`, err);
+      }
+    }
+    
     setTotalIngresos(ingresos);
     setTotalEgresos(egresos);
   };
@@ -86,7 +110,11 @@ export default function Dashboard() {
     const cierre = parseFloat(mov.monto_cierre || 0);
     if (!acc[fecha]) acc[fecha] = { fecha, ingresos: 0, egresos: 0 };
     acc[fecha].ingresos += cierre;
-    acc[fecha].egresos += apertura;
+    // Para el gráfico, calculamos egresos como diferencia negativa
+    const diferencia = cierre - apertura;
+    if (diferencia < 0) {
+      acc[fecha].egresos += Math.abs(diferencia);
+    }
     return acc;
   }, {});
 
@@ -375,7 +403,7 @@ export default function Dashboard() {
             <DollarIcon />
           </div>
           <div>
-            <h1 style={styles.title}>Grafico de Cajas</h1>
+            <h1 style={styles.title}>Gráfico de Cajas</h1>
             <p style={styles.subtitle}>Análisis en tiempo real de tu gestión</p>
           </div>
         </div>
