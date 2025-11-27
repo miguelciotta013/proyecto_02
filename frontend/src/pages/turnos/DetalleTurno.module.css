@@ -1,1 +1,17 @@
-/*Para futuro css*/
+/* src/pages/turnos/DetalleTurno.module.css */
+.page {
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.inner {
+  width: 100%;
+  max-width: 560px;
+}
+
+.loading {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
