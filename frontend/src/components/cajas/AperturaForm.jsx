@@ -24,12 +24,24 @@ export default function AperturaForm({ onSubmit }) {
     if (empleados.length > 0 && !selectedEmpleado) {
       setSelectedEmpleado(String(empleados[0].id_empleado));
     }
-  }, [empleados]);
+  }, [empleados, selectedEmpleado]);
 
   function handleSubmit(e) {
     e.preventDefault();
-    const payload = { monto_apertura: monto };
-    if (selectedEmpleado) payload.id_empleado = selectedEmpleado;
+
+    const montoNum = parseFloat(monto);
+
+    // ⛔ VALIDACIÓN DE NEGATIVOS
+    if (isNaN(montoNum) || montoNum < 0) {
+      alert("El monto de apertura no puede ser negativo.");
+      return;
+    }
+
+    const payload = { 
+      monto_apertura: montoNum,
+      id_empleado: selectedEmpleado
+    };
+
     if (onSubmit) onSubmit(payload);
   }
 
@@ -73,78 +85,70 @@ export default function AperturaForm({ onSubmit }) {
         Monto apertura:
         <input
           type="number"
+          min="0"
           step="0.01"
           value={monto}
           onChange={(e) => setMonto(e.target.value)}
           style={{
-            marginTop: 6,
-            padding: 10,
-            borderRadius: 8,
-            border: '1px solid #9e9e9e',
-            outline: 'none',
-            fontSize: 15,
-            transition: 'all 0.2s ease',
+            padding: '10px',
+            borderRadius: '8px',
+            border: '2px solid #ccc',
+            fontSize: '15px',
+            marginTop: 5,
+            transition: '0.3s',
           }}
           onFocus={(e) => (e.target.style.borderColor = '#2e7d9d')}
-          onBlur={(e) => (e.target.style.borderColor = '#9e9e9e')}
+          onBlur={(e) => (e.target.style.borderColor = '#ccc')}
         />
       </label>
 
-      {/* Selector de empleado */}
-      {empleados.length > 0 && (
-        <label
+      {/* Select de empleado */}
+      <label
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          fontWeight: 500,
+          color: '#333',
+        }}
+      >
+        Empleado:
+        <select
+          value={selectedEmpleado}
+          onChange={(e) => setSelectedEmpleado(e.target.value)}
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            fontWeight: 500,
-            color: '#333',
+            padding: '10px',
+            borderRadius: '8px',
+            border: '2px solid #ccc',
+            fontSize: '15px',
+            marginTop: 5,
+            cursor: 'pointer',
+            transition: '0.3s',
           }}
+          onFocus={(e) => (e.target.style.borderColor = '#2e7d9d')}
+          onBlur={(e) => (e.target.style.borderColor = '#ccc')}
         >
-          Empleado (opcional):
-          <select
-            value={selectedEmpleado}
-            onChange={(e) => setSelectedEmpleado(e.target.value)}
-            style={{
-              marginTop: 6,
-              padding: 10,
-              borderRadius: 8,
-              border: '1px solid #9e9e9e',
-              backgroundColor: '#fff',
-              fontSize: 15,
-              transition: 'border 0.2s',
-            }}
-            onFocus={(e) => (e.target.style.borderColor = '#2e7d9d')}
-            onBlur={(e) => (e.target.style.borderColor = '#9e9e9e')}
-          >
-            <option value="">-- Usar usuario autenticado --</option>
-            {empleados.map((emp) => (
-              <option key={emp.id_empleado} value={emp.id_empleado}>
-                {emp.nombre}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+          {empleados.map((emp) => (
+            <option key={emp.id_empleado} value={emp.id_empleado}>
+              {emp.nombre} {emp.apellido}
+            </option>
+          ))}
+        </select>
+      </label>
 
-      {/* Botón enviar */}
       <button
         type="submit"
         style={{
-          padding: 12,
-          borderRadius: 10,
-          border: 'none',
-          backgroundColor: '#4caf50',
+          backgroundColor: '#2e7d9d',
           color: 'white',
-          fontWeight: 'bold',
+          padding: '12px',
+          border: 'none',
+          borderRadius: 8,
+          fontSize: '16px',
           cursor: 'pointer',
-          fontSize: 16,
-          transition: 'background-color 0.25s ease',
-          boxShadow: '0 3px 10px rgba(0,0,0,0.15)',
+          marginTop: 10,
         }}
-        onMouseEnter={(e) => (e.target.style.backgroundColor = '#388e3c')}
-        onMouseLeave={(e) => (e.target.style.backgroundColor = '#4caf50')}
       >
-        💰 Abrir caja
+        Abrir Caja
       </button>
     </form>
   );
