@@ -404,7 +404,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h1 style={styles.title}>Gráfico de Cajas</h1>
-            <p style={styles.subtitle}>Análisis en tiempo real de tu gestión</p>
+            <p style={styles.subtitle}>Análisis </p>
           </div>
         </div>
         <div style={styles.sparkles}>
