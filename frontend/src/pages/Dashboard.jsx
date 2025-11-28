@@ -42,6 +42,7 @@ const SparklesIcon = () => (
 
 export default function Dashboard() {
   const [dataCaja, setDataCaja] = useState([]);
+  const [movimientos, setMovimientos] = useState([]); // ✅ NUEVO estado
   const [loading, setLoading] = useState(true);
   const [totalIngresos, setTotalIngresos] = useState(0);
   const [totalEgresos, setTotalEgresos] = useState(0);
@@ -67,10 +68,22 @@ export default function Dashboard() {
   const calcularTotales = async (registros) => {
     let ingresos = 0;
     let egresos = 0;
+    let todosMovimientos = []; // ✅ Array para guardar movimientos con fecha
     
     // Calcular ingresos desde monto_cierre
     for (const item of registros) {
-      ingresos += parseFloat(item.monto_cierre || 0);
+      const montoIngreso = parseFloat(item.monto_cierre || 0);
+      ingresos += montoIngreso;
+      
+      // Guardar movimiento de ingreso con fecha
+      if (montoIngreso > 0 && item.fecha_hora_cierre) {
+        todosMovimientos.push({
+          tipo: 'ingreso',
+          monto: montoIngreso,
+          fecha: item.fecha_hora_cierre,
+          id_caja: item.id_caja || item.id
+        });
+      }
     }
     
     // Calcular egresos reales desde cada caja
@@ -81,11 +94,21 @@ export default function Dashboard() {
         const detalle = await resDetalle.json();
         
         if (detalle.data) {
-          // Sumar egresos reales de la caja
           const egresosArray = detalle.data.egresos || detalle.data.movimientos_egreso || [];
           if (Array.isArray(egresosArray)) {
             egresosArray.forEach(egr => {
-              egresos += parseFloat(egr.monto || egr.importe || 0);
+              const montoEgreso = parseFloat(egr.monto || egr.importe || 0);
+              egresos += montoEgreso;
+              
+              // Guardar movimiento de egreso con fecha
+              if (montoEgreso > 0) {
+                todosMovimientos.push({
+                  tipo: 'egreso',
+                  monto: montoEgreso,
+                  fecha: egr.fecha || egr.fecha_movimiento || egr.created_at || caja.fecha_hora_apertura,
+                  id_caja: idCaja
+                });
+              }
             });
           }
         }
@@ -96,29 +119,37 @@ export default function Dashboard() {
     
     setTotalIngresos(ingresos);
     setTotalEgresos(egresos);
+    setMovimientos(todosMovimientos); // ✅ Guardar movimientos
   };
 
-  const dataFiltrada = filtroFecha
-    ? dataCaja.filter(item =>
-        new Date(item.fecha_hora_apertura).toISOString().slice(0, 10) === filtroFecha
-      )
-    : dataCaja;
-
-  const dataPorDia = dataFiltrada.reduce((acc, mov) => {
-    const fecha = new Date(mov.fecha_hora_apertura).toLocaleDateString();
-    const apertura = parseFloat(mov.monto_apertura || 0);
-    const cierre = parseFloat(mov.monto_cierre || 0);
-    if (!acc[fecha]) acc[fecha] = { fecha, ingresos: 0, egresos: 0 };
-    acc[fecha].ingresos += cierre;
-    // Para el gráfico, calculamos egresos como diferencia negativa
-    const diferencia = cierre - apertura;
-    if (diferencia < 0) {
-      acc[fecha].egresos += Math.abs(diferencia);
+  // ✅ NUEVO: Agrupar movimientos reales por día
+  const dataPorDia = movimientos.reduce((acc, mov) => {
+    if (!mov.fecha) return acc;
+    
+    const fecha = new Date(mov.fecha).toLocaleDateString('es-AR');
+    
+    if (!acc[fecha]) {
+      acc[fecha] = { fecha, ingresos: 0, egresos: 0 };
     }
+    
+    if (mov.tipo === 'ingreso') {
+      acc[fecha].ingresos += mov.monto;
+    } else if (mov.tipo === 'egreso') {
+      acc[fecha].egresos += mov.monto;
+    }
+    
     return acc;
   }, {});
 
-  const dataGrafico = Object.values(dataPorDia);
+  // Convertir a array y ordenar por fecha
+  const dataGrafico = Object.values(dataPorDia).sort((a, b) => {
+    const parseDate = (dateStr) => {
+      const [day, month, year] = dateStr.split('/');
+      return new Date(year, month - 1, day);
+    };
+    return parseDate(a.fecha) - parseDate(b.fecha);
+  });
+
   const dataPie = [
     { name: "Ingresos", value: totalIngresos },
     { name: "Egresos", value: totalEgresos },
@@ -188,10 +219,6 @@ export default function Dashboard() {
       boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
       border: '1px solid #e2e8f0',
       transition: 'all 0.3s ease'
-    },
-    cardHover: {
-      boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
-      transform: 'translateY(-4px)'
     },
     cardHeader: {
       display: 'flex',
@@ -404,7 +431,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h1 style={styles.title}>Gráfico de Cajas</h1>
-            <p style={styles.subtitle}>Análisis </p>
+            <p style={styles.subtitle}>Análisis en tiempo real</p>
           </div>
         </div>
         <div style={styles.sparkles}>
@@ -414,7 +441,6 @@ export default function Dashboard() {
 
       {/* Tarjetas */}
       <div style={styles.cardsGrid}>
-        {/* Ingresos */}
         <div style={styles.card}>
           <div style={styles.cardHeader}>
             <div style={{...styles.cardIconBox, ...styles.cardIconGreen}}>
@@ -427,7 +453,6 @@ export default function Dashboard() {
           <div style={{...styles.cardBar, ...styles.cardBarGreen}}></div>
         </div>
 
-        {/* Egresos */}
         <div style={styles.card}>
           <div style={styles.cardHeader}>
             <div style={{...styles.cardIconBox, ...styles.cardIconRed}}>
@@ -440,7 +465,6 @@ export default function Dashboard() {
           <div style={{...styles.cardBar, ...styles.cardBarRed}}></div>
         </div>
 
-        {/* Saldo */}
         <div style={styles.card}>
           <div style={styles.cardHeader}>
             <div style={{...styles.cardIconBox, ...styles.cardIconBlue}}>
@@ -455,44 +479,6 @@ export default function Dashboard() {
             ${saldo.toFixed(2)}
           </p>
           <div style={{...styles.cardBar, ...styles.cardBarBlue}}></div>
-        </div>
-      </div>
-
-      {/* Filtro */}
-      <div style={styles.filterBox}>
-        <div style={styles.filterLeft}>
-          <div style={styles.filterIconBox}>
-            <FilterIcon />
-          </div>
-          <h3 style={styles.filterTitle}>Filtrar por fecha</h3>
-        </div>
-        <div style={styles.filterRight}>
-          <input
-            type="date"
-            value={filtroFecha}
-            onChange={(e) => setFiltroFecha(e.target.value)}
-            style={styles.dateInput}
-            onFocus={(e) => e.target.style.borderColor = '#2e7d9d'}
-            onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
-          />
-          {filtroFecha && (
-            <button 
-              onClick={() => setFiltroFecha("")} 
-              style={styles.clearButton}
-              onMouseEnter={(e) => {
-                e.target.style.background = '#757575';
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 4px 12px rgba(158, 158, 158, 0.4)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = '#9e9e9e';
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 2px 8px rgba(158, 158, 158, 0.3)';
-              }}
-            >
-              Limpiar
-            </button>
-          )}
         </div>
       </div>
 
@@ -526,11 +512,7 @@ export default function Dashboard() {
                 padding: '12px'
               }}
             />
-            <Legend 
-              wrapperStyle={{
-                paddingTop: '20px'
-              }}
-            />
+            <Legend wrapperStyle={{ paddingTop: '20px' }} />
             <Bar dataKey="ingresos" fill="url(#colorIngresos)" radius={[8, 8, 0, 0]} />
             <Bar dataKey="egresos" fill="url(#colorEgresos)" radius={[8, 8, 0, 0]} />
           </BarChart>
@@ -562,7 +544,6 @@ export default function Dashboard() {
               labelLine={{stroke: '#64748b', strokeWidth: 1.5}}
               outerRadius={140}
               innerRadius={70}
-              fill="#8884d8"
               dataKey="value"
               label={({ name, percent }) => `${name} ${(percent * 100).toFixed(1)}%`}
               style={{fontSize: '0.9rem', fontWeight: '600'}}
