@@ -794,6 +794,33 @@ class CobroUpdateView(APIView):
     def patch(self, request, id_cobro):
         try:
             cobro = CobrosConsulta.objects.get(id_cobro_consulta=id_cobro)
+                # Validar que exista una caja abierta
+
+            caja_abierta = Cajas.objects.filter(estado_caja=1).first()
+            if not caja_abierta:
+                return Response({
+                'success': False,
+                'error': 'No hay una caja abierta. No se pueden registrar cobros.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Si el cobro no tiene caja asignada, asignar la caja abierta
+            if cobro.id_caja is None:
+                cobro.id_caja = caja_abierta
+
+
+            # VALIDACIÓN: No permitir cobrar si NO hay una caja abierta
+            caja_abierta = Cajas.objects.filter(estado_caja=1).first()
+            if not caja_abierta:
+                return Response({
+                    'success': False,
+                    'error': 'No hay una caja abierta. Debe abrir una caja antes de registrar un cobro.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            # ✔ Asociar el cobro a la caja abierta si aún no tiene caja asignada
+
+            if cobro.id_caja is None:
+                cobro.id_caja = caja_abierta
+
 
             # Monto total esperado (paciente + obra social)
             monto_total_esperado = Decimal(str(cobro.monto_paciente)) + Decimal(str(cobro.monto_obra_social))
@@ -861,6 +888,7 @@ class CobroUpdateView(APIView):
                 'success': False,
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 
@@ -1166,424 +1194,502 @@ class OdontogramaView(APIView):
 
 class OdontogramaPdfView(APIView):
     """
-    Genera un PDF con odontograma (cada diente: cuadrado oclusal + trapecios como caras)
-    y la ficha patológica en la misma página.
+    Genera un PDF con odontograma mostrando tratamientos realizados,
+    extracciones y ficha patológica.
     """
 
-    PAGE_WIDTH, PAGE_HEIGHT = landscape(A4)
-
-    # Lista de patologías con la disposición que queremos (7 filas x 5 columnas)
-    PATHOLOGY_ORDER = [
-        "Alergias", "Embarazada_o_sospecha", "Hipotencion", "Problemas_tiroideos", "VIH",
-        "Anemias", "Fiebre_Reumatica", "Jaquecas", "Problemas_respiratorios", "Portador_protesis",
-        "Artritis", "Glaucoma", "Lesiones_cabeza", "Sinusitis", "Problema_periodontal",
-        "Asma", "Hemorragias", "Problemas_hepaticos", "Tuberculosis", "Ortodoncia",
-        "Desnutricion", "Hepatitis", "Problemas_mentales", "Tumores", "Mala_occlusion",
-        "Diabetes", "Herpes", "Problemas_cardíacos", "Ulceras", "Lesion_mucosa",
-        "Epilepsia", "Hipertencion", "Problemas_renales", "Veneréas", "Toma_medicacion"
-    ]
-    # Si tu modelo usa otros nombres, reemplaza las cadenas por los nombres de atributo exactos.
-
-    def get(self, request, paciente_id, *args, **kwargs):
-        # Obtener paciente y datos
-        paciente = Pacientes.objects.filter(pk=paciente_id).first()
-        if not paciente:
-            return HttpResponse("Paciente no encontrado", status=404)
-
-        # Intenta obtener la ficha patológica asociada
-        ficha = None
-        # 3 intentos comunes de relación entre paciente y ficha (adapta si es diferente)
+    def get(self, request, id_ficha):
         try:
-            ficha = FichasPatologicas.objects.filter(paciente=paciente).first()
-        except Exception:
-            # Si no existe modelo o relación, la variable quedará en None
-            ficha = None
+            # Obtener ficha médica con relaciones
+            ficha = FichasMedicas.objects.select_related(
+            'id_paciente_os__id_paciente',
+            'id_paciente_os__id_obra_social',
+            'id_ficha_patologica'
+        ).get(id_ficha_medica=id_ficha, eliminado__isnull=True)
 
-        # Obtener dientes del odontograma (suponemos que existe un modelo Diente con campo 'numero')
-        dientes = Dientes.objects.filter(paciente=paciente).order_by('id')
+            paciente = ficha.id_paciente_os.id_paciente
+            
+            detalles = DetallesConsulta.objects.filter(
+                id_ficha_medica=ficha,
+                eliminado__isnull=True
+            ).select_related('id_tratamiento', 'id_diente')
 
-        # Preparar buffer PDF
-        buffer = io.BytesIO()
-        c = canvas.Canvas(buffer, pagesize=landscape(A4))
-        c.setTitle(f"Odontograma - {getattr(paciente, 'nombre', 'Paciente')}")
+            dientes_adultos = set(range(11, 19)) | set(range(21, 29)) | set(range(31, 39)) | set(range(41, 49))
+            dientes_ninos = set(range(51, 56)) | set(range(61, 66)) | set(range(71, 76)) | set(range(81, 86))
+            
+            dientes_con_tratamiento_adulto = set()
+            dientes_con_tratamiento_nino = set()
+            
+            for detalle in detalles:
+                if detalle.id_diente:
+                    num_diente = detalle.id_diente.id_diente
+                    if num_diente in dientes_adultos:
+                        dientes_con_tratamiento_adulto.add(num_diente)
+                    elif num_diente in dientes_ninos:
+                        dientes_con_tratamiento_nino.add(num_diente)
+            
+            usa_dentadura_adulta = len(dientes_con_tratamiento_adulto) > 0
+            usa_dentadura_nino = len(dientes_con_tratamiento_nino) > 0
 
-        # Margenes y áreas
-        margin = 12 * mm
-        usable_width = self.PAGE_WIDTH - 2 * margin
-        usable_height = self.PAGE_HEIGHT - 2 * margin
+            buffer = BytesIO()
+            pdf = canvas.Canvas(buffer, pagesize=landscape(A4))
+            width, height = landscape(A4)
 
-        # Dividimos la página: izquierda = odontograma, derecha = ficha patologica
-        odontograma_width = usable_width * 0.62
-        ficha_width = usable_width - odontograma_width - 10 * mm
+            # SOLO ODONTOGRAMA
+            self.dibujar_odontograma(pdf, width, height, detalles, usa_dentadura_adulta, usa_dentadura_nino)
 
-        odontograma_x = margin
-        odontograma_y = margin
+            # SOLO FICHA PATOLÓGICA
+            self.dibujar_ficha_patologica(pdf, width, height, ficha.id_ficha_patologica)
 
-        ficha_x = odontograma_x + odontograma_width + 10 * mm
-        ficha_y = odontograma_y
+            pdf.showPage()
+            pdf.save()
+            buffer.seek(0)
 
-        # Dibujar título
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(margin, self.PAGE_HEIGHT - margin - 10, "ODONTOGRAMA")
+            response = HttpResponse(buffer, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename=odontograma_{id_ficha}.pdf'
+            return response
 
-        # Zona del odontograma: organizamos en 4 filas (dos superiores, dos inferiores)
-        # Definimos posiciones para cada diente según su número
-        # Para simplicidad, creamos filas predefinidas con posiciones X,Y
-        # Ajuste visual:
-        top_y = self.PAGE_HEIGHT - margin - 40
-        mid_y = top_y - 40
-        center_y = odontograma_y + usable_height / 2 + 20
-        bottom_y = odontograma_y + 60
+        except FichasMedicas.DoesNotExist:
+            return Response({
+                'success': False,
+                'error': 'Ficha médica no encontrada'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            import traceback
+            print("Error completo:")
+            print(traceback.format_exc())
+            return Response({
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        # Distribución X para cada diente en una fila (8 por fila típicamente)
-        def gen_x_positions(left, width, count=8, gap=4 * mm):
-            # devuelve lista de x centrados
-            total_gap = (count - 1) * gap
-            available = width - total_gap
-            w_each = available / count
-            xs = []
-            cur = left
-            for i in range(count):
-                cx = cur + w_each / 2
-                xs.append(cx)
-                cur += w_each + gap
-            return xs
+    def dibujar_odontograma(self, pdf, width, height, detalles, usa_adulta, usa_nino):
+        """Dibuja el odontograma completo"""
+        
+        # Posiciones iniciales
+        margin_left = 2*cm
+        margin_top = height - 2*cm
+        
+        # Dimensiones de cada diente
+        diente_size = 1.2*cm
+        gap = 0.3*cm
+        
+        # Organizar tratamientos por diente y cara
+        tratamientos_por_diente = {}
+        extracciones = set()
+        
+        for detalle in detalles:
+            if detalle.id_diente:
+                num_diente = detalle.id_diente.id_diente
+                nombre_tratamiento = detalle.id_tratamiento.nombre_tratamiento.lower()
+                
+                # Detectar extracciones
+                if 'extrac' in nombre_tratamiento or 'extracción' in nombre_tratamiento:
+                    extracciones.add(num_diente)
+                
+                if num_diente not in tratamientos_por_diente:
+                    tratamientos_por_diente[num_diente] = set()
+                
+                # Agregar la cara tratada (id_cara)
+                if detalle.id_cara:
+                    tratamientos_por_diente[num_diente].add(detalle.id_cara)
 
-        xs_top_left = gen_x_positions(odontograma_x + 4 * mm, odontograma_width / 2 - 6 * mm)
-        xs_top_right = gen_x_positions(odontograma_x + odontograma_width / 2 + 6 * mm, odontograma_width / 2 - 6 * mm)
+        # Definir layout de dientes
+        # Fila 1: Adultos superiores derechos (18-11)
+        fila1_nums = list(range(18, 10, -1))
+        # Fila 2: Adultos superiores izquierdos (21-28)
+        fila2_nums = list(range(21, 29))
+        # Fila 3: Adultos inferiores derechos (48-41)
+        fila3_nums = list(range(48, 40, -1))
+        # Fila 4: Adultos inferiores izquierdos (31-38)
+        fila4_nums = list(range(31, 39))
+        
+        # Fila 5: Niños superiores derechos (55-51)
+        fila5_nums = list(range(55, 50, -1))
+        # Fila 6: Niños superiores izquierdos (61-65)
+        fila6_nums = list(range(61, 66))
+        # Fila 7: Niños inferiores derechos (85-81)
+        fila7_nums = list(range(85, 80, -1))
+        # Fila 8: Niños inferiores izquierdos (71-75)
+        fila8_nums = list(range(71, 76))
 
-        # Mapa de posiciones por numero de diente (centro X,Y)
-        positions = {}
+        # Posiciones Y para cada fila
 
-        # Filas superiores adultos (11..18) (21..28) de izquierda a derecha (esquema dental occidental)
-        # Nota: en la imagen el orden visual de la izquierda a la derecha puede invertirse según tu preferencia.
-        # Aquí asumimos la siguiente colocación visual (izquierda dentadura paciente derecha del papel).
-        adultos_sup_izq = list(range(18, 10, -1))  # 18..11
-        adultos_sup_der = list(range(21, 29))       # 21..28
+        # Adultos superiores
+        y_fila1 = margin_top - 1.5*cm
+        y_fila2 = y_fila1
 
-        adultos_inf_izq = list(range(48, 40, -1))   # 48..41
-        adultos_inf_der = list(range(31, 39))       # 31..38
+        # Adultos inferiores
+        y_fila3 = y_fila1 - 2*cm
+        y_fila4 = y_fila3
 
-        ninos_sup_izq = list(range(55, 50, -1))     # 55..51
-        ninos_sup_der = list(range(61, 66))         # 61..65
+        # Ahora MOVER bien abajo las filas de NIÑOS
+        # Niños superiores (deben ir debajo de los adultos inferiores)
+        y_fila5 = y_fila3 - 3*cm
+        y_fila6 = y_fila5
 
-        ninos_inf_izq = list(range(85, 80, -1))     # 85..81
-        ninos_inf_der = list(range(71, 76))         # 71..75
+        # Niños inferiores (más abajo aún)
+        y_fila7 = y_fila5 - 2*cm
+        y_fila8 = y_fila7
 
-        # Asignar posiciones usando xs arrays
-        # adult superior left -> xs_top_left  (indexes 0..7)
-        for i, num in enumerate(adultos_sup_izq):
-            if i < len(xs_top_left):
-                positions[num] = (xs_top_left[i], top_y)
 
-        # adult superior right -> xs_top_right
-        for i, num in enumerate(adultos_sup_der):
-            if i < len(xs_top_right):
-                positions[num] = (xs_top_right[i], top_y)
+        # Calcular X inicial para centrar
+        x_inicio_izq = margin_left + 1*cm
+        x_inicio_der = width/2 + 0.5*cm
 
-        # niño superior left -> encima de la dentición infantil (pegado a top_y - 30)
-        for i, num in enumerate(ninos_sup_izq):
-            if i < len(xs_top_left):
-                positions[num] = (xs_top_left[i], top_y - 30)
+        # Dibujar filas de adultos
+        self.dibujar_fila_dientes(pdf, fila1_nums, x_inicio_izq, y_fila1, diente_size, gap, 
+                                   tratamientos_por_diente, extracciones, not usa_adulta)
+        self.dibujar_fila_dientes(pdf, fila2_nums, x_inicio_der, y_fila2, diente_size, gap, 
+                                   tratamientos_por_diente, extracciones, not usa_adulta)
+        self.dibujar_fila_dientes(pdf, fila3_nums, x_inicio_izq, y_fila3, diente_size, gap, 
+                                   tratamientos_por_diente, extracciones, not usa_adulta)
+        self.dibujar_fila_dientes(pdf, fila4_nums, x_inicio_der, y_fila4, diente_size, gap, 
+                                   tratamientos_por_diente, extracciones, not usa_adulta)
 
-        for i, num in enumerate(ninos_sup_der):
-            if i < len(xs_top_right):
-                positions[num] = (xs_top_right[i], top_y - 30)
+        # Dibujar filas de niños
+        x_inicio_nino_izq = margin_left + 4*cm
+        x_inicio_nino_der = width/2 + 0.5*cm
+        x_inicio_nino_izq_derecha = x_inicio_nino_izq + 1.5*cm
+        
+        # Fila 5 (55–51) → mover a la derecha
+        self.dibujar_fila_dientes(
+            pdf, fila5_nums, x_inicio_nino_izq_derecha, y_fila5, diente_size, gap,
+            tratamientos_por_diente, extracciones, not usa_nino
+        )
 
-        # adult inferior left -> bottom positions (inverso visual)
-        for i, num in enumerate(adultos_inf_izq):
-            if i < len(xs_top_left):
-                positions[num] = (xs_top_left[i], bottom_y)
+        # Fila 6 queda igual
+        self.dibujar_fila_dientes(
+            pdf, fila6_nums, x_inicio_nino_der, y_fila6, diente_size, gap,
+            tratamientos_por_diente, extracciones, not usa_nino
+        )
 
-        for i, num in enumerate(adultos_inf_der):
-            if i < len(xs_top_right):
-                positions[num] = (xs_top_right[i], bottom_y)
+        # Fila 7 (85–81) → mover a la derecha
+        self.dibujar_fila_dientes(
+            pdf, fila7_nums, x_inicio_nino_izq_derecha, y_fila7, diente_size, gap,
+            tratamientos_por_diente, extracciones, not usa_nino
+        )
 
-        # niño inferior
-        for i, num in enumerate(ninos_inf_izq):
-            if i < len(xs_top_left):
-                positions[num] = (xs_top_left[i], bottom_y - 30)
+        # Fila 8 queda igual
+        self.dibujar_fila_dientes(
+            pdf, fila8_nums, x_inicio_nino_der, y_fila8, diente_size, gap,
+            tratamientos_por_diente, extracciones, not usa_nino
+        )
+        # === Cuadro alrededor del odontograma ===
+        odontograma_x = margin_left - 0.5*cm
+        odontograma_y = y_fila4 - 6*cm        # un poco por debajo de la última fila adulta
+        odontograma_width = width - 3.5*cm
+        odontograma_height = (y_fila1 - odontograma_y) + diente_size + 1.5*cm
 
-        for i, num in enumerate(ninos_inf_der):
-            if i < len(xs_top_right):
-                positions[num] = (xs_top_right[i], bottom_y - 30)
+        pdf.setLineWidth(1)
+        pdf.setStrokeColor(colors.black)
+        pdf.rect(odontograma_x, odontograma_y, odontograma_width, odontograma_height, stroke=1, fill=0)
+        # === Línea divisoria entre adultos y niños ===
+        pdf.setStrokeColor(colors.black)
+        pdf.setLineWidth(1)
 
-        # Helper utilities para decidir si es superior/inferior y niño/adulto
-        def is_superior(num):
-            return (11 <= num <= 18) or (21 <= num <= 28) or (51 <= num <= 65)
+        # Coordenadas de la línea
+        line_y = (y_fila4 - (y_fila4 - y_fila5) / 2)  # punto medio entre adultos inferiores y niños superiores
 
-        def is_inferior(num):
-            return (31 <= num <= 38) or (41 <= num <= 48) or (71 <= num <= 85)
+        pdf.line(margin_left - 0*cm, line_y, width - margin_left - 1*cm, line_y)
 
-        def is_pediatric(num):
-            return (51 <= num <= 65) or (71 <= num <= 85)
 
-        # Dibujar cada diente con sus caras
-        def draw_tooth(cnv, cx, cy, size=9 * mm, fill_color=colors.white, stroke_color=colors.black,
-                       tooth_obj=None):
-            """
-            Dibuja un diente centrado en (cx, cy).
-            - cuadrado central = oclusal
-            - trapecios alrededor = vestibular, palatino, mesial, distal
-            - tooth_obj: instancia de Diente con campos booleanos: oclusal, vestibular, distal, mesial, palatino
-            """
-            half = size / 2
-            # Coords del cuadrado central (oclusal)
-            sq_left = cx - half
-            sq_right = cx + half
-            sq_bottom = cy - half
-            sq_top = cy + half
+        # Etiquetas "Derecha" e "Izquierda"
+        pdf.setFont("Helvetica", 9)
+        pdf.drawString(margin_left, y_fila3 - 1*cm, "Derecha")
+        pdf.drawString(width - margin_left - 2*cm, y_fila3 - 1*cm, "Izquierda")
 
-            # Dibujar oclusal (cuadrado central)
-            cnv.setLineWidth(0.5)
-            cnv.setStrokeColor(stroke_color)
-            cnv.setFillColor(colors.white)
-            cnv.rect(sq_left, sq_bottom, size, size, stroke=1, fill=0)
 
-            # Determinar qué caras están activas (True => colorear)
-            def has(attr):
-                if tooth_obj is None:
-                    return False
-                return bool(getattr(tooth_obj, attr, False))
+        # Leyenda de referencias
+        self.dibujar_referencias(pdf, width, height)
 
-            # Trapecios: definimos sus 4 puntos
-            # Arriba trapecio (vestibular si diente superior, palatino si inferior)
-            up = [(sq_left - half * 0.6, sq_top),
-                  (sq_right + half * 0.6, sq_top),
-                  (sq_right, sq_top + half * 0.6),
-                  (sq_left, sq_top + half * 0.6)]
-            # Abajo trapecio
-            down = [(sq_left - half * 0.6, sq_bottom),
-                    (sq_right + half * 0.6, sq_bottom),
-                    (sq_right, sq_bottom - half * 0.6),
-                    (sq_left, sq_bottom - half * 0.6)]
-            # Izquierda trapecio (mesial)
-            left = [(sq_left, sq_bottom + half * 0.2),
-                    (sq_left, sq_top - half * 0.2),
-                    (sq_left - half * 0.6, sq_top),
-                    (sq_left - half * 0.6, sq_bottom)]
-            # Derecha trapecio (distal)
-            right = [(sq_right, sq_bottom + half * 0.2),
-                     (sq_right, sq_top - half * 0.2),
-                     (sq_right + half * 0.6, sq_top),
-                     (sq_right + half * 0.6, sq_bottom)]
-
-            # Decide cuál es vestibular / palatino según si es superior o inferior
-            # Si el diente está por encima del centro de la página -> consideramos superior
-            vertical_position = cy
-            # Heurística simple: si cy > (odontograma_y + usable_height/2) => superior
-            # (podés adaptar)
-            is_sup = vertical_position > (odontograma_y + usable_height / 2)
-
-            # Asignación de trapecios a caras
-            if is_sup:
-                vestibular_tr = up
-                palatino_tr = down
+    def dibujar_fila_dientes(self, pdf, numeros, x_inicio, y, size, gap, tratamientos, extracciones, marcar_no_usado):
+        """Dibuja una fila de dientes"""
+        
+        x_actual = x_inicio
+        
+        for num in numeros:
+            # Si el juego de dientes no se usa, dibujar línea roja horizontal
+            if marcar_no_usado:
+                self.dibujar_diente_no_usado(pdf, x_actual, y, size)
             else:
-                vestibular_tr = down
-                palatino_tr = up
+                # Verificar si el diente tiene extracción
+                if num in extracciones:
+                    self.dibujar_diente_extraido(pdf, x_actual, y, size)
+                else:
+                    # Dibujar diente con tratamientos
+                    caras_tratadas = tratamientos.get(num, set())
+                    self.dibujar_diente(pdf, x_actual, y, size, caras_tratadas)
+            
+            # CORRECCIÓN: Número del diente SIEMPRE se dibuja
+            pdf.setFont("Helvetica", 7)
+            pdf.setFillColor(colors.black)  # Asegurar que el texto sea negro
+            pdf.drawCentredString(x_actual + size/2, y - 0.4*cm, str(num))
+            
+            x_actual += size + gap
 
-            # Dibujar cada cara si tooth_obj tiene True correspondiente
-            # Usamos color rojo para existencia/lesión (puedes ajustar)
-            face_color = colors.lightgrey
+    def dibujar_diente(self, pdf, x, y, size, caras_tratadas):
+        """Dibuja un diente con sus 5 caras (cuadrado central + 4 trapecios)"""
+        
+        # Cuadrado central (oclusal)
+        cuadrado_margin = size * 0.25
+        cuadrado_x = x + cuadrado_margin
+        cuadrado_y = y + cuadrado_margin
+        cuadrado_size = size - 2 * cuadrado_margin
+        
+        # CORRECCIÓN: IDs de caras según tu BD
+        # oclusal(id=1), vestibular(3), mesial(5), distal(6), palatino(7)
+        
+        # Verificar si oclusal (id_cara=1) está tratada
+        if 1 in caras_tratadas:
+            pdf.setFillColor(colors.blue)
+            pdf.setStrokeColor(colors.black)
+            pdf.rect(cuadrado_x, cuadrado_y, cuadrado_size, cuadrado_size, stroke=1, fill=1)
+        else:
+            pdf.setFillColor(colors.white)
+            pdf.setStrokeColor(colors.black)
+            pdf.rect(cuadrado_x, cuadrado_y, cuadrado_size, cuadrado_size, stroke=1, fill=0)
+        
+        # Dibujar trapecios para las 4 caras
+        # Cara Vestibular (superior) - id_cara=3
+        if 3 in caras_tratadas:
+            self.dibujar_trapecio_superior(pdf, x, y, size, cuadrado_margin, colors.blue)
+        else:
+            self.dibujar_trapecio_superior(pdf, x, y, size, cuadrado_margin, colors.white)
+        
+        # Cara Palatino (inferior) - id_cara=7
+        if 7 in caras_tratadas:
+            self.dibujar_trapecio_inferior(pdf, x, y, size, cuadrado_margin, colors.blue)
+        else:
+            self.dibujar_trapecio_inferior(pdf, x, y, size, cuadrado_margin, colors.white)
+        
+        # Cara Mesial (izquierda) - id_cara=5
+        if 5 in caras_tratadas:
+            self.dibujar_trapecio_izquierdo(pdf, x, y, size, cuadrado_margin, colors.blue)
+        else:
+            self.dibujar_trapecio_izquierdo(pdf, x, y, size, cuadrado_margin, colors.white)
+        
+        # Cara Distal (derecha) - id_cara=6
+        if 6 in caras_tratadas:
+            self.dibujar_trapecio_derecho(pdf, x, y, size, cuadrado_margin, colors.blue)
+        else:
+            self.dibujar_trapecio_derecho(pdf, x, y, size, cuadrado_margin, colors.white)
 
-            # Mesial (left)
-            if has('mesial'):
-                p = left
-                path = cnv.beginPath()
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(face_color)
-                cnv.drawPath(path, stroke=1, fill=1)
-            else:
-                # solo borde
-                path = cnv.beginPath()
-                p = left
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(colors.white)
-                cnv.drawPath(path, stroke=1, fill=0)
+    def dibujar_trapecio_superior(self, pdf, x, y, size, margin, color):
+        """Dibuja el trapecio superior (vestibular)"""
+        path = pdf.beginPath()
+        path.moveTo(x + margin, y + size - margin)
+        path.lineTo(x + size - margin, y + size - margin)
+        path.lineTo(x + size, y + size)
+        path.lineTo(x, y + size)
+        path.close()
+        pdf.setFillColor(color)
+        pdf.setStrokeColor(colors.black)
+        pdf.drawPath(path, stroke=1, fill=1)
 
-            # Distal (right)
-            if has('distal'):
-                p = right
-                path = cnv.beginPath()
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(face_color)
-                cnv.drawPath(path, stroke=1, fill=1)
-            else:
-                path = cnv.beginPath()
-                p = right
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(colors.white)
-                cnv.drawPath(path, stroke=1, fill=0)
+    def dibujar_trapecio_inferior(self, pdf, x, y, size, margin, color):
+        """Dibuja el trapecio inferior (palatino/lingual)"""
+        path = pdf.beginPath()
+        path.moveTo(x + margin, y + margin)
+        path.lineTo(x + size - margin, y + margin)
+        path.lineTo(x + size, y)
+        path.lineTo(x, y)
+        path.close()
+        pdf.setFillColor(color)
+        pdf.setStrokeColor(colors.black)
+        pdf.drawPath(path, stroke=1, fill=1)
 
-            # Vestibular (top or bottom)
-            if has('vestibular'):
-                p = vestibular_tr
-                path = cnv.beginPath()
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(face_color)
-                cnv.drawPath(path, stroke=1, fill=1)
-            else:
-                path = cnv.beginPath()
-                p = vestibular_tr
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(colors.white)
-                cnv.drawPath(path, stroke=1, fill=0)
+    def dibujar_trapecio_izquierdo(self, pdf, x, y, size, margin, color):
+        """Dibuja el trapecio izquierdo (mesial)"""
+        path = pdf.beginPath()
+        path.moveTo(x + margin, y + margin)
+        path.lineTo(x + margin, y + size - margin)
+        path.lineTo(x, y + size)
+        path.lineTo(x, y)
+        path.close()
+        pdf.setFillColor(color)
+        pdf.setStrokeColor(colors.black)
+        pdf.drawPath(path, stroke=1, fill=1)
 
-            # Palatino/lingual
-            if has('palatino'):
-                p = palatino_tr
-                path = cnv.beginPath()
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(face_color)
-                cnv.drawPath(path, stroke=1, fill=1)
-            else:
-                path = cnv.beginPath()
-                p = palatino_tr
-                path.moveTo(*p[0])
-                for (x, y) in p[1:]:
-                    path.lineTo(x, y)
-                path.close()
-                cnv.setFillColor(colors.white)
-                cnv.drawPath(path, stroke=1, fill=0)
+    def dibujar_trapecio_derecho(self, pdf, x, y, size, margin, color):
+        """Dibuja el trapecio derecho (distal)"""
+        path = pdf.beginPath()
+        path.moveTo(x + size - margin, y + margin)
+        path.lineTo(x + size - margin, y + size - margin)
+        path.lineTo(x + size, y + size)
+        path.lineTo(x + size, y)
+        path.close()
+        pdf.setFillColor(color)
+        pdf.setStrokeColor(colors.black)
+        pdf.drawPath(path, stroke=1, fill=1)
 
-            # Redibujar cuadrado central (para superponer borde)
-            cnv.setStrokeColor(colors.black)
-            cnv.rect(sq_left, sq_bottom, size, size, stroke=1, fill=0)
+    def dibujar_diente_extraido(self, pdf, x, y, size, color=colors.red):
+        """Dibuja una X roja para dientes extraídos"""
+        pdf.setStrokeColor(color)
+        pdf.setLineWidth(2)
+        pdf.line(x, y, x + size, y + size)
+        pdf.line(x, y + size, x + size, y)
+        
+        # Dibujar contorno del diente
+        pdf.setStrokeColor(colors.black)
+        pdf.setLineWidth(1)
+        pdf.rect(x, y, size, size, stroke=1, fill=0)
 
-        # Recorremos dientes consultados y dibujamos en posiciones
-        for tooth in dientes:
-            try:
-                num = int(getattr(tooth, "numero", None))
-            except Exception:
-                # si 'numero' no es convertible, saltar
-                continue
-            pos = positions.get(num)
-            if not pos:
-                # si no tenemos posición definida para ese número, saltamos
-                continue
-            x, y = pos
-            draw_tooth(c, x, y, size=8.5 * mm, tooth_obj=tooth)
-            # Escribir número del diente abajo
-            c.setFont("Helvetica", 7)
-            c.drawCentredString(x, y - 6 * mm, str(num))
+    def dibujar_diente_no_usado(self, pdf, x, y, size):
+        """Dibuja línea roja horizontal para dentaduras no usadas"""
+        pdf.setStrokeColor(colors.red)
+        pdf.setLineWidth(1.5)
+        pdf.line(x, y + size/2, x + size, y + size/2)
+        
+        # Dibujar contorno del diente
+        pdf.setStrokeColor(colors.black)
+        pdf.setLineWidth(1)
+        pdf.rect(x, y, size, size, stroke=1, fill=0)
 
-        # ---- FICHA PATOLOGICA: dibujar tabla en la derecha ----
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(ficha_x, self.PAGE_HEIGHT - margin - 10, "FICHA PATOLÓGICA")
+    def dibujar_referencias(self, pdf, width, height):
+        """Dibuja el cuadro de referencias"""
+       
 
-        # Tabla: 7 filas x 5 columnas -> 35 celdas + fila extra
-        table_left = ficha_x
-        table_top = self.PAGE_HEIGHT - margin - 35
-        col_count = 5
-        row_count = 7
-        cell_w = ficha_width / col_count
-        cell_h = 14 * mm / (row_count / 5)  # heurística; ajusta si quieres tamaño fijo
+    def dibujar_observaciones(self, pdf, width, height, ficha):
+        """Dibuja la sección de observaciones"""
+        y_obs = height - 9*cm
+        pdf.setFont("Helvetica-Bold", 9)
+        pdf.drawString(2*cm, y_obs, "OBSERVACIONES:")
+        
+        # Líneas para escribir
+        pdf.setFont("Helvetica", 8)
+        y_line = y_obs - 0.5*cm
+        observaciones = ficha.observaciones or ""
+        
+        # Dibujar hasta 3 líneas de observaciones
+        lineas = observaciones[:200].split('\n') if observaciones else []
+        for i, linea in enumerate(lineas[:3]):
+            pdf.drawString(2*cm, y_line - i*0.5*cm, linea[:100])
 
-        # Mejor calcular con altura disponible:
-        avail_height = table_top - (ficha_y + 40)
-        # reservamos espacio para 8 filas (7 + 1 extra)
-        cell_h = min(12 * mm, (avail_height - 10 * mm) / 8)
+    def dibujar_ficha_patologica(self, pdf, width, height, ficha_patologica):
+        """Dibuja la tabla de ficha patológica"""
 
-        # path: por cada celda dibujar texto y si corresponde marcar 'SI' o 'NO'
-        c.setFont("Helvetica", 8)
-        x0 = table_left
-        y0 = table_top
+        # CORRECCIÓN: Verificar si existe ficha patológica
+        if not ficha_patologica:
+            # Dibujar tabla vacía
+            y_inicio = height - 10*cm
+            x_inicio = 2*cm
+            cell_width = 5*cm
+            cell_height = 0.6*cm
+            
+            pdf.setFont("Helvetica", 7)
+            pdf.drawString(x_inicio, y_inicio + 0.5*cm, "No hay ficha patológica registrada")
+            return
+        
+        y_inicio = height - 14*cm
+        x_inicio = 2*cm
+        
+        # Definir patologías en orden (7 filas x 5 columnas)
+        # CORRECCIÓN: Usar los nombres exactos de los campos del modelo
+        patologias = [
+            ('Alergias', ficha_patologica.alergias),
+            ('Embarazada o sospecha', ficha_patologica.embarazo_sospecha),
+            ('Hipotensión', ficha_patologica.hipotension),
+            ('Problemas tiroides', ficha_patologica.problemas_tiroides),
+            ('VIH', ficha_patologica.vih),
+            ('Anemias', ficha_patologica.anemia),
+            ('Fiebre Reumática', ficha_patologica.fiebre_reumatica),
+            ('Jaquecas', ficha_patologica.jaquecas),
+            ('Problemas respiratorios', ficha_patologica.problemas_respiratorios),
+            ('Portador de prótesis', ficha_patologica.portador_protesis),
+            ('Artritis', ficha_patologica.artritis),
+            ('Glaucoma', ficha_patologica.glaucoma),
+            ('Lesiones de cabeza', ficha_patologica.lesiones_cabeza),
+            ('Sinusitis', ficha_patologica.sinusitis),
+            ('Problema periodontal', ficha_patologica.problema_periodontal),
+            ('Asma', ficha_patologica.asma),
+            ('Hemorragias', ficha_patologica.hemorragias),
+            ('Problemas hepáticos', ficha_patologica.problemas_hepaticos),
+            ('Tuberculosis', ficha_patologica.tuberculosis),
+            ('Ortodoncia', ficha_patologica.ortodoncia),
+            ('Desnutrición', ficha_patologica.desnutricion),
+            ('Hepatitis', ficha_patologica.hepatitis),
+            ('Problemas mentales', ficha_patologica.problemas_mentales),
+            ('Tumores', ficha_patologica.tumores),
+            ('Mala oclusión', ficha_patologica.mala_oclusion),
+            ('Diabetes', ficha_patologica.diabetes),
+            ('Herpes', ficha_patologica.herpes),
+            ('Problemas Cardíacos', ficha_patologica.problemas_cardiacos),
+            ('Úlceras', ficha_patologica.ulceras),
+            ('Lesión en mucosa', ficha_patologica.lesion_mucosa),
+            ('Epilepsia', ficha_patologica.epilepsia),
+            ('Hipertensión', ficha_patologica.hipertension),
+            ('Problemas renales', ficha_patologica.problemas_renales),
+            ('Venéreas', ficha_patologica.venereas),
+            ('Toma medicación', ficha_patologica.toma_medicacion),
+        ]
+        
+        # Dimensiones de celdas
+        cell_width = 5*cm
+        cell_height = 0.6*cm
+        
+        pdf.setFont("Helvetica", 7)
+        # === Cuadro alrededor de la ficha patológica ===
+        cuadro_x = x_inicio - 0.3*cm
+        cuadro_y = y_inicio - 7*cell_height - 0.8*cm   # cubre 7 filas + "otras"
+        cuadro_width = (cell_width * 5) + 0.6*cm
+        cuadro_height = (7 * cell_height) + cell_height + 1.1*cm
 
-        # Lista de etiquetas "humanas" para las PATHOLOGY_ORDER (si quieres mostrar otras etiquetas más legibles)
-        label_map = {
-            # si preferís, podés mapear nombres de campo a etiquetas bonitas
-            "Alergias": "Alergias",
-            "Embarazada_o_sospecha": "Embarazada o sospecha",
-            "Hipotencion": "Hipotensión",
-            "Problemas_tiroideos": "Problemas tiroides",
-            "VIH": "VIH",
-            # ... completa según tus nombres
-        }
+        pdf.setLineWidth(1)
+        pdf.setStrokeColor(colors.black)
+        pdf.rect(cuadro_x, cuadro_y, cuadro_width, cuadro_height, stroke=1, fill=0)
 
-        # Usamos PATHOLOGY_ORDER hasta 35 primeros (7x5)
-        idx = 0
-        for r in range(row_count):
-            for ccol in range(col_count):
-                if idx >= len(self.PATHOLOGY_ORDER):
-                    break
-                field = self.PATHOLOGY_ORDER[idx]
-                # calcular coordenadas de celda
-                cx = x0 + ccol * cell_w
-                cy = y0 - r * cell_h
-                # dibujar rectángulo
-                c.rect(cx, cy - cell_h, cell_w, cell_h, stroke=1, fill=0)
-                # obtener valor de ficha (si existe)
-                value = False
-                if ficha is not None:
-                    # intento por varios nombres: campo directo, minusculas, reemplazando espacios
-                    for candidate in (field, field.lower(), field.lower().replace(" ", "_")):
-                        if hasattr(ficha, candidate):
-                            value = bool(getattr(ficha, candidate))
-                            break
-                # texto etiqueta
-                label = label_map.get(field, field.replace("_", " "))
-                # pintar etiqueta a la izquierda dentro de la celda
-                c.setFont("Helvetica", 7)
-                c.drawString(cx + 2 * mm, cy - cell_h + 3 * mm, label)
-                # pintar marca SI/NO a la derecha
-                mark = "SI" if value else "NO"
-                c.drawRightString(cx + cell_w - 2 * mm, cy - cell_h + 3 * mm, mark)
-                idx += 1
+        # Dibujar tabla (7 filas x 5 columnas)
+        for i, (nombre, valor) in enumerate(patologias):
+            fila = i // 5
+            columna = i % 5
+            
+            x = x_inicio + columna * cell_width
+            y = y_inicio - fila * cell_height
+            
+            # Dibujar celda
+            pdf.rect(x, y, cell_width, cell_height, stroke=1, fill=0)
+            
+            # Nombre de la patología
+            pdf.setFillColor(colors.black)
+            pdf.drawString(x + 0.1*cm, y + 0.2*cm, nombre)
+            
+            # CORRECCIÓN: Marcar si está presente (verificar que sea 1 o True)
+            if valor == 1 or valor is True:
+                pdf.setFont("Helvetica-Bold", 9)
+                pdf.drawString(x + cell_width - 0.5*cm, y + 0.2*cm, "✓")
+                pdf.setFont("Helvetica", 7)
+        
+        # Fila de "Otras especificar"
+        y_otras = y_inicio - 7 * cell_height
+        pdf.rect(x_inicio, y_otras, cell_width * 5, cell_height, stroke=1, fill=0)
+        pdf.drawString(x_inicio + 0.1*cm, y_otras + 0.2*cm, "Otras especificar:")
+        if ficha_patologica.otra:
+            pdf.drawString(x_inicio + 3*cm, y_otras + 0.2*cm, str(ficha_patologica.otra)[:50])
 
-        # Fila extra "Otras patologías" ocupando todo el ancho de la tabla justo debajo
-        extra_y = y0 - row_count * cell_h - 6 * mm
-        c.rect(x0, extra_y - cell_h, cell_w * col_count, cell_h, stroke=1, fill=0)
-        c.setFont("Helvetica", 8)
-        c.drawString(x0 + 2 * mm, extra_y - cell_h + 3 * mm, "Otras patologías:")
-        # Si ficha tiene un campo de texto para "otras" lo colocamos
-        otras_text = ""
-        if ficha is not None:
-            for candidate in ("otras", "otras_patologias", "otra_patologia", "otra_patologia_text"):
-                if hasattr(ficha, candidate):
-                    otras_text = getattr(ficha, candidate) or ""
-                    break
-        if otras_text:
-            # dibujar texto truncado si es muy largo
-            c.setFont("Helvetica", 7)
-            c.drawString(x0 + 40 * mm, extra_y - cell_h + 3 * mm, str(otras_text)[:120])
-
-        # Pie con firma / leyenda
-        c.setFont("Helvetica-Oblique", 8)
-        c.drawString(margin, odontograma_y + 10, f"Paciente: {getattr(paciente, 'nombre', '')} {getattr(paciente, 'apellido', '')}")
-
-        # Finalizar y retornar PDF
-        c.showPage()
-        c.save()
-        pdf = buffer.getvalue()
-        buffer.close()
-        response = HttpResponse(content_type="application/pdf")
-        response['Content-Disposition'] = f'inline; filename="odontograma_{paciente_id}.pdf"'
-        response.write(pdf)
-        return response
-
-
+    def dibujar_consentimiento_firmas(self, pdf, width, height, paciente):
+        """Dibuja la sección de consentimiento y firmas"""
+        y_consent = height - 17*cm
+        
+        # Texto de consentimiento
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.setFillColor(colors.black)
+        pdf.drawString(2*cm, y_consent, "CONSENTIMIENTO PARA SOMETERSE A TRATAMIENTO ODONTOLÓGICO")
+        
+        pdf.setFont("Helvetica", 6)
+        y_consent -= 0.4*cm
+        texto_consent = "Declaro tener conocimiento que el tratamiento odontológico tiene un alto grado de conformidad, es un procedimiento biológico..."
+        pdf.drawString(2*cm, y_consent, texto_consent[:110])
+        
+       
+        
+        
+        # Datos del profesional
+        pdf.drawString(width - 8*cm, "GISELA ALEJANDRA FLORES")
+        pdf.drawString(width - 8*cm, "ODONTÓLOGA")
+        pdf.drawString(width - 8*cm, "M.P. 1802")
+        pdf.drawString(width - 8*cm, "SELLO Y FIRMA DEL PROFESIONAL")
+        
 class MetodosCobroView(APIView):
     """Listar métodos de cobro disponibles"""
     

@@ -1,7 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './pacientesTableFicha.module.css';
 
 function PacientesTable({ pacientes, onVerTratamientos }) {
+
+  // -----------------------
+  // PAGINACIÓN
+  // -----------------------
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const totalPages = Math.ceil(pacientes.length / itemsPerPage);
+  const indexStart = (currentPage - 1) * itemsPerPage;
+  const indexEnd = indexStart + itemsPerPage;
+
+  const pacientesPagina = pacientes.slice(indexStart, indexEnd);
+
+  const nextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  // -----------------------
+
   if (pacientes.length === 0) {
     return (
       <div className={styles.noResults}>
@@ -23,7 +46,7 @@ function PacientesTable({ pacientes, onVerTratamientos }) {
           </tr>
         </thead>
         <tbody>
-          {pacientes.map((paciente) => (
+          {pacientesPagina.map((paciente) => (
             <tr key={paciente.id_paciente}>
               <td>{paciente.dni_paciente}</td>
               <td>{paciente.nombre_paciente}</td>
@@ -42,6 +65,21 @@ function PacientesTable({ pacientes, onVerTratamientos }) {
           ))}
         </tbody>
       </table>
+
+      {/* Controles de Paginación */}
+      <div className={styles.pagination}>
+        <button className={styles.pageBtn} onClick={prevPage} disabled={currentPage === 1}>
+          «
+        </button>
+
+        <span className={styles.pageNumber}>{currentPage} de {totalPages}</span>
+
+        <button className={styles.pageBtn} onClick={nextPage} disabled={currentPage === totalPages}>
+          »
+        </button>
+      </div>
+
+
     </div>
   );
 }
