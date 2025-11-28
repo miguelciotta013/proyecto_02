@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const thStyle = {
   padding: '18px 28px',
@@ -38,15 +38,66 @@ const buttonColors = {
 export default function CajaTable({ items = [], onView, onClose }) {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
+  const [busquedaId, setBusquedaId] = useState('');
 
-  const totalPages = Math.ceil(items.length / rowsPerPage);
-  const pageData = items.slice(
+  // Filtrar datos
+  const filteredItems = useMemo(() => {
+    let filtered = [...items];
+
+    // Filtro por ID
+    if (busquedaId.trim()) {
+      filtered = filtered.filter(item => {
+        const id = (item.id_caja || item.id || '').toString();
+        return id.includes(busquedaId.trim());
+      });
+    }
+
+    // Filtro por rango de fechas
+    if (fechaDesde || fechaHasta) {
+      filtered = filtered.filter(item => {
+        if (!item.fecha_hora_apertura) return false;
+        
+        const fechaItem = new Date(item.fecha_hora_apertura);
+        fechaItem.setHours(0, 0, 0, 0);
+
+        if (fechaDesde) {
+          const desde = new Date(fechaDesde);
+          desde.setHours(0, 0, 0, 0);
+          if (fechaItem < desde) return false;
+        }
+
+        if (fechaHasta) {
+          const hasta = new Date(fechaHasta);
+          hasta.setHours(23, 59, 59, 999);
+          if (fechaItem > hasta) return false;
+        }
+
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [items, fechaDesde, fechaHasta, busquedaId]);
+
+  const totalPages = Math.ceil(filteredItems.length / rowsPerPage);
+  const pageData = filteredItems.slice(
     (page - 1) * rowsPerPage,
     (page - 1) * rowsPerPage + rowsPerPage
   );
 
   const goNext = () => page < totalPages && setPage(page + 1);
   const goPrev = () => page > 1 && setPage(page - 1);
+
+  const limpiarFiltros = () => {
+    setFechaDesde('');
+    setFechaHasta('');
+    setBusquedaId('');
+    setPage(1);
+  };
+
+  const tienesFiltrosActivos = fechaDesde || fechaHasta || busquedaId;
 
   return (
     <div
@@ -86,6 +137,9 @@ export default function CajaTable({ items = [], onView, onClose }) {
             fontSize: '1rem' 
           }}>
             Total de registros: <strong>{items.length}</strong>
+            {tienesFiltrosActivos && (
+              <span> • Filtrados: <strong>{filteredItems.length}</strong></span>
+            )}
           </p>
         </div>
         
@@ -97,9 +151,143 @@ export default function CajaTable({ items = [], onView, onClose }) {
           border: '1px solid rgba(255,255,255,0.3)',
         }}>
           <span style={{ color: 'white', fontSize: '0.95rem', fontWeight: 600 }}>
-            Página {page} / {totalPages}
+            Página {page} / {totalPages || 1}
           </span>
         </div>
+      </div>
+
+      {/* Panel de Filtros */}
+      <div style={{
+        padding: '20px 32px',
+        background: '#f8fafc',
+        borderBottom: '2px solid #e2e8f0',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '16px',
+        alignItems: 'flex-end'
+      }}>
+        <div style={{ flex: '1 1 180px', minWidth: '180px' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: '#64748b',
+            marginBottom: '6px'
+          }}>
+            🔍 Buscar por ID
+          </label>
+          <input
+            type="text"
+            value={busquedaId}
+            onChange={(e) => {
+              setBusquedaId(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Ej: 123"
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              border: '2px solid #cbd5e1',
+              fontSize: '0.95rem',
+              outline: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#2e7d9d'}
+            onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+          />
+        </div>
+
+        <div style={{ flex: '1 1 200px', minWidth: '200px' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: '#64748b',
+            marginBottom: '6px'
+          }}>
+            📅 Desde
+          </label>
+          <input
+            type="date"
+            value={fechaDesde}
+            onChange={(e) => {
+              setFechaDesde(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              border: '2px solid #cbd5e1',
+              fontSize: '0.95rem',
+              outline: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#2e7d9d'}
+            onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+          />
+        </div>
+
+        <div style={{ flex: '1 1 200px', minWidth: '200px' }}>
+          <label style={{
+            display: 'block',
+            fontSize: '0.85rem',
+            fontWeight: 600,
+            color: '#64748b',
+            marginBottom: '6px'
+          }}>
+            📅 Hasta
+          </label>
+          <input
+            type="date"
+            value={fechaHasta}
+            onChange={(e) => {
+              setFechaHasta(e.target.value);
+              setPage(1);
+            }}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              borderRadius: '10px',
+              border: '2px solid #cbd5e1',
+              fontSize: '0.95rem',
+              outline: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onFocus={(e) => e.target.style.borderColor = '#2e7d9d'}
+            onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+          />
+        </div>
+
+        {tienesFiltrosActivos && (
+          <button
+            onClick={limpiarFiltros}
+            style={{
+              padding: '10px 20px',
+              background: '#9e9e9e',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              flex: '0 0 auto'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = '#757575';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = '#9e9e9e';
+              e.target.style.transform = 'translateY(0)';
+            }}
+          >
+            ✕ Limpiar Filtros
+          </button>
+        )}
       </div>
 
       {/* Tabla */}
@@ -254,10 +442,18 @@ export default function CajaTable({ items = [], onView, onClose }) {
                   color: '#94a3b8',
                   fontSize: '1.1rem'
                 }}>
-                  <div style={{ fontSize: '3rem', marginBottom: 12 }}>📭</div>
-                  <div style={{ fontWeight: 600 }}>No hay registros disponibles</div>
+                  <div style={{ fontSize: '3rem', marginBottom: 12 }}>
+                    {tienesFiltrosActivos ? '🔍' : '📭'}
+                  </div>
+                  <div style={{ fontWeight: 600 }}>
+                    {tienesFiltrosActivos 
+                      ? 'No se encontraron resultados' 
+                      : 'No hay registros disponibles'}
+                  </div>
                   <div style={{ fontSize: '0.9rem', marginTop: 8 }}>
-                    Los registros de caja aparecerán aquí
+                    {tienesFiltrosActivos 
+                      ? 'Intenta ajustar los filtros de búsqueda' 
+                      : 'Los registros de caja aparecerán aquí'}
                   </div>
                 </td>
               </tr>
@@ -266,7 +462,7 @@ export default function CajaTable({ items = [], onView, onClose }) {
         </table>
       </div>
 
-      {/* Footer con paginación mejorada */}
+      {/* Footer con paginación */}
       <div
         style={{
           padding: '24px 32px',
@@ -277,7 +473,6 @@ export default function CajaTable({ items = [], onView, onClose }) {
           background: '#f8fafc',
         }}
       >
-        {/* Selector de filas */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <label style={{ 
             fontSize: '1rem', 
@@ -315,14 +510,13 @@ export default function CajaTable({ items = [], onView, onClose }) {
           </select>
         </div>
 
-        {/* Info y botones */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <span style={{ 
             fontSize: '1rem', 
             color: '#64748b',
             fontWeight: 500
           }}>
-            Mostrando {(page - 1) * rowsPerPage + 1} - {Math.min(page * rowsPerPage, items.length)} de {items.length}
+            Mostrando {filteredItems.length ? (page - 1) * rowsPerPage + 1 : 0} - {Math.min(page * rowsPerPage, filteredItems.length)} de {filteredItems.length}
           </span>
 
           <div style={{ display: 'flex', gap: 10 }}>
@@ -360,16 +554,16 @@ export default function CajaTable({ items = [], onView, onClose }) {
                 cursor: page === totalPages ? 'not-allowed' : 'pointer',
                 padding: '10px 20px',
               }}
-              disabled={page === totalPages}
+              disabled={page === totalPages || totalPages === 0}
               onClick={goNext}
               onMouseEnter={(e) => {
-                if (page !== totalPages) {
+                if (page !== totalPages && totalPages !== 0) {
                   e.target.style.backgroundColor = '#757575';
                   e.target.style.transform = 'translateY(-2px)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (page !== totalPages) {
+                if (page !== totalPages && totalPages !== 0) {
                   e.target.style.backgroundColor = '#9e9e9e';
                   e.target.style.transform = 'translateY(0)';
                 }
@@ -381,7 +575,6 @@ export default function CajaTable({ items = [], onView, onClose }) {
         </div>
       </div>
 
-      {/* Animación del pulso */}
       <style>{`
         @keyframes pulse {
           0%, 100% {
