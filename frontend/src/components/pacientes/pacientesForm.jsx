@@ -31,9 +31,49 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
   const [touched, setTouched] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [countryCode, setCountryCode] = useState("+54");
+  const [localPhone, setLocalPhone] = useState('');
+
+  const countryCodes = [
+    { code: "+54", name: "Argentina", flag: "🇦🇷" },
+    { code: "+591", name: "Bolivia", flag: "🇧🇴" },
+    { code: "+55", name: "Brasil", flag: "🇧🇷" },
+    { code: "+56", name: "Chile", flag: "🇨🇱" },
+    { code: "+57", name: "Colombia", flag: "🇨🇴" },
+    { code: "+506", name: "Costa Rica", flag: "🇨🇷" },
+    { code: "+53", name: "Cuba", flag: "🇨🇺" },
+    { code: "+593", name: "Ecuador", flag: "🇪🇨" },
+    { code: "+503", name: "El Salvador", flag: "🇸🇻" },
+    { code: "+34", name: "España", flag: "🇪🇸" },
+    { code: "+1", name: "Estados Unidos", flag: "🇺🇸" },
+    { code: "+33", name: "Francia", flag: "🇫🇷" },
+    { code: "+502", name: "Guatemala", flag: "🇬🇹" },
+    { code: "+504", name: "Honduras", flag: "🇭🇳" },
+    { code: "+39", name: "Italia", flag: "🇮🇹" },
+    { code: "+52", name: "México", flag: "🇲🇽" },
+    { code: "+505", name: "Nicaragua", flag: "🇳🇮" },
+    { code: "+507", name: "Panamá", flag: "🇵🇦" },
+    { code: "+595", name: "Paraguay", flag: "🇵🇾" },
+    { code: "+51", name: "Perú", flag: "🇵🇪" },
+    { code: "+351", name: "Portugal", flag: "🇵🇹" },
+    { code: "+1", name: "Puerto Rico", flag: "🇵🇷" },
+    { code: "+598", name: "Uruguay", flag: "🇺🇾" },
+    { code: "+58", name: "Venezuela", flag: "🇻🇪" }
+  ];
 
   useEffect(() => {
     if (initialData) {
+      // Extraer código de país del teléfono si existe
+      const tel = initialData.telefono || '';
+      const matchedCountry = countryCodes.find(c => tel.startsWith(c.code));
+      
+      if (matchedCountry) {
+        setCountryCode(matchedCountry.code);
+        setLocalPhone(tel.replace(matchedCountry.code, '').trim());
+      } else {
+        setLocalPhone(tel);
+      }
+      
       setForm({
         dni_paciente: initialData.dni_paciente || '',
         nombre_paciente: initialData.nombre_paciente || '',
@@ -41,7 +81,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
         fecha_nacimiento: initialData.fecha_nacimiento || '',
         domicilio: initialData.domicilio || '',
         localidad: initialData.localidad || '',
-        telefono: initialData.telefono || '',
+        telefono: tel,
         correo: initialData.correo || ''
       });
     }
@@ -55,6 +95,10 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
       case 'dni_paciente':
         if (!value.trim()) return 'DNI es obligatorio';
         if (!/^\d{7,8}$/.test(value.trim())) return 'DNI debe tener 7 u 8 dígitos';
+        if (/^0/.test(value.trim())) return 'DNI no puede comenzar con cero';
+        const dniNum = Number(value.trim());
+        if (dniNum < 1000000) return 'DNI inválido';
+        if (dniNum > 99000000) return 'DNI fuera de rango real';
         return null;
         
       case 'nombre_paciente':
@@ -84,7 +128,12 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
       case 'telefono':
         if (!value.trim()) return 'Teléfono es obligatorio';
         const telLimpio = value.replace(/[\s\-()]/g, '');
-        if (!/^\d{6,15}$/.test(telLimpio)) return 'Teléfono debe tener entre 6 y 15 dígitos';
+        if (!telLimpio.startsWith('+')) {
+          return 'El teléfono debe comenzar con + y el código de país';
+        }
+        if (!/^\+\d{7,15}$/.test(telLimpio)) {
+          return 'Teléfono debe tener entre 7 y 15 dígitos después del código';
+        }
         return null;
         
       case 'correo':
@@ -92,17 +141,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
           return 'Correo electrónico no válido';
         }
         return null;
-        
-      case 'domicilio':
-        if (!value.trim()) return 'Domicilio es obligatorio';
-        if (value.trim().length < 3) return 'Domicilio debe tener al menos 3 caracteres';
-        return null;
-        
-      case 'localidad':
-        if (!value.trim()) return 'Localidad es obligatoria';
-        if (value.trim().length < 2) return 'Localidad debe tener al menos 2 caracteres';
-        return null;
-        
+
       default:
         return null;
     }
@@ -112,7 +151,6 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     
-    // Validar en tiempo real solo si el campo ya fue tocado
     if (touched[name]) {
       const errorMsg = validateField(name, value);
       setErrors(prev => ({ ...prev, [name]: errorMsg }));
@@ -139,14 +177,12 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
   async function handleSubmit(e) {
     e.preventDefault();
     
-    // Marcar todos los campos como tocados
     const allTouched = {};
     Object.keys(form).forEach(key => {
       allTouched[key] = true;
     });
     setTouched(allTouched);
     
-    // Validar formulario
     const validationErrors = validateForm();
     
     if (Object.keys(validationErrors).length > 0) {
@@ -173,11 +209,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
         console.log('✅ Operación exitosa:', resp.data);
         setSubmitSuccess(true);
 
-        // Llamar callback correspondiente
         if (initialData?.id_paciente) {
-          // Si el backend NO devuelve los datos actualizados en resp.data,
-          // solicitarlos explícitamente para asegurar que el padre reciba
-          // la versión completa y actualizada del paciente.
           if (resp.data) {
             onUpdated?.(resp.data);
           } else {
@@ -194,7 +226,6 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
           onCreated?.(resp.data);
         }
 
-        // Cerrar después de un breve delay
         setTimeout(() => {
           onClose?.();
         }, 500);
@@ -203,13 +234,10 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
       }
     } catch (e) {
       console.error('❌ Error:', e);
-      // Manejar errores de validación devueltos por el backend (e.response.data.errors)
       const remoteErrors = e?.response?.data?.errors;
       if (remoteErrors && typeof remoteErrors === 'object') {
-        // Mapear errores del backend al estado local de errores
         const newErrors = { ...errors };
         Object.keys(remoteErrors).forEach(k => {
-          // remoteErrors[k] puede ser una lista de mensajes
           const v = remoteErrors[k];
           newErrors[k] = Array.isArray(v) ? v.join(' ') : String(v);
         });
@@ -250,7 +278,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
             </h2>
           </div>
           <button onClick={onClose} style={closeButtonStyle}>
-            <X size={24} />
+            <X size={34} />
           </button>
         </div>
 
@@ -296,7 +324,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
               label="Nombre"
               name="nombre_paciente"
               type="text"
-              placeholder="Juan"
+              placeholder="Nombre del paciente"
               value={form.nombre_paciente}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -309,7 +337,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
               label="Apellido"
               name="apellido_paciente"
               type="text"
-              placeholder="Pérez"
+              placeholder="Apellido del paciente"
               value={form.apellido_paciente}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -335,18 +363,69 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
               )}
             </div>
 
-            {/* Teléfono */}
-            <FormField
-              icon={<Phone size={18} />}
-              label="Teléfono"
-              name="telefono"
-              type="tel"
-              placeholder="3874123456"
-              value={form.telefono}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              error={touched.telefono && errors.telefono}
-            />
+            {/* Teléfono con selector de país */}
+            <div style={fieldContainerStyle}>
+              <label style={labelStyle}>
+                <span style={iconLabelStyle}><Phone size={18} /></span>
+                Teléfono
+              </label>
+              <div style={phoneContainerStyle}>
+                <select 
+                  value={countryCode}
+                  onChange={(e) => {
+                    const newCode = e.target.value;
+                    setCountryCode(newCode);
+                    // Actualizar el teléfono completo
+                    const fullPhone = localPhone ? `${newCode}${localPhone}` : '';
+                    setForm(prev => ({ ...prev, telefono: fullPhone }));
+                  }}
+                  style={countrySelectStyle}
+                >
+                  {countryCodes.map(country => (
+                    <option key={country.code + country.name} value={country.code}>
+                      {country.flag} {country.code}
+                    </option>
+                  ))}
+                </select>
+                
+                <input
+                  type="tel"
+                  name="telefono_local"
+                  placeholder="3874123456"
+                  value={localPhone}
+                  onChange={(e) => {
+                    const numberOnly = e.target.value.replace(/\D/g, '');
+                    setLocalPhone(numberOnly);
+                    const fullPhone = numberOnly ? `${countryCode}${numberOnly}` : '';
+                    setForm(prev => ({ ...prev, telefono: fullPhone }));
+                    
+                    // Validar en tiempo real si ya fue tocado
+                    if (touched.telefono) {
+                      const errorMsg = validateField('telefono', fullPhone);
+                      setErrors(prev => ({ ...prev, telefono: errorMsg }));
+                    }
+                  }}
+                  onBlur={() => {
+                    setTouched(prev => ({ ...prev, telefono: true }));
+                    const errorMsg = validateField('telefono', form.telefono);
+                    setErrors(prev => ({ ...prev, telefono: errorMsg }));
+                  }}
+                  style={{
+                    ...phoneInputStyle,
+                    borderColor: (touched.telefono && errors.telefono) ? '#f44336' : '#ddd'
+                  }}
+                />
+              </div>
+              {touched.telefono && errors.telefono && (
+                <div style={errorTextStyle}>
+                  <AlertCircle size={14} style={{ marginRight: 4 }} />
+                  {errors.telefono}
+                </div>
+              )}
+              <div style={hintStyle}>
+                Formato: {countryCode} + número local
+              </div>
+            </div>
 
             {/* Correo */}
             <FormField
@@ -354,7 +433,7 @@ export default function PacientesForm({ onClose, onCreated, initialData, onUpdat
               label="Correo (opcional)"
               name="correo"
               type="email"
-              placeholder="juan@ejemplo.com"
+              placeholder="nombre@gmail.com"
               value={form.correo}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -611,7 +690,7 @@ const iconLabelStyle = {
 const inputStyle = {
   width: '100%',
   padding: '12px 14px',
-  borderRadius: '8px',
+  borderRadius: '80px',
   border: '2px solid #ddd',
   fontSize: '14px',
   transition: 'all 0.2s',
@@ -671,4 +750,35 @@ const cancelButtonStyle = {
   cursor: 'pointer',
   transition: 'all 0.2s',
   fontFamily: "'Poppins', sans-serif"
+};
+
+const phoneContainerStyle = {
+  display: 'flex',
+  gap: '8px',
+  alignItems: 'stretch'
+};
+
+const countrySelectStyle = {
+  padding: '12px 12px',
+  borderRadius: '8px',
+  border: '2px solid #ddd',
+  fontSize: '14px',
+  minWidth: '120px',     // 👈 ANCHO FIJO
+  fontFamily: "'Poppins', sans-serif",
+  backgroundColor: '#fff',
+  cursor: 'pointer',
+  fontWeight: '500'
+};
+
+
+const phoneInputStyle = {
+  flex: 1,
+  minWidth: '200px',   // 👈 LE DA ESPACIO REAL
+  padding: '12px 12px',
+  borderRadius: '8px',
+  border: '2px solid #ddd',
+  fontSize: '14px',
+  transition: 'all 0.2s',
+  fontFamily: "'Poppins', sans-serif",
+  boxSizing: 'border-box'
 };

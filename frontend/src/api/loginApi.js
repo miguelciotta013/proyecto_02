@@ -9,8 +9,6 @@ const authEndpoint = "/auth/";
 export async function login(username, password) {
   try {
     const payload = { username, password };
-    
-    // ✅ CORREGIDO: antes usaba `${authEndpoint}login/`
     const res = await sistemaApi.post(authEndpoint, payload);
 
     if (res.data?.access) {
@@ -47,4 +45,26 @@ export async function logout() {
   window.location.href = "/login";
 }
 
-export default { login, logout };
+/**
+ * 🔑 Cambiar contraseña
+ */
+export async function cambiarContrasena(payload) {
+  try {
+    const res = await sistemaApi.post(`${authEndpoint}cambiar/`, payload);
+    return res.data;
+  } catch (error) {
+    console.error("❌ Error al cambiar contraseña:", error.response?.data || error.message);
+    
+    // Lanzar el error con el mensaje del servidor si existe
+    const errorMsg = 
+      error.response?.data?.message || 
+      error.response?.data?.error || 
+      error.response?.data?.detail ||
+      error.message ||
+      "Error al cambiar la contraseña";
+    
+    throw new Error(errorMsg);
+  }
+}
+
+export default { login, logout, cambiarContrasena };
