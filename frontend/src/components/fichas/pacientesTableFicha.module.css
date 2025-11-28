@@ -126,3 +126,32 @@
     font-size: 1rem;
   }
 }
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.pageBtn {
+  background: #2e86ab;
+  border: none;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.pageBtn:disabled {
+  background: #9bbdcc;
+  cursor: not-allowed;
+}
+
+.pageNumber {
+  font-weight: bold;
+  color: #1a5f7a;
+  font-size: 1rem;
+}

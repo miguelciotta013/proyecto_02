@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { updateCobro, getMetodosCobro } from '../../api/fichasApi';
+import { updateCobro, getMetodosCobro, getCajaAbierta } from '../../api/fichasApi';
 import styles from './cobroModal.module.css';
 
 function CobroModal({ cobro, onClose, onUpdate }) {
@@ -9,6 +9,26 @@ function CobroModal({ cobro, onClose, onUpdate }) {
     monto_pagado_paciente: 0,
     monto_pagado_obra_social: 0
   });
+  const [hayCajaAbierta, setHayCajaAbierta] = useState(false);
+
+  useEffect(() => {
+    verificarCaja();
+    fetchMetodosCobro();
+  }, []);
+
+  async function verificarCaja() {
+    try {
+      const resp = await getCajaAbierta();
+      if (resp.data.success && resp.data.data.length > 0) {
+        setHayCajaAbierta(true);
+      } else {
+        setHayCajaAbierta(false);
+      }
+    } catch {
+      setHayCajaAbierta(false);
+    }
+  }
+
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
 
@@ -197,16 +217,22 @@ function CobroModal({ cobro, onClose, onUpdate }) {
           </div>
 
           {/* Formulario de actualización */}
+            
           <div className={styles.formSection}>
             {!editMode ? (
-              <button
-                className={`${styles.btn} ${styles.btnPrimary}`}
-                onClick={() => setEditMode(true)}
-                disabled={parseFloat(cobro.monto_total) === 0}
-              >
-                {cobro.estado_pago === 'pendiente' ? '💰 Registrar Pago' : '✏️ Agregar Pago'}
-              </button>
+              <>
+                {hayCajaAbierta && cobro.estado_pago !== 'pagado' && (
+                  <button
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    onClick={() => setEditMode(true)}
+                    disabled={parseFloat(cobro.monto_total) === 0}
+                  >
+                    {cobro.estado_pago === 'pendiente' ? '💰 Registrar Pago' : '✏️ Agregar Pago'}
+                  </button>
+                )}
+              </>
             ) : (
+
               <form onSubmit={handleSubmit}>
                 <h4 className={styles.formTitle}>Registrar nuevo pago</h4>
 
@@ -293,7 +319,7 @@ function CobroModal({ cobro, onClose, onUpdate }) {
                     className={`${styles.btn} ${styles.btnSuccess}`}
                     disabled={loading}
                   >
-                    {loading ? 'Guardando...' : '✓ Confirmar Pago'}
+                    {loading ? 'Guardando...' : 'Confirmar Pago'}
                   </button>
                 </div>
               </form>

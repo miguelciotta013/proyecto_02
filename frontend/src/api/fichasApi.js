@@ -236,6 +236,9 @@ export const getPacientesConOS = () =>
  */
 export const getCajaEstado = () => 
   apiClient.get('/ficha_medica/caja/estado/');
+export const getCajaAbierta = () =>
+  apiClient.get('/caja/?estado=abierta');
+
 
 export const getFichaPatologica = (idPacienteOS) => 
   apiClient.get(`/ficha_medica/patologia/?id_paciente_os=${idPacienteOS}`);
@@ -332,6 +335,7 @@ export default {
   
   // Caja
   getCajaEstado,
+  getCajaAbierta,
   
   // Helpers
   downloadPDF,
